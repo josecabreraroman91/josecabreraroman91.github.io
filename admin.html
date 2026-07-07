@@ -8,65 +8,94 @@
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg-0:#070a07;--bg-1:#0d130d;--surface:#121a12;--surface-2:#18211a;
+    --bg-0:#070a07;--bg-1:#0d130d;--surface:#121a12;--surface-2:#18211a;--surface-3:#1e2a1f;
     --line:rgba(196,242,77,.12);--line-strong:rgba(196,242,77,.22);
     --txt:#eef4e8;--txt-dim:#9bab92;--txt-faint:#66755e;
     --lime:#c4f24d;--lime-deep:#a6d92f;
-    --on:#c4f24d;--off:#ff8f8f;--warn:#f2c94c;
+    --off:#ff8f8f;--warn:#f2c94c;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:'Inter',system-ui,sans-serif;color:var(--txt);
     background:radial-gradient(1000px 700px at 90% -15%,rgba(196,242,77,.10),transparent 60%),linear-gradient(160deg,var(--bg-0),var(--bg-1));
-    min-height:100dvh;padding:24px 18px 60px}
-  .wrap{max-width:900px;margin:0 auto}
+    min-height:100dvh;padding:24px 18px 70px}
+  .wrap{max-width:960px;margin:0 auto}
+  a{color:inherit}
 
-  header{display:flex;align-items:center;gap:13px;margin-bottom:8px}
+  header{display:flex;align-items:center;gap:13px;margin-bottom:6px}
   header img{width:40px;height:40px;filter:drop-shadow(0 0 10px rgba(196,242,77,.5))}
   header .t{font-family:'Sora',sans-serif;font-weight:700;font-size:20px}
   header .t small{display:block;font-family:'Inter';font-weight:500;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--lime);margin-bottom:3px}
   header .sp{flex:1}
   .out{background:none;border:1px solid var(--line-strong);color:var(--txt-dim);border-radius:9px;padding:8px 12px;font:inherit;font-size:13px;cursor:pointer}
   .out:hover{color:var(--txt);border-color:var(--lime)}
+  .sub{color:var(--txt-dim);font-size:14px;margin:4px 0 20px}
 
-  .sub{color:var(--txt-dim);font-size:14px;margin:6px 0 22px}
+  /* tablero */
+  .board{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+  .kpi{background:linear-gradient(180deg,var(--surface),#0e150e);border:1px solid var(--line);border-radius:13px;padding:15px 16px}
+  .kpi .n{font-family:'Sora',sans-serif;font-weight:700;font-size:26px;line-height:1}
+  .kpi .l{font-size:12px;color:var(--txt-dim);margin-top:6px}
+  .kpi.on .n{color:var(--lime)} .kpi.tr .n{color:var(--warn)} .kpi.off .n{color:var(--off)}
+  @media(max-width:640px){.board{grid-template-columns:repeat(2,1fr)}}
 
   .bar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
-  .search{flex:1;min-width:200px;background:var(--bg-0);border:1px solid var(--line-strong);border-radius:10px;padding:11px 13px;color:var(--txt);font:inherit;font-size:14px}
+  .search{flex:1;min-width:180px;background:var(--bg-0);border:1px solid var(--line-strong);border-radius:10px;padding:11px 13px;color:var(--txt);font:inherit;font-size:14px}
   .search:focus{outline:none;border-color:var(--lime);box-shadow:0 0 0 3px rgba(196,242,77,.2)}
-  .stat{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--txt-dim);white-space:nowrap}
-  .stat b{color:var(--lime);font-family:'Sora',sans-serif}
+  .filter{display:flex;gap:6px;background:var(--bg-0);border:1px solid var(--line-strong);border-radius:10px;padding:4px}
+  .filter button{background:none;border:none;color:var(--txt-dim);font:inherit;font-size:13px;padding:7px 12px;border-radius:7px;cursor:pointer}
+  .filter button.act{background:var(--surface-3);color:var(--txt)}
 
   .card{background:linear-gradient(180deg,var(--surface),#0e150e);border:1px solid var(--line);border-radius:14px;overflow:hidden}
-  .row{display:grid;grid-template-columns:1fr auto auto;gap:14px;align-items:center;padding:15px 18px;border-top:1px solid var(--line)}
+  .row{border-top:1px solid var(--line)}
   .row:first-child{border-top:none}
+  .row__head{display:grid;grid-template-columns:1fr auto auto auto;gap:12px;align-items:center;padding:15px 18px;cursor:pointer}
   .row__info{min-width:0}
   .row__info h3{font-family:'Sora',sans-serif;font-size:15px;font-weight:600;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .row__info p{font-size:12.5px;color:var(--txt-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .row__info .mail{color:var(--txt-faint)}
+  .row__info p{font-size:12.5px;color:var(--txt-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .venc{font-size:11.5px;color:var(--txt-dim);white-space:nowrap}
+  .venc.soon{color:var(--warn)} .venc.past{color:var(--off)}
 
-  .badge{font-family:'Sora',sans-serif;font-size:11px;font-weight:600;padding:5px 11px;border-radius:20px;white-space:nowrap;text-align:center;min-width:78px}
+  .badge{font-family:'Sora',sans-serif;font-size:11px;font-weight:600;padding:5px 11px;border-radius:20px;white-space:nowrap;text-align:center;min-width:74px}
   .badge.active{background:rgba(196,242,77,.14);color:var(--lime);border:1px solid rgba(196,242,77,.32)}
   .badge.inactive{background:rgba(255,143,143,.12);color:var(--off);border:1px solid rgba(255,143,143,.3)}
   .badge.trial{background:rgba(242,201,76,.12);color:var(--warn);border:1px solid rgba(242,201,76,.3)}
+  .chev{color:var(--txt-faint);transition:transform .2s;font-size:12px}
+  .row.open .chev{transform:rotate(90deg)}
 
-  .toggle{border:none;border-radius:10px;padding:9px 15px;font-family:'Sora',sans-serif;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;min-width:104px;transition:filter .15s,transform .05s}
-  .toggle:active{transform:translateY(1px)}
-  .toggle:disabled{opacity:.55;cursor:default}
-  .toggle.enable{background:linear-gradient(92deg,#d6f97e,var(--lime) 60%,var(--lime-deep));color:#0c1206}
-  .toggle.disable{background:rgba(255,143,143,.14);color:var(--off);border:1px solid rgba(255,143,143,.35)}
-  .toggle:hover:not(:disabled){filter:brightness(1.07)}
+  .panel{display:none;padding:0 18px 18px;border-top:1px solid var(--line);background:rgba(0,0,0,.15)}
+  .row.open .panel{display:block}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding-top:16px}
+  @media(max-width:600px){.grid{grid-template-columns:1fr}.row__head{grid-template-columns:1fr auto auto}}
+  .stat2{display:flex;gap:18px;font-size:13px;color:var(--txt-dim);padding-top:14px}
+  .stat2 b{color:var(--txt);font-family:'Sora',sans-serif}
+  .fld label{display:block;font-size:12px;color:var(--txt-dim);margin-bottom:6px}
+  .fld input,.fld textarea{width:100%;background:var(--bg-0);border:1px solid var(--line-strong);border-radius:9px;padding:10px 12px;color:var(--txt);font:inherit;font-size:14px}
+  .fld textarea{resize:vertical;min-height:44px}
+  .fld input:focus,.fld textarea:focus{outline:none;border-color:var(--lime)}
+  .acts{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px;align-items:center}
+  .btn{border:none;border-radius:9px;padding:9px 14px;font-family:'Sora',sans-serif;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+  .btn:active{transform:translateY(1px)}
+  .btn.on{background:linear-gradient(92deg,#d6f97e,var(--lime) 60%,var(--lime-deep));color:#0c1206}
+  .btn.off{background:rgba(255,143,143,.14);color:var(--off);border:1px solid rgba(255,143,143,.35)}
+  .btn.ghost{background:none;border:1px solid var(--line-strong);color:var(--txt-dim)}
+  .btn.ghost:hover{color:var(--txt);border-color:var(--lime)}
+  .btn.save{background:var(--surface-3);color:var(--lime);border:1px solid var(--line-strong)}
+  .btn.danger{background:none;border:1px solid rgba(255,143,143,.35);color:var(--off);margin-left:auto}
+  .btn.danger:hover{background:rgba(255,143,143,.1)}
 
   .msg{text-align:center;padding:44px 20px;color:var(--txt-dim);font-size:14.5px}
   .msg.err{color:var(--off)}
-  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(120px);background:var(--surface-2);border:1px solid var(--line-strong);color:var(--txt);padding:12px 20px;border-radius:12px;font-size:14px;box-shadow:0 14px 40px rgba(0,0,0,.5);transition:transform .25s;z-index:50}
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(120px);background:var(--surface-2);border:1px solid var(--line-strong);color:var(--txt);padding:12px 20px;border-radius:12px;font-size:14px;box-shadow:0 14px 40px rgba(0,0,0,.5);transition:transform .25s;z-index:50;max-width:90vw;text-align:center}
   .toast.show{transform:translateX(-50%) translateY(0)}
 
-  @media(max-width:560px){
-    .row{grid-template-columns:1fr auto;grid-template-areas:"info status" "info toggle"}
-    .row__info{grid-area:info}
-    .badge{grid-area:status}
-    .toggle{grid-area:toggle}
-  }
+  /* modal confirmar borrado */
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:24px;z-index:60}
+  .modal.show{display:flex}
+  .modal__box{background:var(--surface);border:1px solid var(--line-strong);border-radius:16px;padding:26px;max-width:420px;width:100%}
+  .modal__box h3{font-family:'Sora',sans-serif;font-size:18px;margin-bottom:10px}
+  .modal__box p{color:var(--txt-dim);font-size:14px;line-height:1.6;margin-bottom:16px}
+  .modal__box .warn{color:var(--off);font-size:13px}
+  .modal__acts{display:flex;gap:10px;justify-content:flex-end;margin-top:8px}
 </style>
 </head>
 <body>
@@ -77,77 +106,162 @@
       <div class="sp"></div>
       <button class="out" id="out">Salir</button>
     </header>
-    <p class="sub">Habilitá o cortá el acceso de cada estudio. Los cambios se aplican al instante.</p>
+    <p class="sub">Gestioná el acceso, el vencimiento y los datos de cada estudio.</p>
+
+    <div class="board">
+      <div class="kpi on"><div class="n" id="kOn">—</div><div class="l">Activos</div></div>
+      <div class="kpi tr"><div class="n" id="kTrial">—</div><div class="l">En prueba</div></div>
+      <div class="kpi off"><div class="n" id="kOff">—</div><div class="l">Cortados</div></div>
+      <div class="kpi"><div class="n" id="kSoon">—</div><div class="l">Vencen pronto</div></div>
+    </div>
 
     <div class="bar">
       <input class="search" id="q" placeholder="Buscar por estudio o correo…">
-      <div class="stat">Activos: <b id="cActive">—</b> · Total: <b id="cTotal">—</b></div>
+      <div class="filter" id="filters">
+        <button data-f="all" class="act">Todos</button>
+        <button data-f="active">Activos</button>
+        <button data-f="trial">Prueba</button>
+        <button data-f="inactive">Cortados</button>
+      </div>
     </div>
 
     <div class="card" id="list"><div class="msg" id="loading">Cargando estudios…</div></div>
   </div>
+
   <div class="toast" id="toast"></div>
+
+  <div class="modal" id="modal">
+    <div class="modal__box">
+      <h3>Eliminar estudio</h3>
+      <p>Vas a eliminar <b id="delName">—</b> y <b>todos sus datos</b> (clientes, comprobantes, todo). <span class="warn">Esta acción no se puede deshacer.</span></p>
+      <div class="fld"><label>Para confirmar, escribí <b>ELIMINAR</b></label><input id="delConfirm" placeholder="ELIMINAR"></div>
+      <div class="modal__acts">
+        <button class="btn ghost" id="delCancel">Cancelar</button>
+        <button class="btn off" id="delOk">Eliminar definitivamente</button>
+      </div>
+    </div>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const SB_URL="https://udmulzlkseeecugangbs.supabase.co";
     const SB_KEY="sb_publishable_LlKL-0Gp2IQVmoslwDOYmQ_LVL1mq4K";
     const sb=window.supabase.createClient(SB_URL,SB_KEY);
-
     const $=id=>document.getElementById(id);
-    let estudios=[];
 
-    function toast(t){const el=$('toast');el.textContent=t;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2200);}
+    let estudios=[], filtro='all', pendingDelete=null;
 
-    function badge(status){
-      const map={active:['active','Activo'],inactive:['inactive','Cortado'],trial:['trial','Prueba']};
-      const [cls,txt]=map[status]||['trial',status||'—'];
-      return '<span class="badge '+cls+'">'+txt+'</span>';
+    function toast(t){const el=$('toast');el.textContent=t;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2400);}
+    function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+    function fmtFecha(iso){ if(!iso)return '—'; const d=new Date(iso); return d.toLocaleDateString('es-PY',{day:'2-digit',month:'2-digit',year:'numeric'}); }
+    function diasPara(iso){ if(!iso)return null; return Math.ceil((new Date(iso)-new Date())/86400000); }
+    function toInput(iso){ if(!iso)return ''; return new Date(iso).toISOString().slice(0,10); }
+
+    function badge(s){const m={active:['active','Activo'],inactive:['inactive','Cortado'],trial:['trial','Prueba']};const[c,t]=m[s]||['trial',s||'—'];return '<span class="badge '+c+'">'+t+'</span>';}
+
+    function tablero(){
+      $('kOn').textContent=estudios.filter(e=>e.status==='active').length;
+      $('kTrial').textContent=estudios.filter(e=>e.status==='trial').length;
+      $('kOff').textContent=estudios.filter(e=>e.status==='inactive').length;
+      $('kSoon').textContent=estudios.filter(e=>{const d=diasPara(e.expires_at);return d!==null&&d>=0&&d<=7;}).length;
     }
 
     function render(){
+      tablero();
       const q=$('q').value.trim().toLowerCase();
-      const items=estudios.filter(e=>!q||(e.estudio||'').toLowerCase().includes(q)||(e.owner_email||'').toLowerCase().includes(q));
-      const total=estudios.length;
-      const activos=estudios.filter(e=>e.status==='active').length;
-      $('cActive').textContent=activos;$('cTotal').textContent=total;
-
+      let items=estudios.filter(e=>filtro==='all'||e.status===filtro);
+      if(q) items=items.filter(e=>(e.estudio||'').toLowerCase().includes(q)||(e.owner_email||'').toLowerCase().includes(q));
       if(!items.length){$('list').innerHTML='<div class="msg">No hay estudios que coincidan.</div>';return;}
+
       $('list').innerHTML=items.map(e=>{
-        const on=e.status==='active';
-        const btn=on
-          ? '<button class="toggle disable" onclick="cambiar(\''+e.account_id+'\',\'inactive\')">Cortar acceso</button>'
-          : '<button class="toggle enable" onclick="cambiar(\''+e.account_id+'\',\'active\')">Habilitar</button>';
-        return '<div class="row"><div class="row__info"><h3>'+esc(e.estudio||'(sin nombre)')+'</h3>'
-          +'<p class="mail">'+esc(e.owner_email||'sin dueño')+'</p></div>'
-          +badge(e.status)+btn+'</div>';
+        const d=diasPara(e.expires_at);
+        let vcls='',vtxt='';
+        if(e.expires_at){ vtxt='Vence '+fmtFecha(e.expires_at); if(d<0){vcls='past';vtxt='Vencido '+fmtFecha(e.expires_at);} else if(d<=7){vcls='soon';} }
+        return '<div class="row" data-id="'+e.account_id+'">'
+          +'<div class="row__head" onclick="toggle(this)">'
+            +'<div class="row__info"><h3>'+esc(e.estudio||'(sin nombre)')+'</h3><p>'+esc(e.owner_email||'sin dueño')+'</p></div>'
+            +'<span class="venc '+vcls+'">'+vtxt+'</span>'
+            +badge(e.status)
+            +'<span class="chev">▶</span>'
+          +'</div>'
+          +'<div class="panel">'
+            +'<div class="stat2"><span>Clientes: <b>'+e.clientes+'</b></span><span>Comprobantes: <b>'+e.comprobantes+'</b></span><span>Alta: <b>'+fmtFecha(e.created_at)+'</b></span></div>'
+            +'<div class="grid">'
+              +'<div class="fld"><label>Vencimiento del acceso</label><input type="date" id="exp_'+e.account_id+'" value="'+toInput(e.expires_at)+'"></div>'
+              +'<div class="fld"><label>Nota interna</label><textarea id="nota_'+e.account_id+'" placeholder="Ej: pagó en efectivo hasta marzo">'+esc(e.nota)+'</textarea></div>'
+            +'</div>'
+            +'<div class="acts">'
+              +(e.status==='active'
+                ? '<button class="btn off" onclick="setStatus(\''+e.account_id+'\',\'inactive\')">Cortar acceso</button>'
+                : '<button class="btn on" onclick="setStatus(\''+e.account_id+'\',\'active\')">Habilitar</button>')
+              +'<button class="btn save" onclick="guardar(\''+e.account_id+'\')">Guardar cambios</button>'
+              +'<button class="btn ghost" onclick="resetPass(\''+esc(e.owner_email)+'\')">Resetear contraseña</button>'
+              +'<button class="btn danger" onclick="pedirBorrar(\''+e.account_id+'\',\''+esc(e.estudio).replace(/\x27/g,"")+'\')">Eliminar</button>'
+            +'</div>'
+          +'</div>'
+        +'</div>';
       }).join('');
     }
-    function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 
-    async function cambiar(accountId,nuevo){
-      const e=estudios.find(x=>x.account_id===accountId);const previo=e?e.status:null;
-      if(e)e.status=nuevo; render();
-      const {error}=await sb.from('subscriptions').update({status:nuevo}).eq('account_id',accountId);
-      if(error){ if(e)e.status=previo; render(); toast('No se pudo actualizar. Probá de nuevo.'); }
-      else{ toast(nuevo==='active'?'Acceso habilitado ✓':'Acceso cortado'); }
+    window.toggle=el=>el.closest('.row').classList.toggle('open');
+
+    async function setStatus(id,nuevo){
+      const e=estudios.find(x=>x.account_id===id);const prev=e.status;e.status=nuevo;render();reopen(id);
+      const exp=$('exp_'+id)?$('exp_'+id).value:null;
+      const nota=$('nota_'+id)?$('nota_'+id).value:null;
+      const {error}=await sb.rpc('admin_actualizar',{p_account:id,p_status:nuevo,p_expires:exp?new Date(exp).toISOString():e.expires_at,p_nota:nota});
+      if(error){e.status=prev;render();reopen(id);toast('No se pudo actualizar.');}
+      else toast(nuevo==='active'?'Acceso habilitado ✓':'Acceso cortado');
     }
-    window.cambiar=cambiar;
+    window.setStatus=setStatus;
+
+    async function guardar(id){
+      const e=estudios.find(x=>x.account_id===id);
+      const exp=$('exp_'+id).value; const nota=$('nota_'+id).value;
+      const iso=exp?new Date(exp).toISOString():null;
+      const {error}=await sb.rpc('admin_actualizar',{p_account:id,p_status:e.status,p_expires:iso,p_nota:nota});
+      if(error)toast('No se pudo guardar.');
+      else{e.expires_at=iso;e.nota=nota;toast('Cambios guardados ✓');render();reopen(id);}
+    }
+    window.guardar=guardar;
+
+    async function resetPass(email){
+      if(!email||email==='sin dueño'){toast('Este estudio no tiene correo.');return;}
+      const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+'/index.html'});
+      if(error)toast('No se pudo enviar el correo.');
+      else toast('Le enviamos a '+email+' un correo para cambiar su contraseña ✓');
+    }
+    window.resetPass=resetPass;
+
+    function pedirBorrar(id,nombre){ pendingDelete=id; $('delName').textContent=nombre||'este estudio'; $('delConfirm').value=''; $('modal').classList.add('show'); }
+    window.pedirBorrar=pedirBorrar;
+    $('delCancel').onclick=()=>{$('modal').classList.remove('show');pendingDelete=null;};
+    $('delOk').onclick=async()=>{
+      if($('delConfirm').value.trim().toUpperCase()!=='ELIMINAR'){toast('Escribí ELIMINAR para confirmar.');return;}
+      const id=pendingDelete;
+      const {error}=await sb.from('accounts').delete().eq('id',id);
+      $('modal').classList.remove('show');pendingDelete=null;
+      if(error)toast('No se pudo eliminar.');
+      else{estudios=estudios.filter(e=>e.account_id!==id);render();toast('Estudio eliminado.');}
+    };
+
+    function reopen(id){const r=document.querySelector('.row[data-id="'+id+'"]');if(r)r.classList.add('open');}
+
+    $('q').addEventListener('input',render);
+    $('filters').addEventListener('click',ev=>{const b=ev.target.closest('button');if(!b)return;filtro=b.dataset.f;[...$('filters').children].forEach(x=>x.classList.toggle('act',x===b));render();});
+    $('out').addEventListener('click',async()=>{await sb.auth.signOut();location.href='index.html';});
 
     async function cargar(){
       const {data,error}=await sb.rpc('admin_estudios');
-      if(error){ $('list').innerHTML='<div class="msg err">No se pudo cargar. ¿Tu usuario es administrador?</div>'; return; }
-      estudios=data||[]; render();
+      if(error){$('list').innerHTML='<div class="msg err">No se pudo cargar. ¿Tu usuario es administrador?</div>';return;}
+      estudios=data||[];render();
     }
-
-    $('q').addEventListener('input',render);
-    $('out').addEventListener('click',async()=>{ await sb.auth.signOut(); location.href='index.html'; });
 
     (async()=>{
       const {data:{session}}=await sb.auth.getSession();
-      if(!session){ location.href='index.html'; return; }
+      if(!session){location.href='index.html';return;}
       const {data:admin}=await sb.rpc('es_admin');
-      if(!admin){ $('list').innerHTML='<div class="msg err">Esta página es solo para administradores.</div>'; return; }
+      if(!admin){$('list').innerHTML='<div class="msg err">Esta página es solo para administradores.</div>';return;}
       cargar();
     })();
   </script>
