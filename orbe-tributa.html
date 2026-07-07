@@ -1418,6 +1418,21 @@ async function boot(){
     return;
   }
 
+  // 2.5) Verificar que el acceso del estudio est\u00e9 habilitado
+  try{
+    const {data:sub}=await sb.from('subscriptions').select('status').eq('account_id',ACCOUNT_ID).maybeSingle();
+    if(sub && sub.status==='inactive'){
+      document.getElementById('app').innerHTML='<div style="padding:52px 22px;text-align:center;max-width:440px;margin:0 auto">'
+        +'<div style="font-size:42px;margin-bottom:14px">\ud83d\udd12</div>'
+        +'<h2 style="font-family:\'Sora\',sans-serif;color:#12180f;font-size:21px;margin-bottom:10px">Acceso en pausa</h2>'
+        +'<p style="color:#5E7684;font:15px/1.6 sans-serif;margin-bottom:24px">Tu acceso a orbe tributa est\u00e1 pausado. Si ya hiciste el pago o quer\u00e9s reactivarlo, escribinos y lo habilitamos enseguida.</p>'
+        +'<a href="mailto:josecabreraroman91@gmail.com" style="display:inline-block;background:#0FA79A;color:#fff;text-decoration:none;padding:11px 18px;border-radius:9px;font:600 14px \'Sora\',sans-serif;margin-right:8px">Contactar</a>'
+        +'<button onclick="salir()" style="background:none;border:1px solid #d5dbcb;color:#5E7684;padding:11px 18px;border-radius:9px;cursor:pointer;font:14px sans-serif">Salir</button>'
+        +'</div>';
+      return;
+    }
+  }catch(e){ /* si no se puede leer el estado, no bloqueamos el ingreso */ }
+
   // 3) Traer los datos del estudio desde la nube
   try{
     const {data:row}=await sb.from('contable_datos').select('data').eq('account_id',ACCOUNT_ID).maybeSingle();
