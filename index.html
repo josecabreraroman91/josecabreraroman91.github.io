@@ -168,6 +168,18 @@
     background:rgba(196,242,77,.14);color:var(--lime);border:1px solid rgba(196,242,77,.3);
     white-space:nowrap;flex-shrink:0;
   }
+  .product__go{
+    font-family:'Sora',sans-serif;font-size:13px;font-weight:600;
+    padding:9px 15px;border-radius:10px;text-decoration:none;
+    color:#0c1206;white-space:nowrap;flex-shrink:0;cursor:pointer;
+    background:linear-gradient(92deg,var(--lime-soft),var(--lime) 60%,var(--lime-deep));
+    transition:filter .15s,transform .05s;
+  }
+  .product__go:hover{filter:brightness(1.06)}
+  .product__go:active{transform:translateY(1px)}
+  .product__go:focus-visible{outline:2px solid #fff;outline-offset:2px}
+  .product{transition:border-color .15s}
+  .product:hover{border-color:var(--line-strong)}
 
   @media (prefers-reduced-motion: reduce){
     .orbe__ring{animation:none}
@@ -232,7 +244,7 @@
           <h3>Contable</h3>
           <p>Libro IVA, comprobantes y clientes.</p>
         </div>
-        <span class="badge">En preparación</span>
+        <a class="product__go" href="orbe-tributa.html">Abrir →</a>
       </div>
     </section>
 
