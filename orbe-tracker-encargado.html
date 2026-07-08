@@ -851,7 +851,7 @@ async function loadStaff(){
 async function init(){
   const { data:{ session } } = await db.auth.getSession();
   if(!session){ window.location.href='orbe-tracker.html'; return; }
-  const { data: mem, error } = await db.from('memberships').select('company_id, role').maybeSingle();
+  const { data: mem, error } = await db.from('memberships').select('company_id, role').eq('user_id', session.user.id).maybeSingle();
   if(error || !mem){ toast('Tu usuario no tiene una empresa asociada'); return; }
   companyId = mem.company_id; myRole = mem.role;
   const nameEl=document.querySelector('.s-name');
