@@ -441,7 +441,14 @@
 <div class="foot">Orbe Time Tracker · panel del encargado. Acceso exclusivo a gestión, presencia y reportes.</div>
 <div class="toast" id="toast"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+/* ---------- conexión a Supabase ---------- */
+const SUPABASE_URL='https://yvmzwuwdbzshzubcypnn.supabase.co';
+const SUPABASE_KEY='sb_publishable_tc_4MujC4xncwnEgrRG2BA_oAG7ZBIJ';
+const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+let companyId=null, myRole=null;
+
 /* navegación entre secciones del encargado */
 const subnav=document.getElementById('subnav');
 subnav.addEventListener('click',e=>{
@@ -453,7 +460,7 @@ subnav.addEventListener('click',e=>{
 });
 
 /* panel en vivo */
-const team=[];
+let team=[];
 const stMap={work:['Trabajando','var(--work)'],rest:['En receso','var(--rest)'],off:['Fuera','#A4B0C4']};
 function renderAdmin(filter='all'){
   // contadores en vivo derivados del equipo real
@@ -544,12 +551,37 @@ function openProfile(idx){
   document.getElementById('modalBack').hidden=false;
 }
 function closeProfile(){document.getElementById('modalBack').hidden=true}
-function saveProfile(){
-  const rec={name:document.getElementById('f_name').value||'Sin nombre',role:document.getElementById('f_role').value||'—',doc:document.getElementById('f_doc').value||'—',mode:payMode};
-  if(payMode==='objetivos'){ rec.objs=draftObjs.filter(o=>o.name); rec.pay=rec.objs.length+' objetivos'; }
-  else rec.pay=document.getElementById('f_pay').value||'0';
-  const isEdit=editIdx!==null; if(isEdit) staff[editIdx]=rec; else staff.push(rec);
-  renderTeam(); if(typeof renderObjetivos==='function') renderObjetivos(); closeProfile(); toast('✓ Empleado '+(isEdit?'actualizado':'creado')+' · '+rec.name);
+async function saveProfile(){
+  const gpay = v => parseInt((v||'0').replace(/\D/g,''))||0;
+  const payload={
+    company_id: companyId,
+    full_name: document.getElementById('f_name').value.trim()||'Sin nombre',
+    role_title: document.getElementById('f_role').value.trim()||null,
+    doc_id: document.getElementById('f_doc').value.trim()||null,
+    email: document.getElementById('f_email').value.trim()||null,
+    phone: document.getElementById('f_phone').value.trim()||null,
+    pay_mode: payMode,
+    pay_amount: payMode==='objetivos' ? null : gpay(document.getElementById('f_pay').value),
+    exit_time_override: document.getElementById('f_salida').value.trim()||null,
+    overtime_mode: document.getElementById('f_extra').value||'empresa'
+  };
+  const editing = editIdx!==null && staff[editIdx] && staff[editIdx].id;
+  let empId;
+  if(editing){
+    const { error } = await db.from('employees').update(payload).eq('id', staff[editIdx].id);
+    if(error){ toast('Error al guardar: '+error.message); return; }
+    empId = staff[editIdx].id;
+  } else {
+    const { data, error } = await db.from('employees').insert(payload).select('id').maybeSingle();
+    if(error){ toast('Error al crear: '+error.message); return; }
+    empId = data.id;
+  }
+  if(payMode==='objetivos'){
+    await db.from('objectives').delete().eq('employee_id', empId);
+    const rows=draftObjs.filter(o=>o.name).map(o=>({company_id:companyId, employee_id:empId, name:o.name, amount:gpay(o.amount), done:!!o.done, done_date:o.date||null}));
+    if(rows.length) await db.from('objectives').insert(rows);
+  }
+  closeProfile(); await loadStaff(); toast('✓ Empleado '+(editing?'actualizado':'creado'));
 }
 document.getElementById('paySeg').addEventListener('click',e=>{const b=e.target.closest('button'); if(b) setPayMode(b.dataset.mode)});
 document.getElementById('modalBack').addEventListener('click',e=>{if(e.target.id==='modalBack') closeProfile()});
@@ -682,6 +714,34 @@ function togglePolicy(i,on){policies[i].on=on; document.getElementById('pol-'+po
 function onTipo(v){document.getElementById('polShow').textContent = v==='fijo'?'un monto fijo por tardanza':'proporcional al tiempo tarde'}
 function syncTol(v){document.getElementById('tolShow').textContent=(v||'0')+' min'}
 renderPolicies();
+
+/* ---------- carga de datos reales desde Supabase ---------- */
+async function loadStaff(){
+  const { data, error } = await db.from('employees').select('*, objectives(*)').order('created_at');
+  if(error){ toast('Error cargando equipo: '+error.message); return; }
+  staff = (data||[]).map(e=>({
+    id:e.id, name:e.full_name, role:e.role_title||'—', doc:e.doc_id||'—',
+    mode:e.pay_mode, pay: e.pay_amount!=null ? String(e.pay_amount) : '0',
+    objs:(e.objectives||[]).map(o=>({id:o.id, name:o.name, amount:String(o.amount), done:o.done, date:o.done_date}))
+  }));
+  // panel en vivo: sin marcaciones todavía -> todos fuera de jornada
+  const palette=['#B7A6FF','#8AD6C0','#F3C1A0','#F6A9A9','#A9C0F6','#C7CDD9'];
+  team = staff.map((s,i)=>({n:s.name, r:s.role, av:initials(s.name), c:palette[i%palette.length], st:'off', since:'sin marcar', zone:'-', z:'—', h:'—'}));
+  renderTeam(); renderAdmin(); renderObjetivos();
+}
+
+async function init(){
+  const { data:{ session } } = await db.auth.getSession();
+  if(!session){ window.location.href='orbe-tracker.html'; return; }
+  const { data: mem, error } = await db.from('memberships').select('company_id, role').maybeSingle();
+  if(error || !mem){ toast('Tu usuario no tiene una empresa asociada'); return; }
+  companyId = mem.company_id; myRole = mem.role;
+  const nameEl=document.querySelector('.s-name');
+  if(nameEl) nameEl.textContent = myRole==='admin'?'Administrador':(myRole==='gerente'?'Gerente':'Encargado');
+  await loadStaff();
+}
+document.querySelectorAll('.s-out').forEach(b=>b.addEventListener('click', async ()=>{ await db.auth.signOut(); window.location.href='orbe-tracker.html'; }));
+init();
 </script>
 </body>
 </html>
