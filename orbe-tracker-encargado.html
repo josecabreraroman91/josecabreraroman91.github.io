@@ -457,8 +457,21 @@
           </div>
         </div>
       </div>
+
+      <div class="pay-block" id="accessBlock">
+        <span class="pay-lbl">Acceso del empleado</span>
+        <div id="accessNone">
+          <p class="lead" style="font-size:12.5px;margin:0 0 10px;color:var(--faint)">Creale una cuenta para que pueda entrar a fichar. Usá el email de arriba y una contraseña que le vas a pasar.</p>
+          <div class="form-grid">
+            <div class="fld"><label>Contraseña inicial</label><input id="f_accesspass" class="finp" type="text" placeholder="Mínimo 8 caracteres"></div>
+            <div class="fld" style="justify-content:flex-end"><button type="button" class="btn-sm btn-add" id="btnAccess" onclick="crearAcceso()">Crear acceso</button></div>
+          </div>
+        </div>
+        <div id="accessDone" hidden>
+          <p class="lead" style="font-size:13px;margin:0;color:var(--work)">✓ Acceso creado. Este empleado ya puede entrar con su email y contraseña.</p>
+        </div>
+      </div>
     </div>
-    <div class="modal-foot"><button class="btn-sm" style="background:none;color:var(--muted)" onclick="closeProfile()">Cancelar</button><button class="btn-sm" style="background:var(--brand);color:#fff;border-color:transparent" onclick="saveProfile()">Guardar empleado</button></div>
   </div>
 </div>
 
@@ -567,18 +580,48 @@ function openProfile(idx){
   editIdx=(typeof idx==='number')?idx:null; const s=editIdx!==null?staff[editIdx]:null;
   document.getElementById('modalTitle').textContent=s?'Editar empleado':'Nuevo empleado';
   document.getElementById('f_name').value=s?s.name:''; document.getElementById('f_doc').value=s?s.doc:'';
-  document.getElementById('f_role').value=s?s.role:''; document.getElementById('f_email').value='';
+  document.getElementById('f_role').value=s?s.role:''; document.getElementById('f_email').value=(s&&s.email)?s.email:'';
   document.getElementById('f_phone').value=''; document.getElementById('f_start').value='';
   document.getElementById('f_pay').value=(s&&s.mode!=='objetivos')?s.pay:'';
   // poblar sucursales reales de la empresa
   const zsel=document.getElementById('f_zone');
   zsel.innerHTML='<option value="">— Sin asignar —</option>'+zones.map(z=>`<option value="${z.id}">${z.name}</option>`).join('');
   if(s && s.zone_id) zsel.value=s.zone_id;
+  // bloque de acceso: solo para empleados ya guardados
+  const isSaved = !!(s && s.id), hasAccess = !!(s && s.user_id);
+  document.getElementById('accessBlock').hidden = !isSaved;
+  document.getElementById('accessNone').hidden = hasAccess;
+  document.getElementById('accessDone').hidden = !hasAccess;
+  document.getElementById('f_accesspass').value='';
   draftObjs = (s&&s.objs)?JSON.parse(JSON.stringify(s.objs)):[];
   setPayMode(s?s.mode:'mensual');
   document.getElementById('modalBack').hidden=false;
 }
 function closeProfile(){document.getElementById('modalBack').hidden=true}
+
+/* crear la cuenta de acceso del empleado (vía Edge Function) */
+async function crearAcceso(){
+  if(editIdx===null || !staff[editIdx] || !staff[editIdx].id){ toast('Guardá el empleado primero'); return; }
+  const email=document.getElementById('f_email').value.trim();
+  const pass=document.getElementById('f_accesspass').value.trim();
+  if(!email){ toast('Cargá el email del empleado arriba'); return; }
+  if(pass.length<8){ toast('La contraseña necesita al menos 8 caracteres'); return; }
+  const btn=document.getElementById('btnAccess'); btn.disabled=true; btn.textContent='Creando…';
+  const { data, error } = await db.functions.invoke('crear-acceso-empleado', {
+    body: { employee_id: staff[editIdx].id, email, password: pass }
+  });
+  btn.disabled=false; btn.textContent='Crear acceso';
+  if(error){
+    let msg=error.message;
+    try{ const j=await error.context.json(); if(j && j.error) msg=j.error; }catch(_){}
+    toast('Error: '+msg); return;
+  }
+  if(data && data.error){ toast('Error: '+data.error); return; }
+  document.getElementById('accessNone').hidden=true;
+  document.getElementById('accessDone').hidden=false;
+  toast('✓ Acceso creado para '+email);
+  await loadStaff();
+}
 async function saveProfile(){
   const gpay = v => parseInt((v||'0').replace(/\D/g,''))||0;
   const payload={
@@ -795,7 +838,7 @@ async function loadStaff(){
   const { data, error } = await db.from('employees').select('*, objectives(*)').order('created_at');
   if(error){ toast('Error cargando equipo: '+error.message); return; }
   staff = (data||[]).map(e=>({
-    id:e.id, name:e.full_name, role:e.role_title||'—', doc:e.doc_id||'—', zone_id:e.zone_id,
+    id:e.id, name:e.full_name, role:e.role_title||'—', doc:e.doc_id||'—', email:e.email, user_id:e.user_id, zone_id:e.zone_id,
     mode:e.pay_mode, pay: e.pay_amount!=null ? String(e.pay_amount) : '0',
     objs:(e.objectives||[]).map(o=>({id:o.id, name:o.name, amount:String(o.amount), done:o.done, date:o.done_date}))
   }));
