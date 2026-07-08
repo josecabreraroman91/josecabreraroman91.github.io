@@ -172,7 +172,7 @@ async function doLogin(){
   const btn=document.getElementById('btnLogin'); btn.disabled=true; btn.textContent='Ingresando…';
   const { data, error } = await db.auth.signInWithPassword({ email, password: pass });
   if(error){ btn.disabled=false; btn.textContent='Entrar'; toast('No se pudo entrar: '+error.message); return; }
-  const { data: mem } = await db.from('memberships').select('role').limit(1).maybeSingle();
+  const { data: mem } = await db.from('memberships').select('role').eq('user_id', data.user.id).maybeSingle();
   const rol = mem ? mem.role : 'empleado';
   window.location.href = (rol==='empleado') ? 'orbe-tracker-empleado.html' : 'orbe-tracker-encargado.html';
 }
