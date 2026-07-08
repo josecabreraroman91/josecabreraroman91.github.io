@@ -236,6 +236,21 @@
         ¿Todavía no tenés cuenta?
         <button type="button" id="switchBtn">Creá una</button>
       </p>
+      <p class="switch" id="forgotLine">
+        <button type="button" id="forgotBtn">¿Olvidaste tu contraseña?</button>
+      </p>
+    </section>
+
+    <!-- ===== NUEVA CONTRASEÑA (recuperación) ===== -->
+    <section class="auth card" id="recoveryCard" style="display:none">
+      <h1 class="card__title">Nueva contraseña</h1>
+      <p class="card__sub">Elegí una contraseña nueva para tu cuenta.</p>
+      <div class="msg" id="rmsg" role="status" aria-live="polite"></div>
+      <div class="field">
+        <label for="newpass">Nueva contraseña</label>
+        <input type="password" id="newpass" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+      </div>
+      <button class="btn" id="savePass">Guardar contraseña</button>
     </section>
 
     <!-- ===== LOGGED IN ===== -->
@@ -298,6 +313,7 @@
         switchLine.childNodes[0].textContent = '¿Ya tenés cuenta? ';
         switchBtn.textContent = 'Iniciá sesión';
         document.getElementById('termsField').style.display = 'block';
+        document.getElementById('forgotLine').style.display = 'none';
       }else{
         formTitle.textContent = 'Ingresá a tu cuenta';
         formSub.textContent   = 'Accedé a tus herramientas de trabajo.';
@@ -307,6 +323,7 @@
         switchBtn.textContent = 'Creá una';
         document.getElementById('termsField').style.display = 'none';
         document.getElementById('terms').checked = false;
+        document.getElementById('forgotLine').style.display = 'block';
       }
     }
     switchBtn.addEventListener('click', ()=> setMode(mode === 'login' ? 'signup' : 'login'));
@@ -375,7 +392,37 @@
       logoutBtn.disabled = false;
     });
 
+    // Enviar correo de recuperación
+    document.getElementById('forgotBtn').addEventListener('click', async ()=>{
+      const email = emailEl.value.trim();
+      if(!email){ showMsg('Escribí tu correo arriba y volvé a tocar "¿Olvidaste tu contraseña?".', 'error'); return; }
+      const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + '/app.html' });
+      if(error){ showMsg('No se pudo enviar el correo. Revisá la dirección.', 'error'); }
+      else{ showMsg('Te enviamos un correo a ' + email + ' con un enlace para cambiar tu contraseña.', 'ok'); }
+    });
+
+    // Guardar la nueva contraseña (cuando vuelve desde el correo)
+    document.getElementById('savePass').addEventListener('click', async ()=>{
+      const np = document.getElementById('newpass').value;
+      const rmsg = document.getElementById('rmsg');
+      if(!np || np.length < 6){ rmsg.className='msg show error'; rmsg.textContent='La contraseña tiene que tener al menos 6 caracteres.'; return; }
+      const btn = document.getElementById('savePass'); btn.disabled=true; btn.textContent='Guardando…';
+      const { error } = await sb.auth.updateUser({ password: np });
+      if(error){ rmsg.className='msg show error'; rmsg.textContent='No se pudo actualizar. Pedí el enlace de nuevo.'; btn.disabled=false; btn.textContent='Guardar contraseña'; return; }
+      rmsg.className='msg show ok'; rmsg.textContent='¡Contraseña actualizada! Redirigiendo…';
+      setTimeout(()=>{ location.href='app.html'; }, 1800);
+    });
+
+    // Detectar la vuelta desde el correo de recuperación
+    sb.auth.onAuthStateChange((event)=>{
+      if(event === 'PASSWORD_RECOVERY'){
+        document.getElementById('authCard').style.display = 'none';
+        document.getElementById('recoveryCard').style.display = 'block';
+      }
+    });
+
     (async ()=>{
+      if(location.hash.includes('type=recovery')){ return; }
       const { data } = await sb.auth.getSession();
       if(data.session){ mostrarHome(data.session); return; }
       if(location.search.includes('registro') || location.hash.includes('registro')){ setMode('signup'); }
