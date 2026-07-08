@@ -263,7 +263,7 @@ async function pushCloud(){
     if(error)console.error('guardar nube:',error.message);
   }catch(e){console.error('guardar nube:',e);}
 }
-async function salir(){ try{await sb.auth.signOut();}catch(e){} location.href='index.html'; }
+async function salir(){ try{await sb.auth.signOut();}catch(e){} location.href='app.html'; }
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
 
 /* ============================ estado UI ============================ */
@@ -1402,7 +1402,7 @@ async function boot(){
   // 1) Portero: exige sesi\u00f3n iniciada en OrbePy
   let session=null;
   try{ const r=await sb.auth.getSession(); session=r.data.session; }catch(e){}
-  if(!session){ location.href='index.html'; return; }
+  if(!session){ location.href='app.html'; return; }
 
   // 2) Resolver el estudio (cuenta) del usuario
   try{
