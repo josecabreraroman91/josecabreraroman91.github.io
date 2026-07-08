@@ -238,6 +238,7 @@
       <button data-view="team">Equipo</button>
       <button data-view="objectives">Objetivos</button>
       <button data-view="reports">Reportes</button>
+      <button data-view="zones">Sucursales</button>
       <button data-view="settings">Ajustes</button>
     </div>
   </div>
@@ -345,6 +346,19 @@
     </div>
   </section>
 
+  <!-- SUCURSALES -->
+  <section class="view" id="view-zones">
+    <div class="head-row">
+      <div>
+        <div class="eyebrow">Configuración</div>
+        <h1 style="font-size:26px">Sucursales</h1>
+        <p class="lead">Los lugares de trabajo de tu empresa. Se usan al asignar empleados.</p>
+      </div>
+      <button class="btn-sm btn-add" onclick="openZone()">+ Nueva sucursal</button>
+    </div>
+    <div class="panel"><div id="zoneList" class="team-list"></div></div>
+  </section>
+
   <!-- AJUSTES -->
   <section class="view" id="view-settings">
     <div class="head-row"><div>
@@ -395,6 +409,16 @@
 
 </div>
 
+<div class="modal-back" id="zoneModal" hidden>
+  <div class="modal" style="max-width:420px">
+    <div class="modal-head"><h3 id="zoneTitle">Nueva sucursal</h3><button class="modal-x" onclick="closeZone()">✕</button></div>
+    <div class="modal-body">
+      <div class="fld"><label>Nombre de la sucursal</label><input id="z_name" class="finp" placeholder="Ej. Casa central"></div>
+    </div>
+    <div class="modal-foot"><button class="btn-sm" style="background:none;color:var(--muted)" onclick="closeZone()">Cancelar</button><button class="btn-sm" style="background:var(--brand);color:#fff;border-color:transparent" onclick="saveZone()">Guardar</button></div>
+  </div>
+</div>
+
 <div class="modal-back" id="modalBack" hidden>
   <div class="modal">
     <div class="modal-head"><h3 id="modalTitle">Nuevo empleado</h3><button class="modal-x" onclick="closeProfile()">✕</button></div>
@@ -406,7 +430,7 @@
         <div class="fld"><label>Email (para su acceso)</label><input id="f_email" class="finp" placeholder="ana@empresa.com"></div>
         <div class="fld"><label>Teléfono</label><input id="f_phone" class="finp" placeholder="09xx xxx xxx"></div>
         <div class="fld"><label>Fecha de ingreso</label><input id="f_start" class="finp" placeholder="01/07/2026"></div>
-        <div class="fld"><label>Sucursal / zona</label><select id="f_zone" class="finp"><option>Casa central</option><option>Sucursal Este</option></select></div>
+        <div class="fld"><label>Sucursal / zona</label><select id="f_zone" class="finp"></select></div>
       </div>
       <div class="pay-block">
         <span class="pay-lbl">Modalidad de contratación</span>
@@ -546,6 +570,10 @@ function openProfile(idx){
   document.getElementById('f_role').value=s?s.role:''; document.getElementById('f_email').value='';
   document.getElementById('f_phone').value=''; document.getElementById('f_start').value='';
   document.getElementById('f_pay').value=(s&&s.mode!=='objetivos')?s.pay:'';
+  // poblar sucursales reales de la empresa
+  const zsel=document.getElementById('f_zone');
+  zsel.innerHTML='<option value="">— Sin asignar —</option>'+zones.map(z=>`<option value="${z.id}">${z.name}</option>`).join('');
+  if(s && s.zone_id) zsel.value=s.zone_id;
   draftObjs = (s&&s.objs)?JSON.parse(JSON.stringify(s.objs)):[];
   setPayMode(s?s.mode:'mensual');
   document.getElementById('modalBack').hidden=false;
@@ -563,7 +591,8 @@ async function saveProfile(){
     pay_mode: payMode,
     pay_amount: payMode==='objetivos' ? null : gpay(document.getElementById('f_pay').value),
     exit_time_override: document.getElementById('f_salida').value.trim()||null,
-    overtime_mode: document.getElementById('f_extra').value||'empresa'
+    overtime_mode: document.getElementById('f_extra').value||'empresa',
+    zone_id: document.getElementById('f_zone').value||null
   };
   const editing = editIdx!==null && staff[editIdx] && staff[editIdx].id;
   let empId;
@@ -712,6 +741,52 @@ function renderPolicies(){
 }
 function togglePolicy(i,on){policies[i].on=on; document.getElementById('pol-'+policies[i].id).classList.toggle('off',!on); toast((on?'Activada':'Desactivada')+': '+policies[i].name)}
 function onTipo(v){document.getElementById('polShow').textContent = v==='fijo'?'un monto fijo por tardanza':'proporcional al tiempo tarde'}
+/* ---------- sucursales (zones) ---------- */
+let zones=[], editZoneId=null;
+async function loadZones(){
+  const { data, error } = await db.from('zones').select('*').order('created_at');
+  if(error){ toast('Error cargando sucursales: '+error.message); return; }
+  zones = data||[];
+  renderZones();
+}
+function renderZones(){
+  const box=document.getElementById('zoneList');
+  if(!zones.length){ box.innerHTML='<div style="padding:30px 18px;color:var(--faint);font-size:13.5px;text-align:center">Todavía no cargaste sucursales. Tocá <b style="color:var(--muted)">+ Nueva sucursal</b>.</div>'; return; }
+  box.innerHTML=zones.map(z=>`
+    <div class="team-card" style="cursor:default">
+      <div class="tc-av">📍</div>
+      <div class="tc-main"><div class="tc-name">${z.name}</div></div>
+      <button class="tc-edit" onclick="openZone('${z.id}')">Editar</button>
+      <button class="tc-edit" style="color:var(--alert);border-color:rgba(248,113,113,.3)" onclick="deleteZone('${z.id}')">Borrar</button>
+    </div>`).join('');
+}
+function openZone(id){
+  editZoneId = id||null;
+  const z = id ? zones.find(x=>x.id===id) : null;
+  document.getElementById('zoneTitle').textContent = z?'Editar sucursal':'Nueva sucursal';
+  document.getElementById('z_name').value = z?z.name:'';
+  document.getElementById('zoneModal').hidden=false;
+}
+function closeZone(){ document.getElementById('zoneModal').hidden=true; }
+async function saveZone(){
+  const name=document.getElementById('z_name').value.trim();
+  if(!name){ toast('Escribí un nombre'); return; }
+  if(editZoneId){
+    const { error } = await db.from('zones').update({name}).eq('id', editZoneId);
+    if(error){ toast('Error: '+error.message); return; }
+  } else {
+    const { error } = await db.from('zones').insert({company_id:companyId, name});
+    if(error){ toast('Error: '+error.message); return; }
+  }
+  closeZone(); await loadZones(); toast('✓ Sucursal guardada');
+}
+async function deleteZone(id){
+  if(!confirm('¿Borrar esta sucursal?')) return;
+  const { error } = await db.from('zones').delete().eq('id', id);
+  if(error){ toast('Error: '+error.message); return; }
+  await loadZones(); toast('Sucursal borrada');
+}
+
 function syncTol(v){document.getElementById('tolShow').textContent=(v||'0')+' min'}
 renderPolicies();
 
@@ -720,7 +795,7 @@ async function loadStaff(){
   const { data, error } = await db.from('employees').select('*, objectives(*)').order('created_at');
   if(error){ toast('Error cargando equipo: '+error.message); return; }
   staff = (data||[]).map(e=>({
-    id:e.id, name:e.full_name, role:e.role_title||'—', doc:e.doc_id||'—',
+    id:e.id, name:e.full_name, role:e.role_title||'—', doc:e.doc_id||'—', zone_id:e.zone_id,
     mode:e.pay_mode, pay: e.pay_amount!=null ? String(e.pay_amount) : '0',
     objs:(e.objectives||[]).map(o=>({id:o.id, name:o.name, amount:String(o.amount), done:o.done, date:o.done_date}))
   }));
@@ -738,6 +813,7 @@ async function init(){
   companyId = mem.company_id; myRole = mem.role;
   const nameEl=document.querySelector('.s-name');
   if(nameEl) nameEl.textContent = myRole==='admin'?'Administrador':(myRole==='gerente'?'Gerente':'Encargado');
+  await loadZones();
   await loadStaff();
 }
 document.querySelectorAll('.s-out').forEach(b=>b.addEventListener('click', async ()=>{ await db.auth.signOut(); window.location.href='orbe-tracker.html'; }));
