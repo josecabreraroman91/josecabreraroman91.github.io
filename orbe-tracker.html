@@ -176,6 +176,10 @@ async function doLogin(){
   const rol = mem ? mem.role : 'empleado';
   window.location.href = (rol==='empleado') ? 'orbe-tracker-empleado.html' : 'orbe-tracker-encargado.html';
 }
+
+/* Enter para enviar: en login dispara Entrar; en registro, Crear empresa */
+['li_email','li_pass'].forEach(id=>document.getElementById(id).addEventListener('keydown',e=>{ if(e.key==='Enter') doLogin(); }));
+['su_company','su_name','su_phone','su_email','su_pass'].forEach(id=>document.getElementById(id).addEventListener('keydown',e=>{ if(e.key==='Enter') doSignup(); }));
 </script>
 </body>
 </html>
