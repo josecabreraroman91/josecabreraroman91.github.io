@@ -219,18 +219,17 @@ function getPos(){return new Promise((res)=>{ if(!navigator.geolocation) return 
 
 async function punch(type){
   const coords=await getPos();
-  let in_zone=null, aviso='';
-  if(coords && empZone && empZone.latitude!=null){
-    const dist=haversine(coords.latitude,coords.longitude,empZone.latitude,empZone.longitude);
-    in_zone = dist <= (empZone.radius_m||150);
-    if(!in_zone) aviso=' · ⚠ fuera de '+empZone.name;
+  const { data, error }=await db.functions.invoke('fichar', {
+    body:{ type, latitude:coords?coords.latitude:null, longitude:coords?coords.longitude:null, accuracy_m:coords?coords.accuracy:null }
+  });
+  if(error){
+    let m=error.message;
+    try{ const j=await error.context.json(); if(j&&j.error) m=j.error; }catch(_){}
+    toast('Error al fichar: '+m); return;
   }
-  const row={ company_id:emp.company_id, employee_id:emp.id, type,
-    latitude:coords?coords.latitude:null, longitude:coords?coords.longitude:null,
-    accuracy_m:coords?coords.accuracy:null, in_zone, source:'web' };
-  const { error }=await db.from('punches').insert(row);
-  if(error){ toast('Error al fichar: '+error.message); return; }
+  if(data&&data.error){ toast('Error: '+data.error); return; }
   const m={ingreso:'Ingreso registrado',receso_inicio:'Receso iniciado',receso_fin:'De vuelta al trabajo',salida:'Salida registrada'};
+  const aviso = (data && data.in_zone===false && empZone) ? ' · ⚠ fuera de '+empZone.name : '';
   toast('✓ '+m[type]+aviso);
   await loadToday();
 }
