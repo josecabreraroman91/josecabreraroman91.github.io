@@ -309,6 +309,7 @@
       <button data-tab="horas" class="on">Horas trabajadas</button>
       <button data-tab="tardanzas">Tardanzas y descuentos</button>
       <button data-tab="extras">Horas extra</button>
+      <button data-tab="liquidacion">Liquidación</button>
     </div>
 
     <div class="rep-pane" id="pane-horas">
@@ -342,6 +343,20 @@
         <table>
           <thead><tr><th>Fecha</th><th>Empleado</th><th>Salida</th><th>Se fue</th><th>Extra</th><th style="text-align:right">A pagar</th><th style="text-align:right">Acción</th></tr></thead>
           <tbody id="extraRows"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="rep-pane" id="pane-liquidacion" hidden>
+      <div class="rep-controls">
+        <div class="field"><label>Mes</label><input id="liqMonth" type="month" class="inp" onchange="loadLiquidacion()"></div>
+        <div class="export"><button class="btn-sm btn-xls" onclick="exportLiq('xls')">▼ Excel</button><button class="btn-sm btn-pdf" onclick="exportLiq('pdf')">▼ PDF</button></div>
+      </div>
+      <p class="lead" style="font-size:12.5px; margin:0 0 14px; color:var(--faint)">Cálculo del mes por empleado: base (según modalidad) + horas extra autorizadas − descuentos aplicados.</p>
+      <div class="panel" style="padding:2px 2px 0">
+        <table>
+          <thead><tr><th>Empleado</th><th>Base</th><th style="text-align:right">Horas extra</th><th style="text-align:right">Descuentos</th><th style="text-align:right">Total a pagar</th></tr></thead>
+          <tbody id="liqRows"></tbody>
         </table>
       </div>
     </div>
@@ -681,6 +696,8 @@ document.getElementById('repTabs').addEventListener('click',e=>{
   document.getElementById('pane-horas').hidden = b.dataset.tab!=='horas';
   document.getElementById('pane-tardanzas').hidden = b.dataset.tab!=='tardanzas';
   document.getElementById('pane-extras').hidden = b.dataset.tab!=='extras';
+  document.getElementById('pane-liquidacion').hidden = b.dataset.tab!=='liquidacion';
+  if(b.dataset.tab==='liquidacion') loadLiquidacion();
 });
 
 /* tardanzas: justificar / aplicar descuento */
@@ -697,7 +714,15 @@ function renderLates(){
     return `<tr><td>${l.date}</td><td>${l.name}</td><td class="num">${l.exp}</td><td class="num">${l.got}</td><td class="num">${late}</td><td class="num" style="text-align:right">${disc}</td><td style="text-align:right">${action}</td></tr>`;
   }).join('');
 }
-function setLate(i,st){ lates[i].st=st; renderLates(); toast(st==='just'?'Tardanza justificada · sin descuento':'Descuento aplicado'); }
+async function setLate(i,st){
+  const l=lates[i]; l.st=st; renderLates();
+  const status = st==='just'?'justificada':(st==='applied'?'aplicada':'pendiente');
+  const rec={ company_id:companyId, employee_id:l.employee_id, date:l.iso, expected_time:settings.entry_time, minutes_late:l.min, discount_amount:(st==='applied'?l.discNum:0), status };
+  const { data:ex } = await db.from('tardiness').select('id').eq('employee_id',l.employee_id).eq('date',l.iso).maybeSingle();
+  if(ex) await db.from('tardiness').update(rec).eq('id',ex.id);
+  else await db.from('tardiness').insert(rec);
+  toast(st==='just'?'Tardanza justificada · sin descuento':'Descuento aplicado');
+}
 renderLates();
 
 /* horas extra: autorizar / rechazar / voluntaria sin pago */
@@ -713,7 +738,15 @@ function renderExtras(){
     return `<tr><td>${x.date}</td><td>${x.name}</td><td class="num">${x.out}</td><td class="num">${x.got}</td><td class="num">${x.extra}</td><td class="num" style="text-align:right">${pay}</td><td style="text-align:right">${action}</td></tr>`;
   }).join('');
 }
-function setExtra(i,st){ extras[i].st=st; renderExtras(); toast(st==='auth'?'Horas extra autorizadas · se pagan':'Horas extra rechazadas · sin pago'); }
+async function setExtra(i,st){
+  const x=extras[i]; x.st=st; renderExtras();
+  const status = st==='auth'?'autorizada':(st==='rej'?'rechazada':'pendiente');
+  const rec={ company_id:companyId, employee_id:x.employee_id, date:x.iso, minutes_extra:x.minutes, pay_amount:(st==='auth'?x.payNum:0), status };
+  const { data:ex } = await db.from('overtime').select('id').eq('employee_id',x.employee_id).eq('date',x.iso).maybeSingle();
+  if(ex) await db.from('overtime').update(rec).eq('id',ex.id);
+  else await db.from('overtime').insert(rec);
+  toast(st==='auth'?'Horas extra autorizadas · se pagan':'Horas extra rechazadas · sin pago');
+}
 
 /* ---------- configuración de la empresa y cálculos ---------- */
 let settings=null, dbPolicies={};
@@ -744,15 +777,20 @@ async function loadTardanzas(){
   const limit=eh*60+em+tol;
   const since=new Date(Date.now()-30*86400000).toISOString();
   const { data:punches } = await db.from('punches').select('employee_id,punched_at').eq('type','ingreso').gte('punched_at',since).order('punched_at',{ascending:false});
+  const { data:saved } = await db.from('tardiness').select('employee_id,date,status').gte('date', since.slice(0,10));
+  const savedMap={}; (saved||[]).forEach(t=>savedMap[t.employee_id+'|'+t.date]=t.status);
+  const stMap2={pendiente:'pending',justificada:'just',aplicada:'applied',tolerancia:'tol'};
   const empById={}; staff.forEach(s=>empById[s.id]=s);
   (punches||[]).forEach(p=>{
     const emp=empById[p.employee_id]; if(!emp) return;
     const d=new Date(p.punched_at); const mins=d.getHours()*60+d.getMinutes();
     if(mins>limit){
-      const late=mins-limit;
+      const late=mins-limit; const iso=p.punched_at.slice(0,10);
       let disc=0;
       if(pol&&pol.enabled) disc=(pol.params&&pol.params.tipo==='fijo')?gnum(pol.params.monto_fijo):Math.round(valorMinuto(emp)*late);
-      lates.push({ date:fmtDayG(p.punched_at.slice(0,10)), name:emp.name, exp:String(settings.entry_time).slice(0,5), got:pad2(d.getHours())+':'+pad2(d.getMinutes()), min:late, disc:miles(disc), st:(pol&&pol.enabled)?'pending':'tol' });
+      const savedStatus=savedMap[p.employee_id+'|'+iso];
+      const st = savedStatus ? stMap2[savedStatus] : ((pol&&pol.enabled)?'pending':'tol');
+      lates.push({ employee_id:p.employee_id, iso, exp:String(settings.entry_time).slice(0,5), got:pad2(d.getHours())+':'+pad2(d.getMinutes()), min:late, discNum:disc, disc:miles(disc), date:fmtDayG(iso), name:emp.name, st });
     }
   });
   renderLates();
@@ -764,6 +802,9 @@ async function loadExtras(){
   if(!settings || !settings.overtime_enabled){ renderExtras(); return; }
   const since=new Date(Date.now()-30*86400000).toISOString();
   const { data:punches } = await db.from('punches').select('employee_id,punched_at').eq('type','salida').gte('punched_at',since).order('punched_at',{ascending:false});
+  const { data:saved } = await db.from('overtime').select('employee_id,date,status').gte('date', since.slice(0,10));
+  const savedMap={}; (saved||[]).forEach(t=>savedMap[t.employee_id+'|'+t.date]=t.status);
+  const stMap2={pendiente:'pending',autorizada:'auth',rechazada:'rej'};
   const empById={}; staff.forEach(s=>empById[s.id]=s);
   const recargo=(settings.overtime_day_pct||50)/100;
   (punches||[]).forEach(p=>{
@@ -772,10 +813,12 @@ async function loadExtras(){
     const [xh,xm]=String(exit).split(':').map(Number); const limit=xh*60+xm;
     const d=new Date(p.punched_at); const mins=d.getHours()*60+d.getMinutes();
     if(mins>limit){
-      const extra=mins-limit;
-      const pay=Math.round(valorMinuto(emp)*extra*(1+recargo));
+      const extra=mins-limit; const iso=p.punched_at.slice(0,10);
+      const payNum=Math.round(valorMinuto(emp)*extra*(1+recargo));
       const mode=(emp.overtime_mode==='nocomputa')?'nocomputa':'pagas';
-      extras.push({ date:fmtDayG(p.punched_at.slice(0,10)), name:emp.name, out:String(exit).slice(0,5), got:pad2(d.getHours())+':'+pad2(d.getMinutes()), extra:Math.floor(extra/60)+':'+pad2(extra%60), pay:miles(pay), mode, st:'pending' });
+      const savedStatus=savedMap[p.employee_id+'|'+iso];
+      const st = savedStatus ? (stMap2[savedStatus]||'pending') : 'pending';
+      extras.push({ employee_id:p.employee_id, iso, minutes:extra, payNum, date:fmtDayG(iso), name:emp.name, out:String(exit).slice(0,5), got:pad2(d.getHours())+':'+pad2(d.getMinutes()), extra:Math.floor(extra/60)+':'+pad2(extra%60), pay:miles(payNum), mode, st });
     }
   });
   renderExtras();
@@ -1079,6 +1122,63 @@ function exportHoras(fmt){
       <script>window.onload=function(){setTimeout(function(){window.print()},250)}<\/script></body></html>`);
     w.document.close();
     toast('✓ Elegí "Guardar como PDF" en el diálogo');
+  }
+}
+
+// LIQUIDACIÓN: cuánto cobra cada empleado en el mes
+let liqData=[];
+async function loadLiquidacion(){
+  const monthEl=document.getElementById('liqMonth');
+  if(monthEl && !monthEl.value){ const d=new Date(); monthEl.value=d.getFullYear()+'-'+pad2(d.getMonth()+1); }
+  const ym=monthEl.value; const y=Number(ym.slice(0,4)), mo=Number(ym.slice(5,7));
+  const lastDay=new Date(y,mo,0).getDate();
+  const d1=ym+'-01', d2=ym+'-'+pad2(lastDay);
+  const start=d1+'T00:00:00', end=d2+'T23:59:59';
+  const { data:punches } = await db.from('punches').select('employee_id,type,punched_at').gte('punched_at',start).lte('punched_at',end).order('punched_at');
+  const byEmp={}, groups={};
+  (punches||[]).forEach(p=>{ const k=p.employee_id+'|'+p.punched_at.slice(0,10); (groups[k]=groups[k]||[]).push(p); });
+  Object.entries(groups).forEach(([k,ps])=>{
+    const [empId,day]=k.split('|'); ps.sort((a,b)=>a.punched_at.localeCompare(b.punched_at));
+    let worked=0,lastTs=null,mode=null;
+    for(const p of ps){ const ts=new Date(p.punched_at).getTime(); if(mode==='work'&&lastTs!=null)worked+=ts-lastTs; if(p.type==='ingreso'||p.type==='receso_fin')mode='work';else if(p.type==='receso_inicio')mode='rest';else if(p.type==='salida')mode='off'; lastTs=ts; }
+    byEmp[empId]=byEmp[empId]||{ms:0,days:new Set()}; byEmp[empId].ms+=worked; byEmp[empId].days.add(day);
+  });
+  const { data:objs } = await db.from('objectives').select('employee_id,amount,done_date').eq('done',true).gte('done_date',d1).lte('done_date',d2);
+  const objByEmp={}; (objs||[]).forEach(o=>objByEmp[o.employee_id]=(objByEmp[o.employee_id]||0)+gnum(o.amount));
+  const { data:ots } = await db.from('overtime').select('employee_id,pay_amount').eq('status','autorizada').gte('date',d1).lte('date',d2);
+  const otByEmp={}; (ots||[]).forEach(o=>otByEmp[o.employee_id]=(otByEmp[o.employee_id]||0)+gnum(o.pay_amount));
+  const { data:tds } = await db.from('tardiness').select('employee_id,discount_amount').eq('status','aplicada').gte('date',d1).lte('date',d2);
+  const tdByEmp={}; (tds||[]).forEach(t=>tdByEmp[t.employee_id]=(tdByEmp[t.employee_id]||0)+gnum(t.discount_amount));
+  liqData=staff.map(s=>{
+    const monto=gnum(s.pay); let base=0, baseLabel='';
+    if(s.mode==='mensual'){ base=monto; baseLabel='Mensual'; }
+    else if(s.mode==='hora'){ const hrs=(byEmp[s.id]?byEmp[s.id].ms:0)/3600000; base=Math.round(hrs*monto); baseLabel=hrs.toFixed(1)+' hs × valor'; }
+    else if(s.mode==='jornal'){ const dias=byEmp[s.id]?byEmp[s.id].days.size:0; base=dias*monto; baseLabel=dias+' jornada'+(dias!==1?'s':''); }
+    else if(s.mode==='objetivos'){ base=objByEmp[s.id]||0; baseLabel='Objetivos cumplidos'; }
+    const extra=otByEmp[s.id]||0, desc=tdByEmp[s.id]||0, total=base+extra-desc;
+    return { name:s.name, baseLabel, base, extra, desc, total };
+  });
+  const tbody=document.getElementById('liqRows');
+  tbody.innerHTML = liqData.length
+    ? liqData.map(r=>`<tr><td>${r.name}</td><td><div>₲ ${miles(r.base)}</div><div style="font-size:11px;color:var(--faint)">${r.baseLabel}</div></td><td class="num" style="text-align:right;color:var(--work)">${r.extra?'+ ₲ '+miles(r.extra):'—'}</td><td class="num" style="text-align:right;color:var(--alert)">${r.desc?'− ₲ '+miles(r.desc):'—'}</td><td class="num" style="text-align:right;font-weight:600">₲ ${miles(r.total)}</td></tr>`).join('')
+    : '<tr><td colspan="5" style="padding:26px 16px;color:var(--faint);text-align:center">No hay empleados cargados.</td></tr>';
+}
+function exportLiq(fmt){
+  if(!liqData.length){ toast('No hay datos para exportar'); return; }
+  const ym=document.getElementById('liqMonth').value;
+  const headers=['Empleado','Base','Detalle','Horas extra','Descuentos','Total a pagar'];
+  const body=liqData.map(r=>[r.name,'₲ '+miles(r.base),r.baseLabel,r.extra?'₲ '+miles(r.extra):'—',r.desc?'₲ '+miles(r.desc):'—','₲ '+miles(r.total)]);
+  if(fmt==='xls'){
+    let html='<table border="1"><tr>'+headers.map(h=>`<th>${h}</th>`).join('')+'</tr>';
+    html+=body.map(r=>'<tr>'+r.map(c=>`<td>${c}</td>`).join('')+'</tr>').join('')+'</table>';
+    const blob=new Blob(['\ufeff<html><head><meta charset="utf-8"></head><body>'+html+'</body></html>'],{type:'application/vnd.ms-excel'});
+    downloadBlob(blob,`liquidacion_${ym}.xls`); toast('✓ Excel descargado');
+  } else {
+    const w=window.open('','_blank'); if(!w){ toast('Habilitá las ventanas emergentes'); return; }
+    const th=headers.map((h,i)=>`<th class="${i>=3?'num':''}">${h}</th>`).join('');
+    const tr=body.map(r=>'<tr>'+r.map((c,i)=>`<td class="${i>=3?'num':''}">${c}</td>`).join('')+'</tr>').join('');
+    w.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><title>Liquidación ${ym}</title><style>body{font-family:Arial,sans-serif;padding:30px;color:#111}h1{font-size:19px;margin:0 0 3px}.sub{color:#666;font-size:12px;margin:0 0 18px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #d0d0d0;padding:8px 11px;font-size:12px;text-align:left}th{background:#7C6BFF;color:#fff}.num{text-align:right}tbody tr:nth-child(even){background:#f6f5ff}</style></head><body><h1>Liquidación</h1><p class="sub">Mes: ${ym}</p><table><thead><tr>${th}</tr></thead><tbody>${tr}</tbody></table><script>window.onload=function(){setTimeout(function(){window.print()},250)}<\/script></body></html>`);
+    w.document.close(); toast('✓ Elegí "Guardar como PDF"');
   }
 }
 
