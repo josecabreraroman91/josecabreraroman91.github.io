@@ -702,6 +702,72 @@ function renderExtras(){
   }).join('');
 }
 function setExtra(i,st){ extras[i].st=st; renderExtras(); toast(st==='auth'?'Horas extra autorizadas · se pagan':'Horas extra rechazadas · sin pago'); }
+
+/* ---------- configuración de la empresa y cálculos ---------- */
+let settings=null, dbPolicies={};
+function gnum(v){return parseInt(String(v||'0').replace(/\D/g,''))||0}
+function miles(n){return Math.round(n||0).toLocaleString('es-PY')}
+function fmtDayG(d){const p=d.split('-');return p[2]+'/'+p[1]}
+function valorMinuto(emp){
+  const m=gnum(emp.pay);
+  if(emp.mode==='mensual') return m/30/8/60;
+  if(emp.mode==='jornal') return m/8/60;
+  if(emp.mode==='hora') return m/60;
+  return 0;
+}
+async function loadSettings(){
+  const { data:s } = await db.from('company_settings').select('*').eq('company_id',companyId).maybeSingle();
+  settings=s||{entry_time:'08:00:00',exit_time:null,overtime_enabled:true,overtime_day_pct:50};
+  const { data:pols } = await db.from('discount_policies').select('*').eq('company_id',companyId);
+  dbPolicies={}; (pols||[]).forEach(p=>dbPolicies[p.kind]=p);
+}
+
+// TARDANZAS: compara la hora de ingreso contra el horario + tolerancia
+async function loadTardanzas(){
+  lates=[];
+  if(!settings){ renderLates(); return; }
+  const pol=dbPolicies.tardanza;
+  const tol=(pol&&pol.params&&pol.params.tolerancia_min!=null)?Number(pol.params.tolerancia_min):10;
+  const [eh,em]=String(settings.entry_time).split(':').map(Number);
+  const limit=eh*60+em+tol;
+  const since=new Date(Date.now()-30*86400000).toISOString();
+  const { data:punches } = await db.from('punches').select('employee_id,punched_at').eq('type','ingreso').gte('punched_at',since).order('punched_at',{ascending:false});
+  const empById={}; staff.forEach(s=>empById[s.id]=s);
+  (punches||[]).forEach(p=>{
+    const emp=empById[p.employee_id]; if(!emp) return;
+    const d=new Date(p.punched_at); const mins=d.getHours()*60+d.getMinutes();
+    if(mins>limit){
+      const late=mins-limit;
+      let disc=0;
+      if(pol&&pol.enabled) disc=(pol.params&&pol.params.tipo==='fijo')?gnum(pol.params.monto_fijo):Math.round(valorMinuto(emp)*late);
+      lates.push({ date:fmtDayG(p.punched_at.slice(0,10)), name:emp.name, exp:String(settings.entry_time).slice(0,5), got:pad2(d.getHours())+':'+pad2(d.getMinutes()), min:late, disc:miles(disc), st:(pol&&pol.enabled)?'pending':'tol' });
+    }
+  });
+  renderLates();
+}
+
+// HORAS EXTRA: compara la salida contra el horario de salida (propio o de la empresa)
+async function loadExtras(){
+  extras=[];
+  if(!settings || !settings.overtime_enabled){ renderExtras(); return; }
+  const since=new Date(Date.now()-30*86400000).toISOString();
+  const { data:punches } = await db.from('punches').select('employee_id,punched_at').eq('type','salida').gte('punched_at',since).order('punched_at',{ascending:false});
+  const empById={}; staff.forEach(s=>empById[s.id]=s);
+  const recargo=(settings.overtime_day_pct||50)/100;
+  (punches||[]).forEach(p=>{
+    const emp=empById[p.employee_id]; if(!emp) return;
+    const exit=emp.exit_time_override||settings.exit_time; if(!exit) return;
+    const [xh,xm]=String(exit).split(':').map(Number); const limit=xh*60+xm;
+    const d=new Date(p.punched_at); const mins=d.getHours()*60+d.getMinutes();
+    if(mins>limit){
+      const extra=mins-limit;
+      const pay=Math.round(valorMinuto(emp)*extra*(1+recargo));
+      const mode=(emp.overtime_mode==='nocomputa')?'nocomputa':'pagas';
+      extras.push({ date:fmtDayG(p.punched_at.slice(0,10)), name:emp.name, out:String(exit).slice(0,5), got:pad2(d.getHours())+':'+pad2(d.getMinutes()), extra:Math.floor(extra/60)+':'+pad2(extra%60), pay:miles(pay), mode, st:'pending' });
+    }
+  });
+  renderExtras();
+}
 renderExtras();
 
 /* ajustes: activar/desactivar cómputo de horas extra */
@@ -839,7 +905,7 @@ async function loadStaff(){
   if(error){ toast('Error cargando equipo: '+error.message); return; }
   staff = (data||[]).map(e=>({
     id:e.id, name:e.full_name, role:e.role_title||'—', doc:e.doc_id||'—', email:e.email, user_id:e.user_id, zone_id:e.zone_id,
-    mode:e.pay_mode, pay: e.pay_amount!=null ? String(e.pay_amount) : '0',
+    mode:e.pay_mode, pay: e.pay_amount!=null ? String(e.pay_amount) : '0', overtime_mode:e.overtime_mode, exit_time_override:e.exit_time_override,
     objs:(e.objectives||[]).map(o=>({id:o.id, name:o.name, amount:String(o.amount), done:o.done, date:o.done_date}))
   }));
   renderTeam(); renderObjetivos(); fillEmpFilter();
@@ -905,14 +971,18 @@ async function loadHoras(){
       lastTs=ts;
     }
     if(lastTs!=null && day===todayStr){ const now=Date.now(); if(mode==='work') worked+=now-lastTs; if(mode==='rest') rest+=now-lastTs; }
-    return { day, fecha:fmtDay(day), empleado:nameById[empId]||'—', ingreso:ingreso?hhmm(ingreso.punched_at):'—', salida:salida?hhmm(salida.punched_at):'—', receso:fmtH(rest), horas:fmtH(worked) };
+    return { day, _ms:worked, fecha:fmtDay(day), empleado:nameById[empId]||'—', ingreso:ingreso?hhmm(ingreso.punched_at):'—', salida:salida?hhmm(salida.punched_at):'—', receso:fmtH(rest), horas:fmtH(worked) };
   });
   rows.sort((a,b)=> a.day===b.day ? a.empleado.localeCompare(b.empleado) : b.day.localeCompare(a.day));
   horasData=rows;
   const tbody=document.getElementById('horasRows');
-  tbody.innerHTML = rows.length
-    ? rows.map(r=>`<tr><td>${r.fecha}</td><td>${r.empleado}</td><td class="num">${r.ingreso}</td><td class="num">${r.salida}</td><td class="num">${r.receso}</td><td class="num" style="text-align:right">${r.horas}</td></tr>`).join('')
-    : '<tr><td colspan="6" style="padding:26px 16px;color:var(--faint);text-align:center">No hay marcaciones en este período.</td></tr>';
+  if(rows.length){
+    const totalMs=rows.reduce((a,r)=>a+r._ms,0);
+    tbody.innerHTML = rows.map(r=>`<tr><td>${r.fecha}</td><td>${r.empleado}</td><td class="num">${r.ingreso}</td><td class="num">${r.salida}</td><td class="num">${r.receso}</td><td class="num" style="text-align:right">${r.horas}</td></tr>`).join('')
+      + `<tr style="font-weight:600;border-top:2px solid var(--border)"><td colspan="5">Total del período · ${rows.length} jornada${rows.length!==1?'s':''}</td><td class="num" style="text-align:right">${fmtH(totalMs)}</td></tr>`;
+  } else {
+    tbody.innerHTML='<tr><td colspan="6" style="padding:26px 16px;color:var(--faint);text-align:center">No hay marcaciones en este período.</td></tr>';
+  }
 }
 
 function downloadBlob(blob,name){ const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); }
@@ -951,11 +1021,14 @@ async function init(){
   const nameEl=document.querySelector('.s-name');
   if(nameEl) nameEl.textContent = myRole==='admin'?'Administrador':(myRole==='gerente'?'Gerente':'Encargado');
   await loadZones();
+  await loadSettings();
   await loadStaff();
   await loadHoras();
-  // tiempo real: al cambiar marcaciones o empleados, refrescar
+  await loadTardanzas();
+  await loadExtras();
+  // tiempo real: al cambiar marcaciones o empleados, refrescar todo
   db.channel('presencia-vivo')
-    .on('postgres_changes', { event:'*', schema:'public', table:'punches' }, ()=>{ loadPresence(); loadHoras(); })
+    .on('postgres_changes', { event:'*', schema:'public', table:'punches' }, ()=>{ loadPresence(); loadHoras(); loadTardanzas(); loadExtras(); })
     .on('postgres_changes', { event:'*', schema:'public', table:'employees' }, ()=>loadStaff())
     .subscribe();
 }
