@@ -320,7 +320,7 @@
       <div class="panel" style="padding:2px 2px 0">
         <table>
           <thead><tr><th>Fecha</th><th>Empleado</th><th>Ingreso</th><th>Salida</th><th>Receso</th><th style="text-align:right">Horas netas</th></tr></thead>
-          <tbody><tr><td colspan="6" style="padding:26px 16px;color:var(--faint);text-align:center">Todavía no hay marcaciones en este período.</td></tr></tbody>
+          <tbody id="horasRows"><tr><td colspan="6" style="padding:26px 16px;color:var(--faint);text-align:center">Todavía no hay marcaciones en este período.</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -867,6 +867,41 @@ async function loadPresence(){
   renderAdmin();
 }
 
+// reportes: horas trabajadas por empleado y día (últimos 30 días)
+async function loadHoras(){
+  const since=new Date(Date.now()-30*86400000).toISOString();
+  const { data:punches } = await db.from('punches').select('employee_id,type,punched_at').gte('punched_at',since).order('punched_at');
+  const nameById={}; staff.forEach(s=>nameById[s.id]=s.name);
+  const groups={};
+  (punches||[]).forEach(p=>{ const key=p.employee_id+'|'+p.punched_at.slice(0,10); (groups[key]=groups[key]||[]).push(p); });
+  const todayStr=new Date().toISOString().slice(0,10);
+  const rows=Object.entries(groups).map(([key,ps])=>{
+    const [empId,day]=key.split('|');
+    ps.sort((a,b)=>a.punched_at.localeCompare(b.punched_at));
+    const ingreso=ps.find(p=>p.type==='ingreso');
+    const salida=[...ps].reverse().find(p=>p.type==='salida');
+    let worked=0, rest=0, lastTs=null, mode=null;
+    for(const p of ps){
+      const ts=new Date(p.punched_at).getTime();
+      if(mode==='work'&&lastTs!=null) worked+=ts-lastTs;
+      if(mode==='rest'&&lastTs!=null) rest+=ts-lastTs;
+      if(p.type==='ingreso'||p.type==='receso_fin') mode='work';
+      else if(p.type==='receso_inicio') mode='rest';
+      else if(p.type==='salida') mode='off';
+      lastTs=ts;
+    }
+    if(lastTs!=null && day===todayStr){ const now=Date.now(); if(mode==='work') worked+=now-lastTs; if(mode==='rest') rest+=now-lastTs; }
+    return { day, name:nameById[empId]||'—', ingreso:ingreso?hhmm(ingreso.punched_at):'—', salida:salida?hhmm(salida.punched_at):'—', rest, worked };
+  });
+  rows.sort((a,b)=> a.day===b.day ? a.name.localeCompare(b.name) : b.day.localeCompare(a.day));
+  const fmtDay=d=>{const p=d.split('-');return p[2]+'/'+p[1]};
+  const fmtH=ms=>{const min=Math.max(0,Math.floor(ms/60000));return Math.floor(min/60)+':'+pad2(min%60)};
+  const tbody=document.getElementById('horasRows');
+  tbody.innerHTML = rows.length
+    ? rows.map(r=>`<tr><td>${fmtDay(r.day)}</td><td>${r.name}</td><td class="num">${r.ingreso}</td><td class="num">${r.salida}</td><td class="num">${fmtH(r.rest)}</td><td class="num" style="text-align:right">${fmtH(r.worked)}</td></tr>`).join('')
+    : '<tr><td colspan="6" style="padding:26px 16px;color:var(--faint);text-align:center">Todavía no hay marcaciones en este período.</td></tr>';
+}
+
 async function init(){
   const { data:{ session } } = await db.auth.getSession();
   if(!session){ window.location.href='orbe-tracker.html'; return; }
@@ -877,9 +912,10 @@ async function init(){
   if(nameEl) nameEl.textContent = myRole==='admin'?'Administrador':(myRole==='gerente'?'Gerente':'Encargado');
   await loadZones();
   await loadStaff();
+  await loadHoras();
   // tiempo real: al cambiar marcaciones o empleados, refrescar
   db.channel('presencia-vivo')
-    .on('postgres_changes', { event:'*', schema:'public', table:'punches' }, ()=>loadPresence())
+    .on('postgres_changes', { event:'*', schema:'public', table:'punches' }, ()=>{ loadPresence(); loadHoras(); })
     .on('postgres_changes', { event:'*', schema:'public', table:'employees' }, ()=>loadStaff())
     .subscribe();
 }
