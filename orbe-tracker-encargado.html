@@ -479,8 +479,6 @@
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script>
 /* ---------- conexión a Supabase ---------- */
 const SUPABASE_URL='https://yvmzwuwdbzshzubcypnn.supabase.co';
@@ -928,15 +926,20 @@ function exportHoras(fmt){
     html+=body.map(r=>'<tr>'+r.map(c=>`<td>${c}</td>`).join('')+'</tr>').join('')+'</table>';
     const blob=new Blob(['\ufeff<html><head><meta charset="utf-8"></head><body>'+html+'</body></html>'],{type:'application/vnd.ms-excel'});
     downloadBlob(blob,`horas_${desde}_a_${hasta}.xls`);
+    toast('✓ Excel descargado');
   } else {
-    const { jsPDF }=window.jspdf;
-    const doc=new jsPDF();
-    doc.setFontSize(14); doc.text('Horas trabajadas',14,16);
-    doc.setFontSize(10); doc.text(`Período: ${desde} a ${hasta}`,14,23);
-    doc.autoTable({ head:[headers], body, startY:28, styles:{fontSize:9}, headStyles:{fillColor:[124,107,255]} });
-    doc.save(`horas_${desde}_a_${hasta}.pdf`);
+    const w=window.open('','_blank');
+    if(!w){ toast('Habilitá las ventanas emergentes para el PDF'); return; }
+    const th=headers.map((h,i)=>`<th class="${i>=2?'num':''}">${h}</th>`).join('');
+    const tr=body.map(r=>'<tr>'+r.map((c,i)=>`<td class="${i>=2?'num':''}">${c}</td>`).join('')+'</tr>').join('');
+    w.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><title>Horas trabajadas</title>
+      <style>body{font-family:Arial,Helvetica,sans-serif;padding:30px;color:#111}h1{font-size:19px;margin:0 0 3px}.sub{color:#666;font-size:12px;margin:0 0 18px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #d0d0d0;padding:8px 11px;font-size:12px;text-align:left}th{background:#7C6BFF;color:#fff}.num{text-align:right;font-variant-numeric:tabular-nums}tbody tr:nth-child(even){background:#f6f5ff}</style>
+      </head><body><h1>Horas trabajadas</h1><p class="sub">Período: ${desde} a ${hasta}</p>
+      <table><thead><tr>${th}</tr></thead><tbody>${tr}</tbody></table>
+      <script>window.onload=function(){setTimeout(function(){window.print()},250)}<\/script></body></html>`);
+    w.document.close();
+    toast('✓ Elegí "Guardar como PDF" en el diálogo');
   }
-  toast('✓ Reporte '+(fmt==='xls'?'Excel':'PDF')+' descargado');
 }
 
 async function init(){
