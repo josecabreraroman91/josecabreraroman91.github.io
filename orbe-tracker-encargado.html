@@ -842,10 +842,29 @@ async function loadStaff(){
     mode:e.pay_mode, pay: e.pay_amount!=null ? String(e.pay_amount) : '0',
     objs:(e.objectives||[]).map(o=>({id:o.id, name:o.name, amount:String(o.amount), done:o.done, date:o.done_date}))
   }));
-  // panel en vivo: sin marcaciones todavía -> todos fuera de jornada
+  renderTeam(); renderObjetivos();
+  await loadPresence();
+}
+
+function pad2(n){return String(n).padStart(2,'0')}
+function hhmm(iso){const d=new Date(iso);return pad2(d.getHours())+':'+pad2(d.getMinutes())}
+
+// presencia en vivo: estado de cada empleado según su última marca de hoy
+async function loadPresence(){
+  const d=new Date(); const start=d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate())+'T00:00:00';
+  const { data:punches } = await db.from('punches').select('employee_id,type,punched_at').gte('punched_at',start).order('punched_at');
+  const lastByEmp={}; (punches||[]).forEach(p=>{ lastByEmp[p.employee_id]=p; });
   const palette=['#B7A6FF','#8AD6C0','#F3C1A0','#F6A9A9','#A9C0F6','#C7CDD9'];
-  team = staff.map((s,i)=>({n:s.name, r:s.role, av:initials(s.name), c:palette[i%palette.length], st:'off', since:'sin marcar', zone:'-', z:'—', h:'—'}));
-  renderTeam(); renderAdmin(); renderObjetivos();
+  team = staff.map((s,i)=>{
+    const last=lastByEmp[s.id];
+    let st='off', since='sin marcar';
+    if(last){
+      st = (last.type==='ingreso'||last.type==='receso_fin')?'work':(last.type==='receso_inicio')?'rest':'off';
+      since = (last.type==='salida'?'salió ':'desde ')+hhmm(last.punched_at);
+    }
+    return {n:s.name, r:s.role, av:initials(s.name), c:palette[i%palette.length], st, since, zone:'-', z:'—', h:'—'};
+  });
+  renderAdmin();
 }
 
 async function init(){
@@ -858,6 +877,11 @@ async function init(){
   if(nameEl) nameEl.textContent = myRole==='admin'?'Administrador':(myRole==='gerente'?'Gerente':'Encargado');
   await loadZones();
   await loadStaff();
+  // tiempo real: al cambiar marcaciones o empleados, refrescar
+  db.channel('presencia-vivo')
+    .on('postgres_changes', { event:'*', schema:'public', table:'punches' }, ()=>loadPresence())
+    .on('postgres_changes', { event:'*', schema:'public', table:'employees' }, ()=>loadStaff())
+    .subscribe();
 }
 document.querySelectorAll('.s-out').forEach(b=>b.addEventListener('click', async ()=>{ await db.auth.signOut(); window.location.href='orbe-tracker.html'; }));
 init();
