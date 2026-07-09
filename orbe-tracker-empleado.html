@@ -154,7 +154,13 @@
 const SUPABASE_URL='https://yvmzwuwdbzshzubcypnn.supabase.co';
 const SUPABASE_KEY='sb_publishable_tc_4MujC4xncwnEgrRG2BA_oAG7ZBIJ';
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-let emp=null, punchesToday=[];
+let emp=null, punchesToday=[], empZone=null;
+function haversine(la1,lo1,la2,lo2){
+  const R=6371000, toR=x=>x*Math.PI/180;
+  const dLa=toR(la2-la1), dLo=toR(lo2-lo1);
+  const a=Math.sin(dLa/2)**2+Math.cos(toR(la1))*Math.cos(toR(la2))*Math.sin(dLo/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
 
 function initials(n){return (n||'?').split(' ').slice(0,2).map(x=>x[0]||'').join('').toUpperCase()}
 function pad(n){return String(n).padStart(2,'0')}
@@ -213,13 +219,19 @@ function getPos(){return new Promise((res)=>{ if(!navigator.geolocation) return 
 
 async function punch(type){
   const coords=await getPos();
+  let in_zone=null, aviso='';
+  if(coords && empZone && empZone.latitude!=null){
+    const dist=haversine(coords.latitude,coords.longitude,empZone.latitude,empZone.longitude);
+    in_zone = dist <= (empZone.radius_m||150);
+    if(!in_zone) aviso=' · ⚠ fuera de '+empZone.name;
+  }
   const row={ company_id:emp.company_id, employee_id:emp.id, type,
     latitude:coords?coords.latitude:null, longitude:coords?coords.longitude:null,
-    accuracy_m:coords?coords.accuracy:null, source:'web' };
+    accuracy_m:coords?coords.accuracy:null, in_zone, source:'web' };
   const { error }=await db.from('punches').insert(row);
   if(error){ toast('Error al fichar: '+error.message); return; }
   const m={ingreso:'Ingreso registrado',receso_inicio:'Receso iniciado',receso_fin:'De vuelta al trabajo',salida:'Salida registrada'};
-  toast('✓ '+m[type]);
+  toast('✓ '+m[type]+aviso);
   await loadToday();
 }
 
@@ -235,6 +247,7 @@ async function init(){
   const { data:e }=await db.from('employees').select('*').eq('user_id',session.user.id).maybeSingle();
   if(!e){ toast('Tu cuenta no está vinculada a un empleado'); return; }
   emp=e;
+  if(e.zone_id){ const { data:z }=await db.from('zones').select('*').eq('id',e.zone_id).maybeSingle(); empZone=z; }
   const ini=initials(e.full_name);
   document.querySelector('.who').textContent=e.full_name;
   document.querySelector('.role').textContent=e.role_title||'—';
@@ -242,8 +255,8 @@ async function init(){
   document.querySelector('.s-av').textContent=ini;
   document.querySelector('.s-name').textContent=e.full_name;
   const gm=document.querySelector('.geo .g-main'), gs=document.querySelector('.geo .g-sub'), gt=document.querySelector('.geo .g-tag');
-  if(gm) gm.textContent='Ubicación';
-  if(gs) gs.textContent='Se registra tu ubicación en cada marca';
+  if(gm) gm.textContent = empZone ? empZone.name : 'Ubicación';
+  if(gs) gs.textContent = (empZone && empZone.latitude!=null) ? ('Validamos que fiches dentro de '+(empZone.radius_m||150)+'m') : 'Se registra tu ubicación en cada marca';
   if(gt) gt.style.display='none';
   await loadToday();
   setInterval(render, 30000);
