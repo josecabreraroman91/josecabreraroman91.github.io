@@ -312,10 +312,10 @@
 
     <div class="rep-pane" id="pane-horas">
       <div class="rep-controls">
-        <div class="field"><label>Desde</label><input class="inp" value="01/07/2026" readonly></div>
-        <div class="field"><label>Hasta</label><input class="inp" value="07/07/2026" readonly></div>
-        <div class="field"><label>Empleado</label><input class="inp" value="Todos" readonly></div>
-        <div class="export"><button class="btn-sm btn-xls" onclick="fakeExport('Excel')">▼ Excel</button><button class="btn-sm btn-pdf" onclick="fakeExport('PDF')">▼ PDF</button></div>
+        <div class="field"><label>Desde</label><input id="repDesde" type="date" class="inp" onchange="loadHoras()"></div>
+        <div class="field"><label>Hasta</label><input id="repHasta" type="date" class="inp" onchange="loadHoras()"></div>
+        <div class="field"><label>Empleado</label><select id="repEmp" class="inp" onchange="loadHoras()"><option value="">Todos</option></select></div>
+        <div class="export"><button class="btn-sm btn-xls" onclick="exportHoras('xls')">▼ Excel</button><button class="btn-sm btn-pdf" onclick="exportHoras('pdf')">▼ PDF</button></div>
       </div>
       <div class="panel" style="padding:2px 2px 0">
         <table>
@@ -479,6 +479,8 @@
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script>
 /* ---------- conexión a Supabase ---------- */
 const SUPABASE_URL='https://yvmzwuwdbzshzubcypnn.supabase.co';
@@ -842,7 +844,7 @@ async function loadStaff(){
     mode:e.pay_mode, pay: e.pay_amount!=null ? String(e.pay_amount) : '0',
     objs:(e.objectives||[]).map(o=>({id:o.id, name:o.name, amount:String(o.amount), done:o.done, date:o.done_date}))
   }));
-  renderTeam(); renderObjetivos();
+  renderTeam(); renderObjetivos(); fillEmpFilter();
   await loadPresence();
 }
 
@@ -867,14 +869,28 @@ async function loadPresence(){
   renderAdmin();
 }
 
-// reportes: horas trabajadas por empleado y día (últimos 30 días)
+// reportes: horas trabajadas por empleado y día, con filtros
+let horasData=[];
+function fillEmpFilter(){
+  const sel=document.getElementById('repEmp'); if(!sel) return;
+  const cur=sel.value;
+  sel.innerHTML='<option value="">Todos</option>'+staff.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+  sel.value=cur;
+}
 async function loadHoras(){
-  const since=new Date(Date.now()-30*86400000).toISOString();
-  const { data:punches } = await db.from('punches').select('employee_id,type,punched_at').gte('punched_at',since).order('punched_at');
+  const desdeEl=document.getElementById('repDesde'), hastaEl=document.getElementById('repHasta'), empEl=document.getElementById('repEmp');
+  if(desdeEl && !desdeEl.value){ desdeEl.value=new Date(Date.now()-30*86400000).toISOString().slice(0,10); }
+  if(hastaEl && !hastaEl.value){ hastaEl.value=new Date().toISOString().slice(0,10); }
+  const desde=desdeEl?desdeEl.value:'', hasta=hastaEl?hastaEl.value:'', empFilter=empEl?empEl.value:'';
+  let q=db.from('punches').select('employee_id,type,punched_at').gte('punched_at',desde+'T00:00:00').lte('punched_at',hasta+'T23:59:59').order('punched_at');
+  if(empFilter) q=q.eq('employee_id',empFilter);
+  const { data:punches } = await q;
   const nameById={}; staff.forEach(s=>nameById[s.id]=s.name);
   const groups={};
   (punches||[]).forEach(p=>{ const key=p.employee_id+'|'+p.punched_at.slice(0,10); (groups[key]=groups[key]||[]).push(p); });
   const todayStr=new Date().toISOString().slice(0,10);
+  const fmtH=ms=>{const min=Math.max(0,Math.floor(ms/60000));return Math.floor(min/60)+':'+pad2(min%60)};
+  const fmtDay=d=>{const p=d.split('-');return p[2]+'/'+p[1]};
   const rows=Object.entries(groups).map(([key,ps])=>{
     const [empId,day]=key.split('|');
     ps.sort((a,b)=>a.punched_at.localeCompare(b.punched_at));
@@ -891,15 +907,36 @@ async function loadHoras(){
       lastTs=ts;
     }
     if(lastTs!=null && day===todayStr){ const now=Date.now(); if(mode==='work') worked+=now-lastTs; if(mode==='rest') rest+=now-lastTs; }
-    return { day, name:nameById[empId]||'—', ingreso:ingreso?hhmm(ingreso.punched_at):'—', salida:salida?hhmm(salida.punched_at):'—', rest, worked };
+    return { day, fecha:fmtDay(day), empleado:nameById[empId]||'—', ingreso:ingreso?hhmm(ingreso.punched_at):'—', salida:salida?hhmm(salida.punched_at):'—', receso:fmtH(rest), horas:fmtH(worked) };
   });
-  rows.sort((a,b)=> a.day===b.day ? a.name.localeCompare(b.name) : b.day.localeCompare(a.day));
-  const fmtDay=d=>{const p=d.split('-');return p[2]+'/'+p[1]};
-  const fmtH=ms=>{const min=Math.max(0,Math.floor(ms/60000));return Math.floor(min/60)+':'+pad2(min%60)};
+  rows.sort((a,b)=> a.day===b.day ? a.empleado.localeCompare(b.empleado) : b.day.localeCompare(a.day));
+  horasData=rows;
   const tbody=document.getElementById('horasRows');
   tbody.innerHTML = rows.length
-    ? rows.map(r=>`<tr><td>${fmtDay(r.day)}</td><td>${r.name}</td><td class="num">${r.ingreso}</td><td class="num">${r.salida}</td><td class="num">${fmtH(r.rest)}</td><td class="num" style="text-align:right">${fmtH(r.worked)}</td></tr>`).join('')
-    : '<tr><td colspan="6" style="padding:26px 16px;color:var(--faint);text-align:center">Todavía no hay marcaciones en este período.</td></tr>';
+    ? rows.map(r=>`<tr><td>${r.fecha}</td><td>${r.empleado}</td><td class="num">${r.ingreso}</td><td class="num">${r.salida}</td><td class="num">${r.receso}</td><td class="num" style="text-align:right">${r.horas}</td></tr>`).join('')
+    : '<tr><td colspan="6" style="padding:26px 16px;color:var(--faint);text-align:center">No hay marcaciones en este período.</td></tr>';
+}
+
+function downloadBlob(blob,name){ const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); }
+function exportHoras(fmt){
+  if(!horasData.length){ toast('No hay datos para exportar'); return; }
+  const headers=['Fecha','Empleado','Ingreso','Salida','Receso','Horas netas'];
+  const body=horasData.map(r=>[r.fecha,r.empleado,r.ingreso,r.salida,r.receso,r.horas]);
+  const desde=document.getElementById('repDesde').value, hasta=document.getElementById('repHasta').value;
+  if(fmt==='xls'){
+    let html='<table border="1"><tr>'+headers.map(h=>`<th>${h}</th>`).join('')+'</tr>';
+    html+=body.map(r=>'<tr>'+r.map(c=>`<td>${c}</td>`).join('')+'</tr>').join('')+'</table>';
+    const blob=new Blob(['\ufeff<html><head><meta charset="utf-8"></head><body>'+html+'</body></html>'],{type:'application/vnd.ms-excel'});
+    downloadBlob(blob,`horas_${desde}_a_${hasta}.xls`);
+  } else {
+    const { jsPDF }=window.jspdf;
+    const doc=new jsPDF();
+    doc.setFontSize(14); doc.text('Horas trabajadas',14,16);
+    doc.setFontSize(10); doc.text(`Período: ${desde} a ${hasta}`,14,23);
+    doc.autoTable({ head:[headers], body, startY:28, styles:{fontSize:9}, headStyles:{fillColor:[124,107,255]} });
+    doc.save(`horas_${desde}_a_${hasta}.pdf`);
+  }
+  toast('✓ Reporte '+(fmt==='xls'?'Excel':'PDF')+' descargado');
 }
 
 async function init(){
