@@ -414,6 +414,11 @@
     <div class="modal-head"><h3 id="zoneTitle">Nueva sucursal</h3><button class="modal-x" onclick="closeZone()">✕</button></div>
     <div class="modal-body">
       <div class="fld"><label>Nombre de la sucursal</label><input id="z_name" class="finp" placeholder="Ej. Casa central"></div>
+      <div class="fld"><label>Radio permitido (metros)</label><input id="z_radius" class="finp" value="150"></div>
+      <div class="fld"><label>Ubicación de la sucursal</label>
+        <button type="button" class="btn-sm btn-add" onclick="capturarUbicacion()">📍 Usar mi ubicación actual</button>
+        <div id="z_coords" style="font-size:12px;color:var(--faint);margin-top:8px">Sin ubicación cargada. Paráte en la sucursal y tocá el botón.</div>
+      </div>
     </div>
     <div class="modal-foot"><button class="btn-sm" style="background:none;color:var(--muted)" onclick="closeZone()">Cancelar</button><button class="btn-sm" style="background:var(--brand);color:#fff;border-color:transparent" onclick="saveZone()">Guardar</button></div>
   </div>
@@ -851,7 +856,7 @@ function renderPolicies(){
 function togglePolicy(i,on){policies[i].on=on; document.getElementById('pol-'+policies[i].id).classList.toggle('off',!on); toast((on?'Activada':'Desactivada')+': '+policies[i].name)}
 function onTipo(v){document.getElementById('polShow').textContent = v==='fijo'?'un monto fijo por tardanza':'proporcional al tiempo tarde'}
 /* ---------- sucursales (zones) ---------- */
-let zones=[], editZoneId=null;
+let zones=[];
 async function loadZones(){
   const { data, error } = await db.from('zones').select('*').order('created_at');
   if(error){ toast('Error cargando sucursales: '+error.message); return; }
@@ -869,22 +874,38 @@ function renderZones(){
       <button class="tc-edit" style="color:var(--alert);border-color:rgba(248,113,113,.3)" onclick="deleteZone('${z.id}')">Borrar</button>
     </div>`).join('');
 }
+let editZoneId=null, zDraftLat=null, zDraftLng=null;
 function openZone(id){
   editZoneId = id||null;
   const z = id ? zones.find(x=>x.id===id) : null;
   document.getElementById('zoneTitle').textContent = z?'Editar sucursal':'Nueva sucursal';
   document.getElementById('z_name').value = z?z.name:'';
+  document.getElementById('z_radius').value = z&&z.radius_m?z.radius_m:150;
+  zDraftLat = z?z.latitude:null; zDraftLng = z?z.longitude:null;
+  const cd=document.getElementById('z_coords');
+  cd.textContent = (zDraftLat!=null) ? ('✓ Ubicación cargada ('+zDraftLat.toFixed(5)+', '+zDraftLng.toFixed(5)+')') : 'Sin ubicación cargada. Paráte en la sucursal y tocá el botón.';
   document.getElementById('zoneModal').hidden=false;
 }
 function closeZone(){ document.getElementById('zoneModal').hidden=true; }
+function capturarUbicacion(){
+  const cd=document.getElementById('z_coords');
+  if(!navigator.geolocation){ cd.textContent='Tu navegador no permite ubicación'; return; }
+  cd.textContent='Obteniendo ubicación…';
+  navigator.geolocation.getCurrentPosition(p=>{
+    zDraftLat=p.coords.latitude; zDraftLng=p.coords.longitude;
+    cd.textContent='✓ Ubicación cargada ('+zDraftLat.toFixed(5)+', '+zDraftLng.toFixed(5)+') · precisión ±'+Math.round(p.coords.accuracy)+'m';
+  }, ()=>{ cd.textContent='No se pudo obtener la ubicación (revisá los permisos)'; }, {enableHighAccuracy:true, timeout:8000});
+}
 async function saveZone(){
   const name=document.getElementById('z_name').value.trim();
   if(!name){ toast('Escribí un nombre'); return; }
+  const radius=parseInt(document.getElementById('z_radius').value)||150;
+  const payload={ name, radius_m:radius, latitude:zDraftLat, longitude:zDraftLng };
   if(editZoneId){
-    const { error } = await db.from('zones').update({name}).eq('id', editZoneId);
+    const { error } = await db.from('zones').update(payload).eq('id', editZoneId);
     if(error){ toast('Error: '+error.message); return; }
   } else {
-    const { error } = await db.from('zones').insert({company_id:companyId, name});
+    const { error } = await db.from('zones').insert({company_id:companyId, ...payload});
     if(error){ toast('Error: '+error.message); return; }
   }
   closeZone(); await loadZones(); toast('✓ Sucursal guardada');
@@ -918,8 +939,9 @@ function hhmm(iso){const d=new Date(iso);return pad2(d.getHours())+':'+pad2(d.ge
 // presencia en vivo: estado de cada empleado según su última marca de hoy
 async function loadPresence(){
   const d=new Date(); const start=d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate())+'T00:00:00';
-  const { data:punches } = await db.from('punches').select('employee_id,type,punched_at').gte('punched_at',start).order('punched_at');
+  const { data:punches } = await db.from('punches').select('employee_id,type,punched_at,in_zone').gte('punched_at',start).order('punched_at');
   const lastByEmp={}; (punches||[]).forEach(p=>{ lastByEmp[p.employee_id]=p; });
+  const zoneName={}; zones.forEach(z=>zoneName[z.id]=z.name);
   const palette=['#B7A6FF','#8AD6C0','#F3C1A0','#F6A9A9','#A9C0F6','#C7CDD9'];
   team = staff.map((s,i)=>{
     const last=lastByEmp[s.id];
@@ -928,7 +950,9 @@ async function loadPresence(){
       st = (last.type==='ingreso'||last.type==='receso_fin')?'work':(last.type==='receso_inicio')?'rest':'off';
       since = (last.type==='salida'?'salió ':'desde ')+hhmm(last.punched_at);
     }
-    return {n:s.name, r:s.role, av:initials(s.name), c:palette[i%palette.length], st, since, zone:'-', z:'—', h:'—'};
+    let zone='none', z='—';
+    if(s.zone_id && zoneName[s.zone_id]){ z=zoneName[s.zone_id]; if(last && last.in_zone===true) zone='ok'; else if(last && last.in_zone===false) zone='bad'; }
+    return {n:s.name, r:s.role, av:initials(s.name), c:palette[i%palette.length], st, since, zone, z};
   });
   renderAdmin();
 }
