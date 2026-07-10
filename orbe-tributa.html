@@ -679,12 +679,20 @@ function leerXMLs(files){
     r.readAsText(file);
   });
 }
+function firmaComp(c){
+  const cdc=(c.cdc||'').replace(/\s/g,'');
+  if(cdc) return (c.clase||'')+'|cdc|'+cdc;
+  const timb=digits(c.timbrado||'');
+  const nfac=(c.nfac||'').replace(/[\s-]/g,'');
+  return (c.clase||'')+'|'+timb+'|'+nfac+'|'+(c.fecha||'');
+}
 function importarFilas(){
   const faltan=CAMPOS.filter(c=>c.req&&(impMapa[c.k]==null||impMapa[c.k]<0)).map(c=>c.lbl);
   if(faltan.length){toast('Falta indicar la columna de: '+faltan.join(', '));return;}
   const g=(o,k)=>{const i=impMapa[k];return (i==null||i<0)?'':o.celdas[i];};
   const secDefault=S.secciones[0]?S.secciones[0].id:null;
-  let n=0;
+  let n=0,dup=0;
+  const existentes=new Set(S.comprobantes.filter(c=>c.clienteId===curCli).map(firmaComp));
   impFilas.forEach(o=>{
     let ruc=String(g(o,'ruc')||'').trim();
     const dvCol=String(g(o,'dv')||'').trim();
@@ -692,7 +700,7 @@ function importarFilas(){
     const nombre=String(g(o,'nombre')||'').trim();
     const timb=String(g(o,'timb')||'').trim();
     if(nombre)dirRemember(ruc,nombre,{fuente:'import',timbrado:digits(timb)||undefined});
-    S.comprobantes.push({
+    const comp={
       id:uid(),clienteId:curCli,_fila:o._fila,origen:'planilla',
       clase:(impClase==='ventas'?'venta':'compra'),tipo:'factura',cond:'contado',cuotas:[],
       fecha:normFecha(g(o,'fecha')),ruc,nombre,
@@ -706,7 +714,11 @@ function importarFilas(){
         no:esSI(g(o,'noImp'))
       },
       seccionId:secDefault
-    });n++;
+    };
+    const fc=firmaComp(comp);
+    if(existentes.has(fc)){dup++;return;}   /* ya existe: no duplicar */
+    existentes.add(fc);
+    S.comprobantes.push(comp);n++;
   });
   save();
   /* ajustar el período al mes más frecuente de lo importado, para validar lo correcto */
@@ -715,7 +727,7 @@ function importarFilas(){
   let mejorMes=ymSel,mx=0;for(const m in cnt){if(cnt[m]>mx){mx=cnt[m];mejorMes=m;}}
   ymSel=mejorMes;
   perSet(curCli,ymSel,{estado:'cargado'});
-  toast(n+' comprobantes importados · revisando…');
+  toast(n+' comprobantes importados'+(dup?' · '+dup+' duplicado'+(dup>1?'s':'')+' salteado'+(dup>1?'s':''):'')+' · revisando…');
   /* VALIDACIÓN AUTOMÁTICA: apenas se importa, mostrar el semáforo con los errores */
   correrValidacion();
 }
@@ -962,6 +974,15 @@ function borrarCobro(id){if(!confirm('¿Anular este recibo?'))return;S.cobros=S.
 /* ---------- libros imprimibles ---------- */
 function subLibros(c,comps){
   const todasCompras=comps.filter(x=>x.clase==='compra'),ventas=comps.filter(x=>x.clase==='venta');
+  /* meses con movimientos de este cliente, para navegar el libro sin salir */
+  const mesesCli=[...new Set(S.comprobantes.filter(x=>x.clienteId===c.id).map(x=>(x.fecha||'').slice(0,7)).filter(Boolean))];
+  if(!mesesCli.includes(ymSel))mesesCli.push(ymSel);
+  mesesCli.sort().reverse();
+  const navMes='<div class="noprint" style="display:flex;align-items:center;gap:9px;margin-bottom:12px;flex-wrap:wrap">'+
+    '<span style="color:var(--muted);font-size:13px;font-weight:600">Ver mes:</span>'+
+    '<select onchange="setYm(this.value)" style="padding:9px 12px;border-radius:9px;border:1px solid #cdd7cd;background:#fff;color:#12180f;font:inherit;font-size:14px;font-weight:600;cursor:pointer">'+
+    mesesCli.map(m=>'<option value="'+m+'"'+(m===ymSel?' selected':'')+'>'+ymLargo(m)+'</option>').join('')+
+    '</select></div>';
   /* los "No Imputar" van al REG pero NO forman parte del libro de IVA */
   const noImp=todasCompras.filter(x=>x.imputa&&x.imputa.no===true);
   const compras=todasCompras.filter(x=>!(x.imputa&&x.imputa.no===true));
@@ -988,7 +1009,7 @@ function subLibros(c,comps){
     '<div class="scrollx"><table class="ltbl">'+head(esCompra)+
     (arr.length?arr.map(x=>fila(x,esCompra)).join('')+totales(arr,esCompra):'<tr><td colspan="'+(esCompra?12:11)+'" style="text-align:center;color:var(--muted);padding:14px">Sin movimientos</td></tr>')+
     '</table></div></div>';
-  return '<div class="noprint btn-row" style="margin-top:0"><button class="btn btn-ink" onclick="window.print()">🖨 Imprimir libros</button></div>'+
+  return '<div class="noprint btn-row" style="margin-top:0"><button class="btn btn-ink" onclick="window.print()">🖨 Imprimir libros</button></div>'+navMes+
     libro(compras,'LIBRO DE COMPRAS',true)+
     (noImp.length?'<div class="hint" style="margin:-4px 2px 12px">ℹ '+noImp.length+' comprobante'+(noImp.length>1?'s':'')+' marcado'+(noImp.length>1?'s':'')+' "No Imputar" (Gs. '+fmtNum(noImp.reduce((a,x)=>a+(x.totalCol!=null?x.totalCol:((x.g10||0)+(x.g5||0)+(x.ex||0))),0))+') no suma'+(noImp.length>1?'n':'')+' al libro, pero sí va'+(noImp.length>1?'n':'')+' al archivo REG.</div>':'')+
     libro(ventas,'LIBRO DE VENTAS',false)+
