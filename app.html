@@ -340,9 +340,8 @@
     }
 
     function mostrarHome(session){
-      userEmail.textContent = session.user.email;
-      authCard.classList.add('hide');
-      homeCard.classList.add('show');
+      // Camino 1: entrada directa al producto (igual que el tracker)
+      location.href = 'orbe-tributa.html';
     }
     function mostrarAuth(){
       homeCard.classList.remove('show');
