@@ -18,9 +18,8 @@
   body{font-family:'Inter',system-ui,sans-serif;color:var(--txt);
     background:radial-gradient(1000px 700px at 90% -15%,rgba(196,242,77,.10),transparent 60%),linear-gradient(160deg,var(--bg-0),var(--bg-1));
     min-height:100dvh;padding:24px 18px 70px}
-  .wrap{max-width:960px;margin:0 auto}
+  .wrap{max-width:980px;margin:0 auto}
   a{color:inherit}
-
   header{display:flex;align-items:center;gap:13px;margin-bottom:6px}
   header img{width:40px;height:40px;filter:drop-shadow(0 0 10px rgba(196,242,77,.5))}
   header .t{font-family:'Sora',sans-serif;font-weight:700;font-size:20px}
@@ -30,31 +29,34 @@
   .out:hover{color:var(--txt);border-color:var(--lime)}
   .sub{color:var(--txt-dim);font-size:14px;margin:4px 0 20px}
 
-  /* tablero */
-  .board{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
-  .kpi{background:linear-gradient(180deg,var(--surface),#0e150e);border:1px solid var(--line);border-radius:13px;padding:15px 16px}
-  .kpi .n{font-family:'Sora',sans-serif;font-weight:700;font-size:26px;line-height:1}
-  .kpi .l{font-size:12px;color:var(--txt-dim);margin-top:6px}
-  .kpi.on .n{color:var(--lime)} .kpi.tr .n{color:var(--warn)} .kpi.off .n{color:var(--off)}
-  @media(max-width:640px){.board{grid-template-columns:repeat(2,1fr)}}
+  .board{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px}
+  .kpi{background:linear-gradient(180deg,var(--surface),#0e150e);border:1px solid var(--line);border-radius:13px;padding:14px 15px}
+  .kpi .n{font-family:'Sora',sans-serif;font-weight:700;font-size:24px;line-height:1}
+  .kpi .l{font-size:11.5px;color:var(--txt-dim);margin-top:6px}
+  .kpi.on .n{color:var(--lime)} .kpi.tr .n{color:var(--warn)} .kpi.off .n{color:var(--off)} .kpi.lim .n{color:var(--off)}
+  @media(max-width:760px){.board{grid-template-columns:repeat(3,1fr)}}
+  @media(max-width:480px){.board{grid-template-columns:repeat(2,1fr)}}
 
   .bar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
   .search{flex:1;min-width:180px;background:var(--bg-0);border:1px solid var(--line-strong);border-radius:10px;padding:11px 13px;color:var(--txt);font:inherit;font-size:14px}
   .search:focus{outline:none;border-color:var(--lime);box-shadow:0 0 0 3px rgba(196,242,77,.2)}
-  .filter{display:flex;gap:6px;background:var(--bg-0);border:1px solid var(--line-strong);border-radius:10px;padding:4px}
+  .filter{display:flex;gap:6px;background:var(--bg-0);border:1px solid var(--line-strong);border-radius:10px;padding:4px;flex-wrap:wrap}
   .filter button{background:none;border:none;color:var(--txt-dim);font:inherit;font-size:13px;padding:7px 12px;border-radius:7px;cursor:pointer}
   .filter button.act{background:var(--surface-3);color:var(--txt)}
 
   .card{background:linear-gradient(180deg,var(--surface),#0e150e);border:1px solid var(--line);border-radius:14px;overflow:hidden}
   .row{border-top:1px solid var(--line)}
   .row:first-child{border-top:none}
-  .row__head{display:grid;grid-template-columns:1fr auto auto auto;gap:12px;align-items:center;padding:15px 18px;cursor:pointer}
+  .row__head{display:grid;grid-template-columns:1fr auto auto auto auto;gap:12px;align-items:center;padding:15px 18px;cursor:pointer}
   .row__info{min-width:0}
   .row__info h3{font-family:'Sora',sans-serif;font-size:15px;font-weight:600;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .row__info p{font-size:12.5px;color:var(--txt-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cupo{font-family:'Sora',sans-serif;font-size:12.5px;font-weight:600;white-space:nowrap;padding:4px 9px;border-radius:8px;background:rgba(255,255,255,.04);color:var(--txt-dim)}
+  .cupo.cerca{background:rgba(242,201,76,.14);color:var(--warn)}
+  .cupo.pasado{background:rgba(255,143,143,.16);color:var(--off)}
+  .planb{font-size:11px;font-weight:600;padding:4px 9px;border-radius:20px;white-space:nowrap;background:rgba(196,242,77,.1);color:var(--lime-deep);border:1px solid rgba(196,242,77,.2)}
   .venc{font-size:11.5px;color:var(--txt-dim);white-space:nowrap}
   .venc.soon{color:var(--warn)} .venc.past{color:var(--off)}
-
   .badge{font-family:'Sora',sans-serif;font-size:11px;font-weight:600;padding:5px 11px;border-radius:20px;white-space:nowrap;text-align:center;min-width:74px}
   .badge.active{background:rgba(196,242,77,.14);color:var(--lime);border:1px solid rgba(196,242,77,.32)}
   .badge.inactive{background:rgba(255,143,143,.12);color:var(--off);border:1px solid rgba(255,143,143,.3)}
@@ -64,14 +66,16 @@
 
   .panel{display:none;padding:0 18px 18px;border-top:1px solid var(--line);background:rgba(0,0,0,.15)}
   .row.open .panel{display:block}
+  .alerta{background:rgba(255,143,143,.1);border:1px solid rgba(255,143,143,.3);color:var(--off);border-radius:10px;padding:11px 14px;margin-top:14px;font-size:13.5px}
+  .alerta.cerca{background:rgba(242,201,76,.1);border-color:rgba(242,201,76,.3);color:var(--warn)}
   .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding-top:16px}
-  @media(max-width:600px){.grid{grid-template-columns:1fr}.row__head{grid-template-columns:1fr auto auto}}
-  .stat2{display:flex;gap:18px;font-size:13px;color:var(--txt-dim);padding-top:14px}
+  @media(max-width:600px){.grid{grid-template-columns:1fr}.row__head{grid-template-columns:1fr auto auto}.row__head .venc,.row__head .planb{display:none}}
+  .stat2{display:flex;gap:18px;font-size:13px;color:var(--txt-dim);padding-top:14px;flex-wrap:wrap}
   .stat2 b{color:var(--txt);font-family:'Sora',sans-serif}
   .fld label{display:block;font-size:12px;color:var(--txt-dim);margin-bottom:6px}
-  .fld input,.fld textarea{width:100%;background:var(--bg-0);border:1px solid var(--line-strong);border-radius:9px;padding:10px 12px;color:var(--txt);font:inherit;font-size:14px}
+  .fld input,.fld textarea,.fld select{width:100%;background:var(--bg-0);border:1px solid var(--line-strong);border-radius:9px;padding:10px 12px;color:var(--txt);font:inherit;font-size:14px}
   .fld textarea{resize:vertical;min-height:44px}
-  .fld input:focus,.fld textarea:focus{outline:none;border-color:var(--lime)}
+  .fld input:focus,.fld textarea:focus,.fld select:focus{outline:none;border-color:var(--lime)}
   .acts{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px;align-items:center}
   .btn{border:none;border-radius:9px;padding:9px 14px;font-family:'Sora',sans-serif;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
   .btn:active{transform:translateY(1px)}
@@ -82,13 +86,10 @@
   .btn.save{background:var(--surface-3);color:var(--lime);border:1px solid var(--line-strong)}
   .btn.danger{background:none;border:1px solid rgba(255,143,143,.35);color:var(--off);margin-left:auto}
   .btn.danger:hover{background:rgba(255,143,143,.1)}
-
   .msg{text-align:center;padding:44px 20px;color:var(--txt-dim);font-size:14.5px}
   .msg.err{color:var(--off)}
   .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(120px);background:var(--surface-2);border:1px solid var(--line-strong);color:var(--txt);padding:12px 20px;border-radius:12px;font-size:14px;box-shadow:0 14px 40px rgba(0,0,0,.5);transition:transform .25s;z-index:50;max-width:90vw;text-align:center}
   .toast.show{transform:translateX(-50%) translateY(0)}
-
-  /* modal confirmar borrado */
   .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:24px;z-index:60}
   .modal.show{display:flex}
   .modal__box{background:var(--surface);border:1px solid var(--line-strong);border-radius:16px;padding:26px;max-width:420px;width:100%}
@@ -106,13 +107,14 @@
       <div class="sp"></div>
       <button class="out" id="out">Salir</button>
     </header>
-    <p class="sub">Gestioná el acceso, el vencimiento y los datos de cada estudio.</p>
+    <p class="sub">Gestioná el acceso, el plan y los datos de cada estudio.</p>
 
     <div class="board">
       <div class="kpi on"><div class="n" id="kOn">—</div><div class="l">Activos</div></div>
       <div class="kpi tr"><div class="n" id="kTrial">—</div><div class="l">En prueba</div></div>
       <div class="kpi off"><div class="n" id="kOff">—</div><div class="l">Cortados</div></div>
       <div class="kpi"><div class="n" id="kSoon">—</div><div class="l">Vencen pronto</div></div>
+      <div class="kpi lim"><div class="n" id="kLim">—</div><div class="l">Al límite ⚠️</div></div>
     </div>
 
     <div class="bar">
@@ -122,6 +124,7 @@
         <button data-f="active">Activos</button>
         <button data-f="trial">Prueba</button>
         <button data-f="inactive">Cortados</button>
+        <button data-f="limite">Al límite</button>
       </div>
     </div>
 
@@ -129,7 +132,6 @@
   </div>
 
   <div class="toast" id="toast"></div>
-
   <div class="modal" id="modal">
     <div class="modal__box">
       <h3>Eliminar estudio</h3>
@@ -149,6 +151,7 @@
     const sb=window.supabase.createClient(SB_URL,SB_KEY);
     const $=id=>document.getElementById(id);
 
+    const PLANES={inicial:{n:'Inicial',t:15},profesional:{n:'Profesional',t:30},estudio:{n:'Estudio',t:60},estudioplus:{n:'Estudio+',t:120}};
     let estudios=[], filtro='all', pendingDelete=null;
 
     function toast(t){const el=$('toast');el.textContent=t;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2400);}
@@ -157,6 +160,13 @@
     function diasPara(iso){ if(!iso)return null; return Math.ceil((new Date(iso)-new Date())/86400000); }
     function toInput(iso){ if(!iso)return ''; return new Date(iso).toISOString().slice(0,10); }
 
+    // estado del cupo: 'ok' | 'cerca' | 'pasado'
+    function cupoEstado(e){
+      const tope=e.max_contribuyentes||PLANES[e.plan]?.t||15;
+      if(e.clientes>tope) return 'pasado';
+      if(e.clientes>=Math.ceil(tope*0.8)) return 'cerca';
+      return 'ok';
+    }
     function badge(s){const m={active:['active','Activo'],inactive:['inactive','Cortado'],trial:['trial','Prueba']};const[c,t]=m[s]||['trial',s||'—'];return '<span class="badge '+c+'">'+t+'</span>';}
 
     function tablero(){
@@ -164,32 +174,49 @@
       $('kTrial').textContent=estudios.filter(e=>e.status==='trial').length;
       $('kOff').textContent=estudios.filter(e=>e.status==='inactive').length;
       $('kSoon').textContent=estudios.filter(e=>{const d=diasPara(e.expires_at);return d!==null&&d>=0&&d<=7;}).length;
+      $('kLim').textContent=estudios.filter(e=>cupoEstado(e)!=='ok').length;
     }
 
     function render(){
       tablero();
       const q=$('q').value.trim().toLowerCase();
-      let items=estudios.filter(e=>filtro==='all'||e.status===filtro);
+      let items=estudios.filter(e=>{
+        if(filtro==='limite') return cupoEstado(e)!=='ok';
+        return filtro==='all'||e.status===filtro;
+      });
       if(q) items=items.filter(e=>(e.estudio||'').toLowerCase().includes(q)||(e.owner_email||'').toLowerCase().includes(q));
       if(!items.length){$('list').innerHTML='<div class="msg">No hay estudios que coincidan.</div>';return;}
 
       $('list').innerHTML=items.map(e=>{
+        const tope=e.max_contribuyentes||PLANES[e.plan]?.t||15;
+        const cs=cupoEstado(e);
+        const cupoCls=cs==='pasado'?'pasado':(cs==='cerca'?'cerca':'');
+        const plan=PLANES[e.plan]||{n:e.plan||'—',t:tope};
         const d=diasPara(e.expires_at);
         let vcls='',vtxt='';
-        if(e.expires_at){ vtxt='Vence '+fmtFecha(e.expires_at); if(d<0){vcls='past';vtxt='Vencido '+fmtFecha(e.expires_at);} else if(d<=7){vcls='soon';} }
+        if(e.expires_at){ vtxt='Vence '+fmtFecha(e.expires_at); if(d<0){vcls='past';vtxt='Vencido';} else if(d<=7){vcls='soon';} }
+        const planOpts=Object.keys(PLANES).map(k=>'<option value="'+k+'"'+(k===e.plan?' selected':'')+'>'+PLANES[k].n+' (hasta '+PLANES[k].t+')</option>').join('');
+        let alerta='';
+        if(cs==='pasado') alerta='<div class="alerta">⚠️ Este estudio cargó <b>'+e.clientes+'</b> contribuyentes y su plan '+plan.n+' permite <b>'+tope+'</b>. Conviene avisarle para que suba de plan.</div>';
+        else if(cs==='cerca') alerta='<div class="alerta cerca">Está cerca del límite: <b>'+e.clientes+' de '+tope+'</b> contribuyentes.</div>';
+
         return '<div class="row" data-id="'+e.account_id+'">'
           +'<div class="row__head" onclick="toggle(this)">'
             +'<div class="row__info"><h3>'+esc(e.estudio||'(sin nombre)')+'</h3><p>'+esc(e.owner_email||'sin dueño')+'</p></div>'
+            +'<span class="cupo '+cupoCls+'">'+e.clientes+'/'+tope+'</span>'
+            +'<span class="planb">'+plan.n+'</span>'
             +'<span class="venc '+vcls+'">'+vtxt+'</span>'
             +badge(e.status)
             +'<span class="chev">▶</span>'
           +'</div>'
           +'<div class="panel">'
-            +'<div class="stat2"><span>Clientes: <b>'+e.clientes+'</b></span><span>Comprobantes: <b>'+e.comprobantes+'</b></span><span>Alta: <b>'+fmtFecha(e.created_at)+'</b></span></div>'
+            +alerta
+            +'<div class="stat2"><span>Contribuyentes: <b>'+e.clientes+' / '+tope+'</b></span><span>Comprobantes: <b>'+e.comprobantes+'</b></span><span>Alta: <b>'+fmtFecha(e.created_at)+'</b></span></div>'
             +'<div class="grid">'
+              +'<div class="fld"><label>Plan</label><select id="plan_'+e.account_id+'" onchange="cambiarPlan(\''+e.account_id+'\',this.value)">'+planOpts+'</select></div>'
               +'<div class="fld"><label>Vencimiento del acceso</label><input type="date" id="exp_'+e.account_id+'" value="'+toInput(e.expires_at)+'"></div>'
-              +'<div class="fld"><label>Nota interna</label><textarea id="nota_'+e.account_id+'" placeholder="Ej: pagó en efectivo hasta marzo">'+esc(e.nota)+'</textarea></div>'
             +'</div>'
+            +'<div class="fld" style="margin-top:14px"><label>Nota interna</label><textarea id="nota_'+e.account_id+'" placeholder="Ej: pagó en efectivo hasta marzo">'+esc(e.nota)+'</textarea></div>'
             +'<div class="acts">'
               +(e.status==='active'
                 ? '<button class="btn off" onclick="setStatus(\''+e.account_id+'\',\'inactive\')">Cortar acceso</button>'
@@ -204,6 +231,16 @@
     }
 
     window.toggle=el=>el.closest('.row').classList.toggle('open');
+    function reopen(id){const r=document.querySelector('.row[data-id="'+id+'"]');if(r)r.classList.add('open');}
+
+    async function cambiarPlan(id,plan){
+      const e=estudios.find(x=>x.account_id===id);const prevP=e.plan,prevT=e.max_contribuyentes;
+      e.plan=plan; e.max_contribuyentes=PLANES[plan].t; render(); reopen(id);
+      const {error}=await sb.rpc('admin_set_plan',{p_account:id,p_plan:plan});
+      if(error){e.plan=prevP;e.max_contribuyentes=prevT;render();reopen(id);toast('No se pudo cambiar el plan.');}
+      else toast('Plan actualizado a '+PLANES[plan].n+' ✓');
+    }
+    window.cambiarPlan=cambiarPlan;
 
     async function setStatus(id,nuevo){
       const e=estudios.find(x=>x.account_id===id);const prev=e.status;e.status=nuevo;render();reopen(id);
@@ -245,8 +282,6 @@
       else{estudios=estudios.filter(e=>e.account_id!==id);render();toast('Estudio eliminado.');}
     };
 
-    function reopen(id){const r=document.querySelector('.row[data-id="'+id+'"]');if(r)r.classList.add('open');}
-
     $('q').addEventListener('input',render);
     $('filters').addEventListener('click',ev=>{const b=ev.target.closest('button');if(!b)return;filtro=b.dataset.f;[...$('filters').children].forEach(x=>x.classList.toggle('act',x===b));render();});
     $('out').addEventListener('click',async()=>{await sb.auth.signOut();location.href='app.html';});
@@ -256,7 +291,6 @@
       if(error){$('list').innerHTML='<div class="msg err">No se pudo cargar. ¿Tu usuario es administrador?</div>';return;}
       estudios=data||[];render();
     }
-
     (async()=>{
       const {data:{session}}=await sb.auth.getSession();
       if(!session){location.href='app.html';return;}
