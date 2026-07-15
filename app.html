@@ -194,6 +194,12 @@
     .card{padding:24px 20px 26px}
     .wordmark{font-size:26px}
   }
+
+  .sep{display:flex;align-items:center;gap:12px;margin:16px 0;color:var(--txt-dim,#8a9);font-size:12.5px}
+  .sep::before,.sep::after{content:"";flex:1;height:1px;background:rgba(255,255,255,.12)}
+  .btn-google{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;background:#fff;color:#1f1f1f;border:none;border-radius:11px;padding:13px;font:600 15px 'Inter',system-ui,sans-serif;cursor:pointer;transition:filter .15s}
+  .btn-google:hover{filter:brightness(.96)}
+  .btn-google:active{transform:translateY(1px)}
 </style>
 </head>
 <body>
@@ -230,6 +236,11 @@
           </label>
         </div>
         <button type="submit" class="btn" id="submitBtn">Iniciar sesión</button>
+        <div class="sep"><span>o</span></div>
+        <button type="button" class="btn-google" id="googleBtn">
+          <svg width="18" height="18" viewBox="0 0 48 48" style="flex-shrink:0"><path fill="#FFC107" d="M43.6 20.5h-1.9V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 4.5 29.5 2.5 24 2.5 12.1 2.5 2.5 12.1 2.5 24S12.1 45.5 24 45.5 45.5 35.9 45.5 24c0-1.2-.1-2.3-.4-3.5z"/><path fill="#FF3D00" d="M5.3 14.7l6.6 4.8C13.6 15.5 18.4 12.5 24 12.5c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 4.5 29.5 2.5 24 2.5 16.3 2.5 9.7 6.9 5.3 14.7z"/><path fill="#4CAF50" d="M24 45.5c5.4 0 10.3-2 14-5.3l-6.5-5.5c-2 1.5-4.6 2.3-7.5 2.3-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.6 41 16.2 45.5 24 45.5z"/><path fill="#1976D2" d="M43.6 20.5H24v8h11.3c-.8 2.3-2.2 4.2-4.1 5.6l6.5 5.5c-.5.4 6.8-4.9 6.8-15.1 0-1.2-.1-2.3-.4-3.5z"/></svg>
+          Continuar con Google
+        </button>
       </form>
 
       <p class="switch" id="switchLine">
@@ -413,6 +424,16 @@
     });
 
     // Detectar la vuelta desde el correo de recuperación
+    // Login con Google
+    const _gbtn = document.getElementById('googleBtn');
+    if(_gbtn){ _gbtn.addEventListener('click', async ()=>{
+      const { error } = await sb.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: location.origin + '/orbe-tributa.html' }
+      });
+      if(error){ showMsg('No se pudo conectar con Google. Probá de nuevo.', 'error'); }
+    }); }
+
     sb.auth.onAuthStateChange((event)=>{
       if(event === 'PASSWORD_RECOVERY'){
         document.getElementById('authCard').style.display = 'none';
