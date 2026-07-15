@@ -792,7 +792,7 @@ function vPanel(){
       '<div class="btn-row" style="max-width:340px;margin:14px auto 0">'+
       '<button class="btn btn-brand" onclick="nuevoCliente()">+ Agregar primer cliente</button></div></div>';
   }
-  let h=alertaUrgente()+radar();
+  let h=alertaUrgente();
   h+='<div class="topbar"><input class="search" placeholder="Buscar cliente o RUC…" value="'+esc(buscar)+'" oninput="setBuscar(this.value)">'+
      '<input type="month" value="'+ymSel+'" onchange="setYm(this.value)"></div>';
   const q=norm(buscar);
@@ -811,26 +811,39 @@ function vPanel(){
   h+='<button class="btn btn-brand" style="margin-top:10px" onclick="nuevoCliente()">+ Agregar cliente</button>';
   return h;
 }
+function proximoVenc(rucB){
+  // Devuelve el próximo vencimiento (fecha >= hoy) más cercano para ese RUC, junto con su período
+  const hoy=new Date(hoyISO());
+  const base=new Date();
+  let mejor=null;
+  for(let off=-2; off<=3; off++){
+    const dt=new Date(base.getFullYear(), base.getMonth()+off, 1);
+    const ym=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0');
+    const v=vencimiento(rucB, ym);
+    if(new Date(v)>=hoy){ if(!mejor || new Date(v)<new Date(mejor.v)) mejor={ym, v}; }
+  }
+  return mejor;
+}
 function alertaUrgente(){
-  // Clientes (del período en foco) no presentados que vencen en <=7 días o ya vencidos
-  const urgentes=S.clientes.map(c=>{
-    const v=vencimiento(rucBase(c.ruc),ymSel);
-    return {c,v,d:diasHasta(v),exp:perGet(c.id,ymSel).exportado};
-  }).filter(x=>!x.exp && x.d<=7).sort((a,b)=>a.d-b.d);
+  // Solo clientes cuyo PRÓXIMO vencimiento cae en <=2 días (hoy, mañana o pasado) y no está presentado
+  const urgentes=[];
+  S.clientes.forEach(c=>{
+    const pv=proximoVenc(rucBase(c.ruc));
+    if(!pv) return;
+    if(perGet(c.id, pv.ym).exportado) return;   // ya presentado ese período
+    const d=diasHasta(pv.v);
+    if(d>=0 && d<=2) urgentes.push({c, v:pv.v, ym:pv.ym, d});
+  });
   if(!urgentes.length) return '';
-  const vencidos=urgentes.filter(x=>x.d<0).length;
+  urgentes.sort((a,b)=>a.d-b.d);
   const filas=urgentes.map(x=>{
-    let et,col;
-    if(x.d<0){et='vencido hace '+(-x.d)+' d';col='#ff8f8f';}
-    else if(x.d===0){et='vence HOY';col='#ff8f8f';}
-    else if(x.d<=3){et='vence en '+x.d+' d';col='#ff8f8f';}
-    else {et='vence en '+x.d+' d';col='#f2c94c';}
+    const et = x.d===0 ? 'vence HOY' : (x.d===1 ? 'vence mañana' : 'vence en 2 días');
     return '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-top:1px solid rgba(255,255,255,.12)">'
       +'<div style="min-width:0"><div style="font-weight:700;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(x.c.nombre)+'</div>'
-      +'<div style="font-size:11.5px;color:#c9d6cf">IVA de '+ymLargo(ymSel)+' · vence el '+fmtDate(x.v)+'</div></div>'
-      +'<span style="flex-shrink:0;font-weight:700;font-size:12px;color:'+col+'">'+et+'</span></div>';
+      +'<div style="font-size:11.5px;color:#c9d6cf">IVA de '+ymLargo(x.ym)+' · vence el '+fmtDate(x.v)+'</div></div>'
+      +'<span style="flex-shrink:0;font-weight:700;font-size:12px;color:#ff8f8f">'+et+'</span></div>';
   }).join('');
-  const titulo=vencidos?('⚠️ Tenés '+urgentes.length+' cliente'+(urgentes.length>1?'s':'')+' con vencimientos urgentes'):('🔔 '+urgentes.length+' cliente'+(urgentes.length>1?'s':'')+' vence'+(urgentes.length>1?'n':'')+' esta semana');
+  const titulo='🔔 '+urgentes.length+' cliente'+(urgentes.length>1?'s':'')+' por presentar '+(urgentes.length>1?'estos días':'ya');
   return '<div style="background:linear-gradient(135deg,#3a1e28,#2a1520);border:1px solid rgba(255,143,143,.4);border-radius:14px;padding:15px 17px;margin-bottom:14px;color:#fff">'
     +'<div style="font-weight:800;font-size:13.5px;margin-bottom:6px">'+titulo+'</div>'
     +filas
