@@ -1182,12 +1182,24 @@ function exportLiq(fmt){
   }
 }
 
+function mostrarAccesoPausa(){
+  document.body.innerHTML='<div style="min-height:100dvh;display:grid;place-items:center;padding:40px;text-align:center;font-family:system-ui,sans-serif;background:#0a0e1a;color:#eaecf5">'
+    +'<div style="max-width:440px">'
+    +'<div style="font-size:44px;margin-bottom:14px">\ud83d\udd12</div>'
+    +'<h1 style="font-size:22px;margin-bottom:12px">Acceso en pausa</h1>'
+    +'<p style="color:#9aa2c0;line-height:1.6;margin-bottom:24px">El acceso de tu empresa a Orbe Time Tracker est\u00e1 pausado. Si ya realizaste el pago o quer\u00e9s reactivarlo, escribinos y lo habilitamos enseguida.</p>'
+    +'<a href="mailto:josecabreraroman91@gmail.com" style="display:inline-block;background:#8b7cf6;color:#fff;text-decoration:none;padding:12px 22px;border-radius:10px;font-weight:600">Contactar</a>'
+    +'</div></div>';
+}
+
 async function init(){
   const { data:{ session } } = await db.auth.getSession();
   if(!session){ window.location.href='orbe-tracker.html'; return; }
   const { data: mem, error } = await db.from('memberships').select('company_id, role').eq('user_id', session.user.id).maybeSingle();
   if(error || !mem){ toast('Tu usuario no tiene una empresa asociada'); return; }
   companyId = mem.company_id; myRole = mem.role;
+  { const { data: comp } = await db.from('companies').select('status').eq('id', companyId).maybeSingle();
+    if(comp && comp.status==='inactive'){ await db.auth.signOut(); mostrarAccesoPausa(); return; } }
   const nameEl=document.querySelector('.s-name');
   if(nameEl) nameEl.textContent = myRole==='admin'?'Administrador':(myRole==='gerente'?'Gerente':'Encargado');
   await loadZones();

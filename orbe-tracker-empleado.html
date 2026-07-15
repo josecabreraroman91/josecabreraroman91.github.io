@@ -240,11 +240,23 @@ async function loadToday(){
   punchesToday=data||[]; render();
 }
 
+function mostrarAccesoPausa(){
+  document.body.innerHTML='<div style="min-height:100dvh;display:grid;place-items:center;padding:40px;text-align:center;font-family:system-ui,sans-serif;background:#0a0e1a;color:#eaecf5">'
+    +'<div style="max-width:440px">'
+    +'<div style="font-size:44px;margin-bottom:14px">\ud83d\udd12</div>'
+    +'<h1 style="font-size:22px;margin-bottom:12px">Acceso en pausa</h1>'
+    +'<p style="color:#9aa2c0;line-height:1.6;margin-bottom:24px">El acceso de tu empresa a Orbe Time Tracker est\u00e1 pausado. Si ya realizaste el pago o quer\u00e9s reactivarlo, escribinos y lo habilitamos enseguida.</p>'
+    +'<a href="mailto:josecabreraroman91@gmail.com" style="display:inline-block;background:#8b7cf6;color:#fff;text-decoration:none;padding:12px 22px;border-radius:10px;font-weight:600">Contactar</a>'
+    +'</div></div>';
+}
+
 async function init(){
   const { data:{session} }=await db.auth.getSession();
   if(!session){ location.href='orbe-tracker.html'; return; }
   const { data:e }=await db.from('employees').select('*').eq('user_id',session.user.id).maybeSingle();
   if(!e){ toast('Tu cuenta no está vinculada a un empleado'); return; }
+  if(e.company_id){ const { data: comp } = await db.from('companies').select('status').eq('id', e.company_id).maybeSingle();
+    if(comp && comp.status==='inactive'){ await db.auth.signOut(); mostrarAccesoPausa(); return; } }
   emp=e;
   if(e.zone_id){ const { data:z }=await db.from('zones').select('*').eq('id',e.zone_id).maybeSingle(); empZone=z; }
   const ini=initials(e.full_name);

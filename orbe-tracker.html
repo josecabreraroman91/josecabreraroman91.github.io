@@ -166,13 +166,28 @@ async function doSignup(){
 }
 
 /* Ingresar: valida y redirige según el rol */
+function mostrarAccesoPausa(){
+  document.body.innerHTML='<div style="min-height:100dvh;display:grid;place-items:center;padding:40px;text-align:center;font-family:system-ui,sans-serif;background:#0a0e1a;color:#eaecf5">'
+    +'<div style="max-width:440px">'
+    +'<div style="font-size:44px;margin-bottom:14px">\ud83d\udd12</div>'
+    +'<h1 style="font-size:22px;margin-bottom:12px">Acceso en pausa</h1>'
+    +'<p style="color:#9aa2c0;line-height:1.6;margin-bottom:24px">El acceso de tu empresa a Orbe Time Tracker est\u00e1 pausado. Si ya realizaste el pago o quer\u00e9s reactivarlo, escribinos y lo habilitamos enseguida.</p>'
+    +'<a href="mailto:josecabreraroman91@gmail.com" style="display:inline-block;background:#8b7cf6;color:#fff;text-decoration:none;padding:12px 22px;border-radius:10px;font-weight:600">Contactar</a>'
+    +'</div></div>';
+}
+
 async function doLogin(){
   const email=val('li_email'), pass=val('li_pass');
   if(!email || !pass){ toast('Ingresá email y contraseña'); return; }
   const btn=document.getElementById('btnLogin'); btn.disabled=true; btn.textContent='Ingresando…';
   const { data, error } = await db.auth.signInWithPassword({ email, password: pass });
   if(error){ btn.disabled=false; btn.textContent='Entrar'; toast('No se pudo entrar: '+error.message); return; }
-  const { data: mem } = await db.from('memberships').select('role').eq('user_id', data.user.id).maybeSingle();
+  const { data: mem } = await db.from('memberships').select('role, company_id').eq('user_id', data.user.id).maybeSingle();
+  // Chequeo de acceso: si la empresa está cortada, no dejamos entrar
+  if(mem && mem.company_id){
+    const { data: comp } = await db.from('companies').select('status').eq('id', mem.company_id).maybeSingle();
+    if(comp && comp.status==='inactive'){ await db.auth.signOut(); mostrarAccesoPausa(); return; }
+  }
   const rol = mem ? mem.role : 'empleado';
   window.location.href = (rol==='empleado') ? 'orbe-tracker-empleado.html' : 'orbe-tracker-encargado.html';
 }
