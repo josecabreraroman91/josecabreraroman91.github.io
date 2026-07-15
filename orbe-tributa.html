@@ -418,6 +418,13 @@ function chipDias(n,exportado){
   if(n<=7)return '<span class="dchip d-warn">vence en '+n+' d</span>';
   return '<span class="dchip d-ok">faltan '+n+' d</span>';
 }
+function chipVenc(c){
+  // Chip basado en el PRÓXIMO vencimiento (nunca se queda en "vencido": se reinicia al siguiente período)
+  const pv=proximoVenc(rucBase(c.ruc));
+  if(!pv) return '';
+  if(perGet(c.id, pv.ym).exportado) return '<span class="dchip d-ok">✓ presentable</span>';
+  return chipDias(diasHasta(pv.v), false);
+}
 
 /* ============================ períodos / estado ============================ */
 function perKey(cid,ym){return cid+'|'+ym;}
@@ -805,7 +812,7 @@ function vPanel(){
       '<span class="sem '+st.sem+'"></span>'+
       '<div class="in"><div class="nm">'+esc(c.nombre)+'</div>'+
       '<div class="mt"><span class="catpill">'+esc(catResumen(c))+'</span><span>'+st.txt+'</span></div></div>'+
-      chipDias(diasHasta(v),perGet(c.id,ymSel).exportado)+
+      chipVenc(c)+
       '<span class="arrow">›</span></div>';
   });
   h+='<button class="btn btn-brand" style="margin-top:10px" onclick="nuevoCliente()">+ Agregar cliente</button>';
@@ -900,7 +907,7 @@ function vCliente(){
   const per=perGet(c.id,ymSel);
   let h='<div class="card chead"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">'+
     '<div><div class="nm">'+esc(c.nombre)+'</div><div class="meta">RUC '+esc(c.ruc)+' · '+esc(obligacionesDe(c).join(' · ')||'sin obligaciones')+'</div></div>'+
-    chipDias(diasHasta(v),per.exportado)+'</div>'+
+    chipVenc(c)+'</div>'+
     '<div style="margin-top:8px"><span class="stpill '+st.pill+'">'+st.txt.toUpperCase()+'</span></div>'+
     '<div class="strip"><div class="s"><div class="sk">Compras</div><div class="sv">'+comps.filter(x=>x.clase==='compra').length+'</div></div>'+
     '<div class="s"><div class="sk">Ventas</div><div class="sv">'+comps.filter(x=>x.clase==='venta').length+'</div></div>'+
