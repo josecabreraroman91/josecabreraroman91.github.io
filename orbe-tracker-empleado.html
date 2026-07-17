@@ -274,11 +274,31 @@ function mostrarAccesoPausa(){
     +'</div></div></div>';
 }
 
+function mostrarNoVinculado(email){
+  document.body.innerHTML='<div style="min-height:100dvh;display:grid;place-items:center;padding:40px;text-align:center;font-family:system-ui,sans-serif;background:#0a0e1a;color:#eaecf5">'
+    +'<div style="max-width:440px">'
+    +'<div style="font-size:44px;margin-bottom:14px">\ud83d\udc4b</div>'
+    +'<h1 style="font-size:21px;margin-bottom:12px">Todavía no estás en el sistema</h1>'
+    +'<p style="color:#9aa2c0;line-height:1.6;margin-bottom:10px">Entraste con <b>'+(email||'tu cuenta')+'</b>, pero tu encargado todavía no te cargó como empleado con ese correo.</p>'
+    +'<p style="color:#9aa2c0;line-height:1.6;margin-bottom:24px">Pedile que te agregue usando <b>este mismo correo</b> y volvé a entrar.</p>'
+    +'<button onclick="cerrarSesion()" style="background:#8b7cf6;color:#fff;border:none;padding:12px 22px;border-radius:10px;font-weight:600;cursor:pointer">Salir</button>'
+    +'</div></div>';
+}
+async function cerrarSesion(){ await db.auth.signOut(); location.href='orbe-tracker.html'; }
 async function init(){
   const { data:{session} }=await db.auth.getSession();
   if(!session){ location.href='orbe-tracker.html'; return; }
-  const { data:e }=await db.from('employees').select('*').eq('user_id',session.user.id).maybeSingle();
-  if(!e){ toast('Tu cuenta no está vinculada a un empleado'); return; }
+  let { data:e }=await db.from('employees').select('*').eq('user_id',session.user.id).maybeSingle();
+  // Si entró con Google (u otro método) y no está vinculado por user_id, lo buscamos por su email
+  if(!e && session.user.email){
+    const { data:byEmail }=await db.from('employees').select('*').ilike('email',session.user.email).maybeSingle();
+    if(byEmail){
+      // Vinculamos su cuenta (guardamos el user_id para las próximas veces)
+      if(!byEmail.user_id){ await db.from('employees').update({user_id:session.user.id}).eq('id',byEmail.id); }
+      e = byEmail;
+    }
+  }
+  if(!e){ mostrarNoVinculado(session.user.email); return; }
   if(e.company_id){ const { data: comp } = await db.from('companies').select('status').eq('id', e.company_id).maybeSingle();
     if(comp && comp.status==='inactive'){ await db.auth.signOut(); mostrarAccesoPausa(); return; } }
   emp=e;
