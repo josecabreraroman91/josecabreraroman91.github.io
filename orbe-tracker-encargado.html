@@ -128,6 +128,8 @@
   .seg{display:flex; gap:6px; background:var(--ink); border:1px solid var(--border); border-radius:11px; padding:4px}
   .seg button{flex:1; font:600 13px Inter; color:var(--muted); background:none; border:0; padding:9px; border-radius:8px; cursor:pointer; transition:.15s}
   .seg button.on{background:var(--brand); color:#fff}
+  .wd{background:var(--surface-2); border:1px solid var(--border); color:var(--muted); font:600 12.5px Inter; padding:8px 12px; border-radius:9px; cursor:pointer; transition:all .15s}
+  .wd.on{background:var(--brand); color:#fff; border-color:transparent}
   .modal-foot{display:flex; justify-content:flex-end; gap:10px; padding:16px 20px; border-top:1px solid var(--hair)}
   @media(max-width:520px){.form-grid{grid-template-columns:1fr}}
 
@@ -471,6 +473,24 @@
       </div>
 
       <div class="pay-block">
+        <span class="pay-lbl">Días y horario de trabajo</span>
+        <label style="font:600 10.5px Inter; letter-spacing:.05em; text-transform:uppercase; color:var(--faint)">Días que trabaja</label>
+        <div id="workDays" style="display:flex; gap:6px; flex-wrap:wrap; margin:8px 0 14px">
+          <button type="button" class="wd" data-d="lun">Lun</button>
+          <button type="button" class="wd" data-d="mar">Mar</button>
+          <button type="button" class="wd" data-d="mie">Mié</button>
+          <button type="button" class="wd" data-d="jue">Jue</button>
+          <button type="button" class="wd" data-d="vie">Vie</button>
+          <button type="button" class="wd" data-d="sab">Sáb</button>
+          <button type="button" class="wd" data-d="dom">Dom</button>
+        </div>
+        <div class="form-grid">
+          <div class="fld"><label>Hora de entrada</label><input id="f_entry" class="finp" type="time"></div>
+          <div class="fld"><label>Hora de salida</label><input id="f_exit" class="finp" type="time"></div>
+        </div>
+      </div>
+
+      <div class="pay-block">
         <span class="pay-lbl">Horario y horas extra</span>
         <div class="form-grid">
           <div class="fld"><label>Horario de salida propio</label><input id="f_salida" class="finp" placeholder="Usa el de la empresa"></div>
@@ -621,6 +641,13 @@ function openProfile(idx){
   document.getElementById('accessDone').hidden = !hasAccess;
   document.getElementById('f_accesspass').value='';
   draftObjs = (s&&s.objs)?JSON.parse(JSON.stringify(s.objs)):[];
+  // Días de trabajo y horarios
+  const dias = (s && s.work_days) ? s.work_days.split(',') : ['lun','mar','mie','jue','vie'];
+  document.querySelectorAll('#workDays .wd').forEach(b=>{
+    b.classList.toggle('on', dias.includes(b.dataset.d));
+  });
+  document.getElementById('f_entry').value = (s && s.entry_time) ? s.entry_time : '';
+  document.getElementById('f_exit').value = (s && s.exit_time) ? s.exit_time : '';
   setPayMode(s?s.mode:'mensual');
   document.getElementById('modalBack').hidden=false;
 }
@@ -662,7 +689,10 @@ async function saveProfile(){
     pay_amount: payMode==='objetivos' ? null : gpay(document.getElementById('f_pay').value),
     exit_time_override: document.getElementById('f_salida').value.trim()||null,
     overtime_mode: document.getElementById('f_extra').value||'empresa',
-    zone_id: document.getElementById('f_zone').value||null
+    zone_id: document.getElementById('f_zone').value||null,
+    work_days: [...document.querySelectorAll('#workDays .wd.on')].map(b=>b.dataset.d).join(',')||null,
+    entry_time: document.getElementById('f_entry').value||null,
+    exit_time: document.getElementById('f_exit').value||null
   };
   const editing = editIdx!==null && staff[editIdx] && staff[editIdx].id;
   let empId;
@@ -683,7 +713,8 @@ async function saveProfile(){
   closeProfile(); await loadStaff(); toast('✓ Empleado '+(editing?'actualizado':'creado'));
 }
 document.getElementById('paySeg').addEventListener('click',e=>{const b=e.target.closest('button'); if(b) setPayMode(b.dataset.mode)});
-document.getElementById('modalBack').addEventListener('click',e=>{if(e.target.id==='modalBack') closeProfile()});
+document.getElementById('workDays').addEventListener('click',e=>{const b=e.target.closest('.wd'); if(b) b.classList.toggle('on');});
+/* El modal NO se cierra al clickear el fondo (evita cierres accidentales); solo con ✕ o Cancelar */
 renderTeam();
 
 let tmo; function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(tmo);tmo=setTimeout(()=>t.classList.remove('show'),2200)}
@@ -1016,6 +1047,7 @@ async function loadStaff(){
   staff = (data||[]).map(e=>({
     id:e.id, name:e.full_name, role:e.role_title||'—', doc:e.doc_id||'—', email:e.email, user_id:e.user_id, zone_id:e.zone_id,
     mode:e.pay_mode, pay: e.pay_amount!=null ? String(e.pay_amount) : '0', overtime_mode:e.overtime_mode, exit_time_override:e.exit_time_override,
+    work_days:e.work_days, entry_time:e.entry_time, exit_time:e.exit_time,
     objs:(e.objectives||[]).map(o=>({id:o.id, name:o.name, amount:String(o.amount), done:o.done, date:o.done_date}))
   }));
   renderTeam(); renderObjetivos(); fillEmpFilter();
