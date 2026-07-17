@@ -506,16 +506,7 @@
 
       <div class="pay-block" id="accessBlock">
         <span class="pay-lbl">Acceso del empleado</span>
-        <div id="accessNone">
-          <p class="lead" style="font-size:12.5px;margin:0 0 10px;color:var(--faint)">Creale una cuenta para que pueda entrar a fichar. Usá el email de arriba y una contraseña que le vas a pasar.</p>
-          <div class="form-grid">
-            <div class="fld"><label>Contraseña inicial</label><input id="f_accesspass" class="finp" type="text" placeholder="Mínimo 8 caracteres"></div>
-            <div class="fld" style="justify-content:flex-end"><button type="button" class="btn-sm btn-add" id="btnAccess" onclick="crearAcceso()">Crear acceso</button></div>
-          </div>
-        </div>
-        <div id="accessDone" hidden>
-          <p class="lead" style="font-size:13px;margin:0;color:var(--work)">✓ Acceso creado. Este empleado ya puede entrar con su email y contraseña.</p>
-        </div>
+        <p class="lead" style="font-size:12.5px;margin:0;color:var(--faint)">El empleado entra a fichar desde <b>orbepy.com</b> → orbe time tracker → <b>"Continuar con Google"</b>, usando el <b>mismo correo</b> que cargaste arriba. La primera vez que entre, su cuenta se vincula sola. No hace falta crear contraseña.</p>
       </div>
     </div>
     <div class="modal-foot">
@@ -632,7 +623,7 @@ function openProfile(idx){
   document.getElementById('modalTitle').textContent=s?'Editar empleado':'Nuevo empleado';
   document.getElementById('f_name').value=s?s.name:''; document.getElementById('f_doc').value=s?s.doc:'';
   document.getElementById('f_role').value=s?s.role:''; document.getElementById('f_email').value=(s&&s.email)?s.email:'';
-  document.getElementById('f_phone').value=''; document.getElementById('f_start').value='';
+  document.getElementById('f_phone').value=(s&&s.phone)?s.phone:''; document.getElementById('f_start').value='';
   document.getElementById('f_pay').value=(s&&s.mode!=='objetivos')?s.pay:'';
   // poblar sucursales reales de la empresa
   const zsel=document.getElementById('f_zone');
@@ -641,9 +632,6 @@ function openProfile(idx){
   // bloque de acceso: solo para empleados ya guardados
   const isSaved = !!(s && s.id), hasAccess = !!(s && s.user_id);
   document.getElementById('accessBlock').hidden = !isSaved;
-  document.getElementById('accessNone').hidden = hasAccess;
-  document.getElementById('accessDone').hidden = !hasAccess;
-  document.getElementById('f_accesspass').value='';
   draftObjs = (s&&s.objs)?JSON.parse(JSON.stringify(s.objs)):[];
   // Días de trabajo y horarios
   const dias = (s && s.work_days) ? s.work_days.split(',') : ['lun','mar','mie','jue','vie'];
@@ -1049,7 +1037,7 @@ async function loadStaff(){
   const { data, error } = await db.from('employees').select('*, objectives(*)').order('created_at');
   if(error){ toast('Error cargando equipo: '+error.message); return; }
   staff = (data||[]).map(e=>({
-    id:e.id, name:e.full_name, role:e.role_title||'—', doc:e.doc_id||'—', email:e.email, user_id:e.user_id, zone_id:e.zone_id,
+    id:e.id, name:e.full_name, role:e.role_title||'—', doc:e.doc_id||'—', email:e.email, phone:e.phone, user_id:e.user_id, zone_id:e.zone_id,
     mode:e.pay_mode, pay: e.pay_amount!=null ? String(e.pay_amount) : '0', overtime_mode:e.overtime_mode, exit_time_override:e.exit_time_override,
     work_days:e.work_days, entry_time:e.entry_time, exit_time:e.exit_time,
     objs:(e.objectives||[]).map(o=>({id:o.id, name:o.name, amount:String(o.amount), done:o.done, date:o.done_date}))
