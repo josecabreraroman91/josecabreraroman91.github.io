@@ -280,6 +280,7 @@ let formTipo='factura',formClase='compra',formCuotas=[];
 let formObl=new Set();
 let cobroDe=null;
 let editComp=null;   /* id del comprobante en edición (null = alta nueva) */
+let verTimbrados=false;   /* panel de timbrados del contribuyente abierto/cerrado */
 let editReturn=null; /* 'validar' | 'cliente' — a dónde volver tras guardar la edición */
 let provBuscar='';   /* filtro del apartado de proveedores */
 
@@ -469,8 +470,11 @@ function creditosPendientes(cid){
 function validar(f,mesDecl){
   const flags=[];
   const base=rucBase(f.ruc),dv=rucDV(f.ruc);
-  if(!base)flags.push({sev:'bad',tag:'RUC',msg:'Sin RUC. Marangatú rechaza la línea si no identifica a la contraparte.'});
-  else{
+  if(f.sinNombre&&f.clase==='venta'){
+    /* venta a consumidor final sin identificar (código X): no se exige RUC ni nombre */
+  }else if(!base){
+    flags.push({sev:'bad',tag:'RUC',msg:'Sin RUC. Marangatú rechaza la línea si no identifica a la contraparte.'});
+  }else{
     if(dv==null)flags.push({sev:'warn',tag:'DV',msg:'El RUC vino sin dígito verificador, no se puede controlar.'});
     else if(calcDV(base)!==dv)flags.push({sev:'bad',tag:'DV',msg:'El dígito verificador no corresponde (para '+base+' es '+calcDV(base)+', está cargado '+dv+').'});
     const dir=dirGet(f.ruc);
@@ -535,9 +539,10 @@ function lineaREG(c,clase,imputaGlobal){
      si no la tiene (carga manual vieja), se usa la global del período */
   const imp=c.imputa||imputaGlobal||{};
   const noImp=imp.no===true||(!imp.iva&&!imp.ire&&!imp.irp);
+  const sinNom=(clase==='ventas'&&c.sinNombre===true);
   const F={
-    tipoReg:(clase==='ventas'?'1':'2'),ruc:base,dv:(dv!=null?String(dv):''),
-    nombre:(c.nombre||'').toUpperCase(),
+    tipoReg:(clase==='ventas'?'1':'2'),ruc:sinNom?'X':base,dv:sinNom?'':(dv!=null?String(dv):''),
+    nombre:sinNom?'':(c.nombre||'').toUpperCase(),
     tipoComp:REGLAS.tipoComprobante[c.tipo==='nc'?'nc':'factura'],
     fecha:fmtDate(c.fecha),timbrado:digits(c.timbrado),nfac:c.nfac||'',
     g10:String(g10),iva10:String(iva10),g5:String(g5),iva5:String(iva5),
@@ -564,6 +569,7 @@ const CAMPOS=[
   {k:'fecha',lbl:'Fecha',req:true},{k:'ruc',lbl:'RUC',req:true},{k:'dv',lbl:'DV (si está aparte)',req:false},
   {k:'nombre',lbl:'Razón social',req:false},{k:'timb',lbl:'Timbrado',req:true},{k:'nfac',lbl:'Nº de comprobante',req:true},
   {k:'cdc',lbl:'CDC (electrónicas)',req:false},
+  {k:'tipoComp',lbl:'Tipo de comprobante (para detectar notas de crédito)',req:false},
   {k:'g10',lbl:'Gravada 10%',req:true},{k:'g5',lbl:'Gravada 5%',req:false},{k:'ex',lbl:'Exentas',req:false},
   {k:'total',lbl:'Total (para control)',req:false},
   {k:'impIva',lbl:'Imputa IVA',req:false},{k:'impIre',lbl:'Imputa IRE',req:false},
@@ -586,6 +592,7 @@ function autoMap(hdrs){
     timb:find(x=>x.includes('timbrado')&&!x.includes('asoc')),
     nfac:find(x=>(x.includes('numero')||x.includes('nro')||x.includes('nº'))&&x.includes('comprobante')&&!x.includes('asoc')&&!x.includes('timbrado')),
     cdc:find(x=>x==='cdc'||x.includes('codigo de control')||x.includes('control')),
+    tipoComp:find(x=>x.includes('tipo')&&(x.includes('comprobante')||x.includes('documento'))&&!x.includes('asoc')),
     g10:find(x=>x.includes('10')&&(x.includes('grav')||x.includes('base')||x.includes('monto'))&&!x.includes('iva')),
     g5:find(x=>x.includes('5')&&!x.includes('10')&&!x.includes('15')&&(x.includes('grav')||x.includes('base')||x.includes('monto'))&&!x.includes('iva')),
     ex:find(x=>x.includes('exent')||(x.includes('no gravado'))),
@@ -686,12 +693,23 @@ function leerXMLs(files){
     r.readAsText(file);
   });
 }
-function firmaComp(c){
+function clavesComp(c){
+  /* Claves de identidad para detectar duplicados. Un comprobante puede
+     matchear por CDC o por timbrado+número: así una carga manual (sin CDC)
+     se cruza con la misma de Marangatú (con CDC) y no se duplica. */
+  const claves=[];
   const cdc=(c.cdc||'').replace(/\s/g,'');
-  if(cdc) return (c.clase||'')+'|cdc|'+cdc;
-  const timb=digits(c.timbrado||'');
-  const nfac=(c.nfac||'').replace(/[\s-]/g,'');
-  return (c.clase||'')+'|'+timb+'|'+nfac+'|'+(c.fecha||'');
+  if(cdc)claves.push('cdc|'+cdc);
+  const timb=digits(c.timbrado||''),nfac=digits(c.nfac||'');
+  if(timb&&nfac)claves.push('doc|'+(c.clase||'')+'|'+timb+'|'+nfac);
+  return claves;
+}
+function esNCcod(v){
+  /* ¿La celda "tipo de comprobante" indica una nota de crédito? */
+  const s=norm(String(v||''));
+  if(/credito/.test(s))return true;            /* "nota de credito", "NCE"… (débito NO matchea) */
+  const d=s.replace(/\D/g,'');
+  return d!==''&&parseInt(d,10)===5;           /* código Marangatú: 5 = nota de crédito */
 }
 function importarFilas(){
   const faltan=CAMPOS.filter(c=>c.req&&(impMapa[c.k]==null||impMapa[c.k]<0)).map(c=>c.lbl);
@@ -699,7 +717,8 @@ function importarFilas(){
   const g=(o,k)=>{const i=impMapa[k];return (i==null||i<0)?'':o.celdas[i];};
   const secDefault=S.secciones[0]?S.secciones[0].id:null;
   let n=0,dup=0;
-  const existentes=new Set(S.comprobantes.filter(c=>c.clienteId===curCli).map(firmaComp));
+  const existentes=new Set();
+  S.comprobantes.filter(c=>c.clienteId===curCli).forEach(c=>clavesComp(c).forEach(k=>existentes.add(k)));
   impFilas.forEach(o=>{
     let ruc=String(g(o,'ruc')||'').trim();
     const dvCol=String(g(o,'dv')||'').trim();
@@ -722,9 +741,15 @@ function importarFilas(){
       },
       seccionId:secDefault
     };
-    const fc=firmaComp(comp);
-    if(existentes.has(fc)){dup++;return;}   /* ya existe: no duplicar */
-    existentes.add(fc);
+    /* Nota de crédito: si la columna Tipo de comprobante la marca, se guarda en negativo (resta en el libro) */
+    if(impMapa.tipoComp!=null&&impMapa.tipoComp>=0&&esNCcod(g(o,'tipoComp'))){
+      comp.tipo='nc';
+      comp.g10=-Math.abs(comp.g10);comp.g5=-Math.abs(comp.g5);comp.ex=-Math.abs(comp.ex);
+      if(comp.totalCol!=null)comp.totalCol=-Math.abs(comp.totalCol);
+    }
+    const claves=clavesComp(comp);
+    if(claves.some(k=>existentes.has(k))){dup++;return;}   /* ya existe: no duplicar */
+    claves.forEach(k=>existentes.add(k));
     S.comprobantes.push(comp);n++;
   });
   save();
@@ -898,6 +923,38 @@ function guardarCliente(){
 function obligacionesDe(c){if(c&&Array.isArray(c.obligaciones)&&c.obligaciones.length)return c.obligaciones;if(c&&c.categoria)return [c.categoria];return [];}
 function catResumen(c){const o=obligacionesDe(c);if(!o.length)return 'sin obligaciones';if(o.length===1)return o[0];return o[0]+' +'+(o.length-1);}
 
+/* ---- timbrados del contribuyente (para ventas) ---- */
+function timbradosDe(c){return (c&&Array.isArray(c.timbrados))?c.timbrados:[];}
+function timbradoVigente(c,fechaISO){
+  const arr=timbradosDe(c);if(!arr.length)return null;
+  const f=(fechaISO||'').slice(0,10);
+  /* el timbrado cuya vigencia cubre la fecha del comprobante */
+  const hit=arr.find(t=>(!t.desde||t.desde<=f)&&(!t.hasta||f<=t.hasta));
+  if(hit)return hit;
+  /* si ninguno cubre esa fecha, el más reciente por "desde" */
+  return arr.slice().sort((a,b)=>String(b.desde||'').localeCompare(String(a.desde||'')))[0]||null;
+}
+function agregarTimbrado(){
+  const c=cliObj(curCli);if(!c)return;
+  const n=digits($('tb_n')?$('tb_n').value:'');
+  const d=$('tb_d')?$('tb_d').value:'',hst=$('tb_h')?$('tb_h').value:'';
+  if(n.length!==8){toast('El timbrado debe tener 8 dígitos');return;}
+  if(d&&hst&&hst<d){toast('El "hasta" no puede ser anterior al "desde"');return;}
+  if(!Array.isArray(c.timbrados))c.timbrados=[];
+  c.timbrados.push({n,desde:d,hasta:hst});
+  save();verTimbrados=true;toast('Timbrado agregado');render();
+}
+function borrarTimbrado(i){
+  const c=cliObj(curCli);if(!c||!Array.isArray(c.timbrados))return;
+  c.timbrados.splice(i,1);save();verTimbrados=true;render();
+}
+function sincTimbVenta(){
+  if(formClase!=='venta')return;
+  const el=$('cm_timb');if(!el)return;
+  const t=timbradoVigente(cliObj(curCli),$('cm_fecha')?$('cm_fecha').value:'');
+  if(t)el.value=t.n;
+}
+
 /* ============================ detalle cliente (con pestañas) ============================ */
 function vCliente(){
   const c=cliObj(curCli);if(!c)return '';
@@ -922,8 +979,28 @@ function vCliente(){
   else h+=subLibros(c,comps);
   return h;
 }
+function subTimbrados(c){
+  const arr=timbradosDe(c);
+  const head='<div onclick="verTimbrados=!verTimbrados;render()" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:14px">'+
+    '<span>🧾 Timbrados del contribuyente <span class="cnt">'+arr.length+'</span></span>'+
+    '<span style="color:var(--muted);font-size:12.5px">'+(verTimbrados?'▲ ocultar':'▼ ver')+'</span></div>';
+  if(!verTimbrados)return '<div class="card" style="margin-bottom:8px;padding:12px 14px">'+head+'</div>';
+  const lista=arr.length?arr.map((t,i)=>
+    '<div class="fac"><div class="ft"><div class="fp">'+esc(t.n)+'</div>'+
+    '<button class="linkbtn del" onclick="borrarTimbrado('+i+')">borrar</button></div>'+
+    '<div class="fg">Vigencia: '+(t.desde?fmtDate(t.desde):'—')+' → '+(t.hasta?fmtDate(t.hasta):'sin límite')+'</div></div>'
+  ).join(''):'<div class="hint" style="padding:6px 0">Todavía no cargaste ningún timbrado. En las ventas se completará solo cuando agregues el vigente.</div>';
+  return '<div class="card pad" style="margin-bottom:8px">'+head+
+    '<div class="hint" style="margin:8px 0">El timbrado de las ventas de este contribuyente se toma de acá, según la fecha del comprobante.</div>'+
+    '<div style="margin:6px 0">'+lista+'</div>'+
+    '<div class="row2"><div class="field" style="margin:0"><label>Nº de timbrado</label><input id="tb_n" inputmode="numeric" placeholder="12345678"></div>'+
+    '<div class="field" style="margin:0"><label>Vigente desde</label><input type="date" id="tb_d"></div></div>'+
+    '<div class="row2" style="margin-top:8px"><div class="field" style="margin:0"><label>Vigente hasta</label><input type="date" id="tb_h"></div>'+
+    '<div class="field" style="margin:0;display:flex;align-items:flex-end"><button class="btn btn-brand" style="width:100%" onclick="agregarTimbrado()">+ Agregar timbrado</button></div></div></div>';
+}
 function subMovimientos(c,comps){
-  let h='<div class="btn-row" style="margin-top:0">'+
+  let h=subTimbrados(c);
+  h+='<div class="btn-row" style="margin-top:0">'+
     '<button class="btn btn-ghost" onclick="abrirCarga()">+ Cargar comprobante</button>'+
     '<button class="btn btn-ghost" onclick="vista=\'importar\';render()">⬆ Importar planilla</button></div>';
   h+='<div class="btn-row">'+
@@ -953,7 +1030,7 @@ function subMovimientos(c,comps){
       const dot='<span class="sem '+(sev==='bad'?'bad':(sev==='warn'?'warn':'ok'))+'" style="width:9px;height:9px;margin-right:2px"></span>';
       /* problema principal para mostrar en la fila */
       const problema=(r&&r.flags.length)?('<div style="font-size:11.5px;color:'+(sev==='bad'?'var(--bad)':'var(--warn)')+';font-weight:600;margin-top:3px">'+(sev==='bad'?'⛔ ':'⚠️ ')+esc(r.flags[0].msg)+(r.flags.length>1?' (+'+(r.flags.length-1)+' más)':'')+'</div>'):'';
-      return '<div class="fac" style="cursor:pointer" onclick="abrirCarga(\''+x.id+'\')"><div class="ft"><div class="fp">'+dot+'<span class="clsp '+(esNC?'cl-n':(x.clase==='venta'?'cl-v':'cl-c'))+'">'+(esNC?'NC':(x.clase==='venta'?'VENTA':'COMPRA'))+'</span> '+esc(x.nombre||rucBase(x.ruc))+'</div>'+
+      return '<div class="fac" style="cursor:pointer" onclick="abrirCarga(\''+x.id+'\')"><div class="ft"><div class="fp">'+dot+'<span class="clsp '+(esNC?'cl-n':(x.clase==='venta'?'cl-v':'cl-c'))+'">'+(esNC?'NC':(x.clase==='venta'?'VENTA':'COMPRA'))+'</span> '+esc(x.nombre||(x.sinNombre?'Consumidor final':rucBase(x.ruc)))+'</div>'+
         '<div class="ftot">'+gs(x.totalCol!=null?x.totalCol:(x.g10+x.g5+x.ex))+'</div></div>'+
         '<div class="fg">'+fmtDate(x.fecha)+' · '+esc(x.nfac||'sin nº')+
         (x.cdc?' · CDC …'+esc(digits(x.cdc).slice(-6)):'')+
@@ -1035,7 +1112,7 @@ function subLibros(c,comps){
     const i10=Math.round((x.g10||0)/11),i5=Math.round((x.g5||0)/21);
     const cred=esCompra?ivaCredito(x):null;
     const tot=x.totalCol!=null?x.totalCol:((x.g10||0)+(x.g5||0)+(x.ex||0));
-    return '<tr><td class="l">'+fmtDate(x.fecha)+'</td><td class="l">'+esc(x.ruc)+'</td><td class="l">'+esc(x.nombre||'')+'</td>'+
+    return '<tr><td class="l">'+fmtDate(x.fecha)+'</td><td class="l">'+esc(x.sinNombre&&x.clase==='venta'?'X':x.ruc)+'</td><td class="l">'+esc(x.nombre||(x.sinNombre&&x.clase==='venta'?'Consumidor final':''))+'</td>'+
       '<td class="l">'+esc(x.nfac)+'</td><td>'+digits(x.timbrado)+'</td>'+
       '<td>'+fmtNum(x.g10||0)+'</td><td>'+fmtNum(i10)+'</td><td>'+fmtNum(x.g5||0)+'</td><td>'+fmtNum(i5)+'</td><td>'+fmtNum(x.ex||0)+'</td>'+
       (esCompra?'<td>'+fmtNum(cred.i10+cred.i5)+'</td>':'')+
@@ -1081,20 +1158,27 @@ function vCarga(){
      '<button class="'+(formClase==='venta'?'on':'')+'" onclick="formClase=\'venta\';render()">Venta</button></div>';
   h+='<div class="seg2"><button class="'+(formTipo==='factura'?'on':'')+'" onclick="formTipo=\'factura\';render()">Factura</button>'+
      '<button class="'+(formTipo==='nc'?'on nc':'')+'" onclick="formTipo=\'nc\';render()">Nota de crédito</button></div>';
-  h+='<div class="row2"><div class="field"><label>Fecha</label><input type="date" id="cm_fecha" value="'+esc(val('fecha',ymSel+'-01'))+'" max="'+hoyISO()+'"></div>'+
+  h+='<div class="row2"><div class="field"><label>Fecha</label><input type="date" id="cm_fecha" value="'+esc(val('fecha',ymSel+'-01'))+'" max="'+hoyISO()+'" onchange="sincTimbVenta()"></div>'+
      '<div class="field"><label>Condición</label><select id="cm_cond" onchange="condCambia(this.value)"><option value="contado"'+(val('cond')==='contado'?' selected':'')+'>Contado</option><option value="credito"'+(val('cond')==='credito'?' selected':'')+'>Crédito</option></select></div></div>';
+  if(formClase==='venta')h+='<label class="chk" style="margin:8px 0 10px"><input type="checkbox" id="cm_sinnom"'+(val('sinNombre')===true?' checked':'')+' onchange="toggleSinNom(this.checked)"><span>Venta sin nombre — consumidor final (código <b>X</b> en el REG)</span></label>';
   h+='<div class="field"><label>RUC contraparte (con DV)</label><div class="rowflex">'+
      '<input id="cm_ruc" list="rucList" value="'+esc(val('ruc'))+'" placeholder="80012345-6" onblur="autoRUC()">'+
      '<button class="mini" onclick="traerRUC(this)">Padrón</button></div><div id="rucEstado" style="margin-top:2px"></div></div>';
   h+='<div class="field"><label>Razón social</label><input id="cm_nom" list="nomList" value="'+esc(val('nombre'))+'" placeholder="Proveedor / Cliente" onblur="autoNombre()"></div>';
-  h+='<div class="row2"><div class="field"><label>Timbrado</label><input id="cm_timb" inputmode="numeric" value="'+esc(val('timbrado'))+'" placeholder="12345678"></div>'+
+  const vigVenta=(formClase==='venta')?timbradoVigente(cliObj(curCli),val('fecha',ymSel+'-01')):null;
+  const timbIni=(!ec&&formClase==='venta'&&vigVenta)?vigVenta.n:val('timbrado');
+  h+='<div class="row2"><div class="field"><label>Timbrado</label><input id="cm_timb" inputmode="numeric" value="'+esc(timbIni)+'" placeholder="12345678"></div>'+
      '<div class="field"><label>Nº comprobante</label><input id="cm_nfac" inputmode="numeric" value="'+esc(val('nfac'))+'" placeholder="001-001-1234567" oninput="fmtNfac(this)"></div></div>';
+  if(formClase==='venta')h+='<div class="hint" style="margin-top:-4px">El timbrado es el del contribuyente'+(vigVenta?' (se completó con el vigente a la fecha)':' — cargalo en Movimientos › «Timbrados del contribuyente» y se completará solo')+'.</div>';
   h+='<div class="field"><label>CDC <span style="text-transform:none;font-weight:400">(código de control · facturas electrónicas, 44 dígitos)</span></label><input id="cm_cdc" inputmode="numeric" value="'+esc(val('cdc'))+'" placeholder="opcional"></div>';
   if(formTipo==='nc'){
     h+='<div class="inline-sec"><label style="margin-bottom:8px">Comprobante asociado (el que descuenta)</label>'+
        '<div class="row2"><div class="field" style="margin:0"><input id="cm_nfacA" inputmode="numeric" value="'+esc(val('nfacAsoc'))+'" placeholder="Nº asociado 001-001-1234567" oninput="fmtNfac(this)"></div>'+
        '<div class="field" style="margin:0"><input id="cm_timbA" inputmode="numeric" value="'+esc(val('timbAsoc'))+'" placeholder="Timbrado asociado"></div></div>'+
-       '<div class="hint" style="margin-top:6px">Los montos de la NC se guardan en negativo automáticamente.</div></div>';
+       '<div class="field" style="margin:8px 0 0"><label>Concepto</label><select id="cm_ncmot">'+
+         '<option value="devolucion"'+(val('ncMotivo')!=='descuento'?' selected':'')+'>Devolución</option>'+
+         '<option value="descuento"'+(val('ncMotivo')==='descuento'?' selected':'')+'>Descuento</option></select></div>'+
+       '<div class="hint" style="margin-top:6px">Los montos de la NC se guardan en negativo automáticamente (restan en el libro).</div></div>';
   }
   if(formClase==='compra'){
     const secActual=ec?seccion(ec.seccionId):null;
@@ -1135,6 +1219,9 @@ function calcDesglose(){
     '<div class="hint" style="margin-top:6px">Exentas: <b class="num">'+gs(ex)+'</b></div>'+
     '<div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(11,132,120,.25);display:flex;justify-content:space-between;font-weight:800;color:var(--brand-dark)"><span>Total IVA</span><span class="num">'+gs(ivaTot)+'</span></div>'+
     alerta+'</div>';
+}
+function toggleSinNom(on){
+  ['cm_ruc','cm_nom'].forEach(id=>{const el=$(id);if(el){el.disabled=on;if(on)el.value='';el.style.opacity=on?'.5':'';}});
 }
 function condCambia(v){
   const box=$('cuotasBox');if(!box)return;
@@ -1181,18 +1268,20 @@ function resolverSeccion(nombre){
 }
 function guardarComp(){
   const ruc=$('cm_ruc').value.trim();
+  const sinNombre=formClase==='venta'&&!!($('cm_sinnom')&&$('cm_sinnom').checked);
   let g10=normMonto($('cm_g10').value),g5=normMonto($('cm_g5').value),ex=normMonto($('cm_ex').value);
   let totalCol=$('cm_total')&&$('cm_total').value.trim()!==''?normMonto($('cm_total').value):null;
   if(formTipo==='nc'){g10=-Math.abs(g10);g5=-Math.abs(g5);ex=-Math.abs(ex);if(totalCol!=null)totalCol=-Math.abs(totalCol);}
   const fecha=$('cm_fecha').value;
-  if(!fecha||!ruc){toast('Cargá al menos fecha y RUC');return;}
+  if(!fecha||(!ruc&&!sinNombre)){toast('Cargá al menos fecha y RUC');return;}
   const datos={
     clase:formClase,tipo:formTipo,cond:$('cm_cond').value,cuotas:formCuotas.slice(),
-    fecha,ruc,nombre:$('cm_nom').value.trim(),
+    fecha,ruc,nombre:$('cm_nom').value.trim(),sinNombre,
     timbrado:$('cm_timb').value.trim(),nfac:$('cm_nfac').value.trim(),
     cdc:$('cm_cdc')?$('cm_cdc').value.replace(/\s/g,''):'',
     nfacAsoc:formTipo==='nc'?($('cm_nfacA')?$('cm_nfacA').value.trim():''):'',
     timbAsoc:formTipo==='nc'?($('cm_timbA')?$('cm_timbA').value.trim():''):'',
+    ncMotivo:formTipo==='nc'?($('cm_ncmot')?$('cm_ncmot').value:'devolucion'):'',
     g10,g5,ex,totalCol,
     seccionId:(formClase==='compra'&&$('cm_sec'))?resolverSeccion($('cm_sec').value):null
   };
@@ -1473,7 +1562,7 @@ function render(){
   }
   $('app').innerHTML=h;
   bindDrop();
-  if(vista==='carga')calcDesglose();
+  if(vista==='carga'){calcDesglose();const sn=$('cm_sinnom');if(sn&&sn.checked)toggleSinNom(true);}
 }
 function bindDrop(){
   const dz=$('drop');if(!dz)return;
@@ -1483,7 +1572,7 @@ function bindDrop(){
 }
 
 Object.assign(window,{irTab,volver,abrirCliente,nuevoCliente,guardarCliente,toggleObl,setYm,setBuscar,onFile,cargarDemo,
-  correrValidacion,descargarInforme,abrirExportar,exportar,abrirCarga,guardarComp,condCambia,armarCuotas,calcDesglose,
+  correrValidacion,descargarInforme,abrirExportar,exportar,abrirCarga,guardarComp,condCambia,armarCuotas,calcDesglose,toggleSinNom,agregarTimbrado,borrarTimbrado,sincTimbVenta,
   borrarComp,borrarCliente,guardarCobro,borrarCobro,traerRUC,autoRUC,autoNombre,importarFilas,fmtNfac,
   agregarSeccion,borrarSeccion,bajarRespaldo,subirRespaldo,borrarTodo,setProvBuscar,salir});
 
