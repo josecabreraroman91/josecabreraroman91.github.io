@@ -1105,13 +1105,36 @@ function vCarga(){
   }
   const absv=k=>{const n=Math.abs(Number(val(k,0))||0);return n||'';};
   const totIni=(ec&&ec.totalCol!=null)?Math.abs(ec.totalCol):'';
-  h+='<div class="field" style="margin-top:'+(formClase==='compra'?'0':'12px')+'"><label>Total del comprobante</label><input id="cm_total" inputmode="numeric" value="'+totIni+'" placeholder="0"></div>';
-  h+='<div class="row2"><div class="field"><label>Gravada 10%</label><input id="cm_g10" inputmode="numeric" value="'+absv('g10')+'" placeholder="0"></div>'+
-     '<div class="field"><label>Gravada 5%</label><input id="cm_g5" inputmode="numeric" value="'+absv('g5')+'" placeholder="0"></div></div>';
-  h+='<div class="field"><label>Exentas</label><input id="cm_ex" inputmode="numeric" value="'+absv('ex')+'" placeholder="0"></div>';
+  h+='<div class="field" style="margin-top:'+(formClase==='compra'?'0':'12px')+'"><label>Total del comprobante</label><input id="cm_total" inputmode="numeric" value="'+totIni+'" placeholder="0" oninput="calcDesglose()"></div>';
+  h+='<div class="row2"><div class="field"><label>Gravada 10%</label><input id="cm_g10" inputmode="numeric" value="'+absv('g10')+'" placeholder="0" oninput="calcDesglose()"></div>'+
+     '<div class="field"><label>Gravada 5%</label><input id="cm_g5" inputmode="numeric" value="'+absv('g5')+'" placeholder="0" oninput="calcDesglose()"></div></div>';
+  h+='<div class="field"><label>Exentas</label><input id="cm_ex" inputmode="numeric" value="'+absv('ex')+'" placeholder="0" oninput="calcDesglose()"></div>';
+  h+='<div id="cm_desglose"></div>';
   h+='<div id="cuotasBox"></div>';
   h+='<button class="btn btn-brand" onclick="guardarComp()">'+(ec?'Guardar cambios':'Guardar comprobante')+'</button></div>';
   return h;
+}
+function calcDesglose(){
+  const box=$('cm_desglose');if(!box)return;
+  const g10=Math.abs(normMonto($('cm_g10')?$('cm_g10').value:0));
+  const g5 =Math.abs(normMonto($('cm_g5') ?$('cm_g5').value :0));
+  const ex =Math.abs(normMonto($('cm_ex') ?$('cm_ex').value :0));
+  const tot=Math.abs(normMonto($('cm_total')?$('cm_total').value:0));
+  const iva10=Math.round(g10/11), iva5=Math.round(g5/21);
+  const base10=g10-iva10, base5=g5-iva5, ivaTot=iva10+iva5;
+  const suma=g10+g5+ex, dif=Math.abs(suma-tot);
+  let alerta='';
+  if(tot>0&&dif>1)alerta='<div class="hint" style="color:var(--warn);margin-top:8px">⚠️ Gravadas + exentas ('+gs(suma)+') no coincide con el total ('+gs(tot)+') — difieren en '+gs(dif)+'.</div>';
+  box.innerHTML=
+    '<div style="background:var(--brand-soft);border-radius:12px;padding:12px 14px;margin-top:4px">'+
+    '<div style="font-size:11px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--brand-dark);margin-bottom:8px">Desglose del IVA</div>'+
+    '<div class="row2">'+
+      '<div class="hint">Base gravada 10%: <b class="num">'+gs(base10)+'</b><br>IVA 10%: <b class="num">'+gs(iva10)+'</b></div>'+
+      '<div class="hint">Base gravada 5%: <b class="num">'+gs(base5)+'</b><br>IVA 5%: <b class="num">'+gs(iva5)+'</b></div>'+
+    '</div>'+
+    '<div class="hint" style="margin-top:6px">Exentas: <b class="num">'+gs(ex)+'</b></div>'+
+    '<div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(11,132,120,.25);display:flex;justify-content:space-between;font-weight:800;color:var(--brand-dark)"><span>Total IVA</span><span class="num">'+gs(ivaTot)+'</span></div>'+
+    alerta+'</div>';
 }
 function condCambia(v){
   const box=$('cuotasBox');if(!box)return;
@@ -1450,6 +1473,7 @@ function render(){
   }
   $('app').innerHTML=h;
   bindDrop();
+  if(vista==='carga')calcDesglose();
 }
 function bindDrop(){
   const dz=$('drop');if(!dz)return;
@@ -1459,7 +1483,7 @@ function bindDrop(){
 }
 
 Object.assign(window,{irTab,volver,abrirCliente,nuevoCliente,guardarCliente,toggleObl,setYm,setBuscar,onFile,cargarDemo,
-  correrValidacion,descargarInforme,abrirExportar,exportar,abrirCarga,guardarComp,condCambia,armarCuotas,
+  correrValidacion,descargarInforme,abrirExportar,exportar,abrirCarga,guardarComp,condCambia,armarCuotas,calcDesglose,
   borrarComp,borrarCliente,guardarCobro,borrarCobro,traerRUC,autoRUC,autoNombre,importarFilas,fmtNfac,
   agregarSeccion,borrarSeccion,bajarRespaldo,subirRespaldo,borrarTodo,setProvBuscar,salir});
 
