@@ -471,7 +471,7 @@ function validar(f,mesDecl){
   const flags=[];
   const base=rucBase(f.ruc),dv=rucDV(f.ruc);
   if(f.sinNombre&&f.clase==='venta'){
-    /* venta a consumidor final sin identificar (código X): no se exige RUC ni nombre */
+    /* venta sin nombre (código X): no se exige RUC ni nombre */
   }else if(!base){
     flags.push({sev:'bad',tag:'RUC',msg:'Sin RUC. Marangatú rechaza la línea si no identifica a la contraparte.'});
   }else{
@@ -1030,7 +1030,7 @@ function subMovimientos(c,comps){
       const dot='<span class="sem '+(sev==='bad'?'bad':(sev==='warn'?'warn':'ok'))+'" style="width:9px;height:9px;margin-right:2px"></span>';
       /* problema principal para mostrar en la fila */
       const problema=(r&&r.flags.length)?('<div style="font-size:11.5px;color:'+(sev==='bad'?'var(--bad)':'var(--warn)')+';font-weight:600;margin-top:3px">'+(sev==='bad'?'⛔ ':'⚠️ ')+esc(r.flags[0].msg)+(r.flags.length>1?' (+'+(r.flags.length-1)+' más)':'')+'</div>'):'';
-      return '<div class="fac" style="cursor:pointer" onclick="abrirCarga(\''+x.id+'\')"><div class="ft"><div class="fp">'+dot+'<span class="clsp '+(esNC?'cl-n':(x.clase==='venta'?'cl-v':'cl-c'))+'">'+(esNC?'NC':(x.clase==='venta'?'VENTA':'COMPRA'))+'</span> '+esc(x.nombre||(x.sinNombre?'Consumidor final':rucBase(x.ruc)))+'</div>'+
+      return '<div class="fac" style="cursor:pointer" onclick="abrirCarga(\''+x.id+'\')"><div class="ft"><div class="fp">'+dot+'<span class="clsp '+(esNC?'cl-n':(x.clase==='venta'?'cl-v':'cl-c'))+'">'+(esNC?'NC':(x.clase==='venta'?'VENTA':'COMPRA'))+'</span> '+esc(x.nombre||(x.sinNombre?'Sin nombre':rucBase(x.ruc)))+'</div>'+
         '<div class="ftot">'+gs(x.totalCol!=null?x.totalCol:(x.g10+x.g5+x.ex))+'</div></div>'+
         '<div class="fg">'+fmtDate(x.fecha)+' · '+esc(x.nfac||'sin nº')+
         (x.cdc?' · CDC …'+esc(digits(x.cdc).slice(-6)):'')+
@@ -1112,7 +1112,7 @@ function subLibros(c,comps){
     const i10=Math.round((x.g10||0)/11),i5=Math.round((x.g5||0)/21);
     const cred=esCompra?ivaCredito(x):null;
     const tot=x.totalCol!=null?x.totalCol:((x.g10||0)+(x.g5||0)+(x.ex||0));
-    return '<tr><td class="l">'+fmtDate(x.fecha)+'</td><td class="l">'+esc(x.sinNombre&&x.clase==='venta'?'X':x.ruc)+'</td><td class="l">'+esc(x.nombre||(x.sinNombre&&x.clase==='venta'?'Consumidor final':''))+'</td>'+
+    return '<tr><td class="l">'+fmtDate(x.fecha)+'</td><td class="l">'+esc(x.sinNombre&&x.clase==='venta'?'X':x.ruc)+'</td><td class="l">'+esc(x.nombre||(x.sinNombre&&x.clase==='venta'?'Sin nombre':''))+'</td>'+
       '<td class="l">'+esc(x.nfac)+'</td><td>'+digits(x.timbrado)+'</td>'+
       '<td>'+fmtNum(x.g10||0)+'</td><td>'+fmtNum(i10)+'</td><td>'+fmtNum(x.g5||0)+'</td><td>'+fmtNum(i5)+'</td><td>'+fmtNum(x.ex||0)+'</td>'+
       (esCompra?'<td>'+fmtNum(cred.i10+cred.i5)+'</td>':'')+
@@ -1160,7 +1160,7 @@ function vCarga(){
      '<button class="'+(formTipo==='nc'?'on nc':'')+'" onclick="formTipo=\'nc\';render()">Nota de crédito</button></div>';
   h+='<div class="row2"><div class="field"><label>Fecha</label><input type="date" id="cm_fecha" value="'+esc(val('fecha',ymSel+'-01'))+'" max="'+hoyISO()+'" onchange="sincTimbVenta()"></div>'+
      '<div class="field"><label>Condición</label><select id="cm_cond" onchange="condCambia(this.value)"><option value="contado"'+(val('cond')==='contado'?' selected':'')+'>Contado</option><option value="credito"'+(val('cond')==='credito'?' selected':'')+'>Crédito</option></select></div></div>';
-  if(formClase==='venta')h+='<label class="chk" style="margin:8px 0 10px"><input type="checkbox" id="cm_sinnom"'+(val('sinNombre')===true?' checked':'')+' onchange="toggleSinNom(this.checked)"><span>Venta sin nombre — consumidor final (código <b>X</b> en el REG)</span></label>';
+  if(formClase==='venta')h+='<label class="chk" style="margin:8px 0 10px"><input type="checkbox" id="cm_sinnom"'+(val('sinNombre')===true?' checked':'')+' onchange="toggleSinNom(this.checked)"><span>Venta sin nombre (código <b>X</b> en el REG)</span></label>';
   h+='<div class="field"><label>RUC contraparte (con DV)</label><div class="rowflex">'+
      '<input id="cm_ruc" list="rucList" value="'+esc(val('ruc'))+'" placeholder="80012345-6" onblur="autoRUC()">'+
      '<button class="mini" onclick="traerRUC(this)">Padrón</button></div><div id="rucEstado" style="margin-top:2px"></div></div>';
