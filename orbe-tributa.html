@@ -159,6 +159,9 @@
   .chk input{width:17px;height:17px;flex-shrink:0;accent-color:var(--brand)}
   .chk span{font-size:13.5px;font-weight:600}
   .chk small{display:block;font-size:10.5px;color:var(--muted);font-weight:400}
+  .chk.on{border-color:var(--brand);background:var(--brand-soft)}
+  .cbx{width:19px;height:19px;border-radius:5px;border:2px solid var(--line);background:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;flex-shrink:0}
+  .chk.on .cbx{border-color:var(--brand);background:var(--brand)}
   .notice{background:var(--warn-bg);color:var(--warn);border-radius:10px;padding:10px 12px;font-size:11.5px;font-weight:600;margin-top:10px;line-height:1.45}
   .seg2{display:flex;gap:8px;margin-bottom:12px}
   .obls{display:flex;flex-wrap:wrap;gap:8px}
@@ -1397,11 +1400,11 @@ function vExportar(){
   const nV=compsDe(c.id,ymSel).filter(x=>x.clase==='venta').length;
   return '<div class="card pad">'+
     '<div class="sectit" style="margin-top:0">Imputación de este período</div>'+
-    '<div class="autonote" style="background:var(--brand-soft);color:var(--brand)">Los comprobantes importados de Marangatú ya traen su imputación exacta (IVA/IRE/IRP o No Imputar) por cada factura y el REG la respeta tal cual. Lo de abajo aplica solo a los cargados a mano.</div>'+
+    '<div class="autonote" style="background:var(--brand-soft);color:var(--brand)">Los comprobantes importados de Marangatú ya traen su imputación exacta (IVA/IRE/IRP o No Imputar) por cada factura y el REG la respeta tal cual. Lo de abajo aplica solo a los cargados a mano. <b>Podés marcar varios.</b></div>'+
     '<div class="checks">'+
-    '<label class="chk"><input type="checkbox" '+(expOpts.iva?'checked':'')+' onchange="expOpts.iva=this.checked"><span>Imputa al IVA<small>IVA General</small></span></label>'+
-    '<label class="chk"><input type="checkbox" '+(expOpts.ire?'checked':'')+' onchange="expOpts.ire=this.checked"><span>Imputa al IRE<small>Simple / Resimple / General</small></span></label>'+
-    '<label class="chk"><input type="checkbox" '+(expOpts.irp?'checked':'')+' onchange="expOpts.irp=this.checked"><span>Imputa al IRP-RSP<small>Rentas y servicios personales</small></span></label></div>'+
+    '<div class="chk'+(expOpts.iva?' on':'')+'" onclick="expOpts.iva=!expOpts.iva;render()"><span class="cbx">'+(expOpts.iva?'✓':'')+'</span><span>Imputa al IVA<small>IVA General</small></span></div>'+
+    '<div class="chk'+(expOpts.ire?' on':'')+'" onclick="expOpts.ire=!expOpts.ire;render()"><span class="cbx">'+(expOpts.ire?'✓':'')+'</span><span>Imputa al IRE<small>Simple / Resimple / General</small></span></div>'+
+    '<div class="chk'+(expOpts.irp?' on':'')+'" onclick="expOpts.irp=!expOpts.irp;render()"><span class="cbx">'+(expOpts.irp?'✓':'')+'</span><span>Imputa al IRP-RSP<small>Rentas y servicios personales</small></span></div></div>'+
     '<div class="btn-row"><button class="btn btn-brand" '+(nC?'':'disabled')+' onclick="exportar(\'compras\')">⬇ REG Compras ('+nC+')</button>'+
     '<button class="btn btn-brand" '+(nV?'':'disabled')+' onclick="exportar(\'ventas\')">⬇ REG Ventas ('+nV+')</button></div>'+
     '<div class="notice">⚠ Estructura de archivo en modo borrador: verificá el layout contra el spec vigente de la DNIT antes de presentar. Las reglas están aisladas en el bloque REGLAS del código.</div></div>';
