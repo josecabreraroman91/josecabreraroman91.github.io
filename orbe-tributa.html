@@ -220,12 +220,19 @@ const APP_BUILD='2026-07-05 · nfac7+secciones+total';
    ===================================================================== */
 
 /* ====================== REGLAS FISCALES (módulo aislado) ======================
-   ⚠ BORRADOR A VERIFICAR contra el spec vigente de la DNIT antes de producción */
+   Layout conforme a la "Especificación Técnica para Importación — Registro de
+   Comprobantes de Ventas, Compras, Ingresos y/o Egresos" (DNIT, v1 06/2021),
+   vigente bajo RG 90/2021 y modificatorias (última: RG DNIT 12/2024).
+   VENTAS = 19 campos · COMPRAS = 20 campos. No lleva encabezado. */
 const REGLAS={
   perpetuo:{0:7,1:9,2:11,3:13,4:15,5:17,6:19,7:21,8:23,9:25},
-  tipoComprobante:{factura:'109',nc:'110'},
-  camposVentas:['tipoReg','ruc','dv','nombre','tipoComp','fecha','timbrado','nfac','g10','iva10','g5','iva5','ex','total','condicion','extranjero','imputaIRE','imputaIRP','noImputa'],
-  camposCompras:['tipoReg','ruc','dv','nombre','tipoComp','fecha','timbrado','nfac','g10','iva10','g5','iva5','ex','total','condicion','extranjero','imputaIVA','imputaIRE','imputaIRP','noImputa'],
+  /* Tabla 4 — tipos de comprobante */
+  tipoComprobante:{factura:'109',nc:'110',nd:'111'},
+  /* Tabla 3 — tipos de identificación */
+  tipoIdent:{ruc:'11',ci:'12',pasaporte:'13',ciExtranjero:'14',sinNombre:'15'},
+  camposVentas:['tipoReg','tipoIdent','nroIdent','nombre','tipoComp','fecha','timbrado','nfac','g10','g5','ex','total','condicion','extranjero','imputaIVA','imputaIRE','imputaIRP','nfacAsoc','timbAsoc'],
+  camposCompras:['tipoReg','tipoIdent','nroIdent','nombre','tipoComp','fecha','timbrado','nfac','g10','g5','ex','total','condicion','extranjero','imputaIVA','imputaIRE','imputaIRP','noImputa','nfacAsoc','timbAsoc'],
+  maxFilas:5000,   /* tope de la DNIT por archivo; arriba de eso se parte en lotes */
   categorias:['IVA General','IRE Simple','IRE Resimple','IRP-RSP','IRE General']
 };
 /* fuente online de RUC (padrón) + proxy de respaldo por CORS */
@@ -533,38 +540,118 @@ function evaluar(comps,mesDecl){
 }
 
 /* ============================ exportación RG90 ============================ */
+/* Un comprobante con CDC salió por SIFEN: la DNIT ya lo tiene y NO va al archivo
+   importado (la especificación lo excluye expresamente). Si se manda, duplica. */
+function esElectronico(c){return digits(c&&c.cdc).length>0;}
+
+/* Los campos van separados por TABULACIÓN. Si una razón social o un número trae
+   un tab o un salto de línea (pasa al copiar y pegar desde Excel, un PDF o un
+   correo), parte la fila en dos y Marangatú rebota el archivo entero. */
+function limpiaCampo(s){
+  return String(s==null?'':s).replace(/[\t\r\n\v\f\u0085\u2028\u2029]+/g,' ').replace(/\s{2,}/g,' ').trim();
+}
+/* Montos del REG: entero, positivo, sin separadores y sin notación científica. */
+function montoREG(n){
+  n=Number(n);if(!isFinite(n))n=0;
+  n=Math.abs(Math.round(n));
+  return n>=1e21?BigInt(n).toString():String(n);
+}
+/* Fecha del REG: dd/mm/aaaa estricto. Si no hay fecha válida devuelve vacío
+   (nunca "—" ni el texto crudo, que ensucian el archivo). */
+function fechaREG(iso){
+  const m=String(iso==null?'':iso).slice(0,10).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  return m?(m[3]+'/'+m[2]+'/'+m[1]):'';
+}
+
 function lineaREG(c,clase,imputaGlobal){
-  const base=rucBase(c.ruc),dv=rucDV(c.ruc);
-  const g10=c.g10||0,g5=c.g5||0,ex=c.ex||0;
-  const iva10=Math.round(g10/11),iva5=Math.round(g5/21);
-  const total=(c.totalCol!=null&&c.totalCol!==0)?c.totalCol:(g10+g5+ex);
-  /* imputación: manda la del COMPROBANTE (tal cual vino de Marangatú);
+  const esVta=(clase==='ventas');
+  const sinNom=(esVta&&c.sinNombre===true);
+  const esNC=(c.tipo==='nc');
+  /* Montos: enteros y SIEMPRE positivos. La nota de crédito se identifica por el
+     tipo de comprobante 110, nunca por el signo; un negativo rebota la línea. */
+  const g10=Math.abs(Math.round(c.g10||0)),g5=Math.abs(Math.round(c.g5||0)),ex=Math.abs(Math.round(c.ex||0));
+  const total=g10+g5+ex;   /* el total debe cuadrar exacto con la suma o Marangatú rechaza */  /* imputación: manda la del COMPROBANTE (tal cual vino de Marangatú);
      si no la tiene (carga manual vieja), se usa la global del período */
   const imp=c.imputa||imputaGlobal||{};
-  const noImp=imp.no===true||(!imp.iva&&!imp.ire&&!imp.irp);
-  const sinNom=(clase==='ventas'&&c.sinNombre===true);
+  let noImp=imp.no===true||(!imp.iva&&!imp.ire&&!imp.irp);
+  let iIVA=(!noImp&&imp.iva),iIRE=(!noImp&&imp.ire),iIRP=(!noImp&&imp.irp);
+  /* El registro de VENTAS no tiene campo "No imputa": toda venta imputa a algo.
+     Si el comprobante no trae imputación, se cae a la del período. */
+  if(esVta&&!iIVA&&!iIRE&&!iIRP){
+    const g=imputaGlobal||{};
+    iIVA=!!g.iva;iIRE=!!g.ire;iIRP=!!g.irp;
+    if(!iIVA&&!iIRE&&!iIRP)iIVA=true;
+    noImp=false;
+  }
   const F={
-    tipoReg:(clase==='ventas'?'1':'2'),ruc:sinNom?'X':base,dv:sinNom?'':(dv!=null?String(dv):''),
-    nombre:sinNom?'':(c.nombre||'').toUpperCase(),
-    tipoComp:REGLAS.tipoComprobante[c.tipo==='nc'?'nc':'factura'],
-    fecha:fmtDate(c.fecha),timbrado:digits(c.timbrado),nfac:c.nfac||'',
-    g10:String(g10),iva10:String(iva10),g5:String(g5),iva5:String(iva5),
-    ex:String(ex),total:String(total),
+    tipoReg:(esVta?'1':'2'),
+    tipoIdent:sinNom?REGLAS.tipoIdent.sinNombre:REGLAS.tipoIdent.ruc,
+    nroIdent:sinNom?'X':rucBase(c.ruc),
+    nombre:sinNom?'':limpiaCampo(c.nombre).toUpperCase().slice(0,250),
+    tipoComp:REGLAS.tipoComprobante[esNC?'nc':'factura'],
+    fecha:fechaREG(c.fecha),timbrado:digits(c.timbrado),nfac:limpiaCampo(c.nfac),
+    g10:montoREG(g10),g5:montoREG(g5),ex:montoREG(ex),total:montoREG(total),
     condicion:(c.cond==='credito'?'2':'1'),extranjero:'N',
-    imputaIVA:(!noImp&&imp.iva)?'S':'N',imputaIRE:(!noImp&&imp.ire)?'S':'N',imputaIRP:(!noImp&&imp.irp)?'S':'N',
-    noImputa:noImp?'S':'N'
+    imputaIVA:iIVA?'S':'N',imputaIRE:iIRE?'S':'N',imputaIRP:iIRP?'S':'N',
+    noImputa:noImp?'S':'N',
+    /* obligatorios solo en notas de crédito/débito, vacíos en el resto */
+    nfacAsoc:esNC?limpiaCampo(c.nfacAsoc):'',
+    timbAsoc:esNC?digits(c.timbAsoc):''
   };
-  const campos=(clase==='ventas')?REGLAS.camposVentas:REGLAS.camposCompras;
-  return campos.map(k=>F[k]!=null?F[k]:'').join('\t');
+  const campos=esVta?REGLAS.camposVentas:REGLAS.camposCompras;
+  /* red de seguridad: ni un tab ni un salto de línea puede sobrevivir en un campo */
+  return campos.map(k=>limpiaCampo(F[k]!=null?F[k]:'')).join('\t');
 }
 function generarREG(cliObj,ym,clase,imputa){
-  const comps=compsDe(cliObj.id,ym).filter(c=>c.clase===(clase==='ventas'?'venta':'compra'));
-  if(!comps.length)return null;
-  return comps.map(c=>lineaREG(c,clase,imputa)).join('\r\n');
+  const todos=compsDe(cliObj.id,ym).filter(c=>c.clase===(clase==='ventas'?'venta':'compra'));
+  const excluidos=todos.filter(esElectronico);
+  const incluidos=todos.filter(c=>!esElectronico(c));
+  const lineas=incluidos.map(c=>lineaREG(c,clase,imputa));
+  const lotes=[];
+  for(let i=0;i<lineas.length;i+=REGLAS.maxFilas)lotes.push(lineas.slice(i,i+REGLAS.maxFilas).join('\r\n'));
+  return {lotes:lotes,nIncluidos:incluidos.length,nExcluidos:excluidos.length,excluidos:excluidos};
+}
+/* Nombre exigido por la DNIT: <RUC sin DV>_REG_MMAAAA_XXXXX
+   El .zip y el .txt de adentro llevan exactamente el mismo nombre. */
+function nombreREG(ruc,ym,clase,n){
+  const p=String(ym).split('-');
+  return rucBase(ruc)+'_REG_'+p[1]+p[0]+'_'+(clase==='ventas'?'V':'C')+String(n).padStart(4,'0');
+}
+
+/* ---------- envoltorio ZIP (método store) que pide Marangatú para subir ---------- */
+const _crcTab=(function(){const t=new Uint32Array(256);
+  for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=(c&1)?(0xEDB88320^(c>>>1)):(c>>>1);t[n]=c>>>0;}return t;})();
+function crc32(b){let c=0xFFFFFFFF;for(let i=0;i<b.length;i++)c=_crcTab[(c^b[i])&0xFF]^(c>>>8);return (c^0xFFFFFFFF)>>>0;}
+function zipUno(nombreInterno,contenido){
+  const enc=new TextEncoder();                       /* UTF-8 sin BOM */
+  const nb=enc.encode(nombreInterno),db=enc.encode(contenido);
+  const crc=crc32(db),d=new Date();
+  const hora=((d.getHours()<<11)|(d.getMinutes()<<5)|(d.getSeconds()>>1))&0xFFFF;
+  const dfec=(((d.getFullYear()-1980)<<9)|((d.getMonth()+1)<<5)|d.getDate())&0xFFFF;
+  const loc=new Uint8Array(30+nb.length),vl=new DataView(loc.buffer);
+  vl.setUint32(0,0x04034b50,true);vl.setUint16(4,20,true);vl.setUint16(6,0,true);vl.setUint16(8,0,true);
+  vl.setUint16(10,hora,true);vl.setUint16(12,dfec,true);
+  vl.setUint32(14,crc,true);vl.setUint32(18,db.length,true);vl.setUint32(22,db.length,true);
+  vl.setUint16(26,nb.length,true);vl.setUint16(28,0,true);loc.set(nb,30);
+  const cen=new Uint8Array(46+nb.length),vc=new DataView(cen.buffer);
+  vc.setUint32(0,0x02014b50,true);vc.setUint16(4,20,true);vc.setUint16(6,20,true);
+  vc.setUint16(8,0,true);vc.setUint16(10,0,true);vc.setUint16(12,hora,true);vc.setUint16(14,dfec,true);
+  vc.setUint32(16,crc,true);vc.setUint32(20,db.length,true);vc.setUint32(24,db.length,true);
+  vc.setUint16(28,nb.length,true);vc.setUint16(30,0,true);vc.setUint16(32,0,true);
+  vc.setUint16(34,0,true);vc.setUint16(36,0,true);vc.setUint32(38,0,true);vc.setUint32(42,0,true);
+  cen.set(nb,46);
+  const fin=new Uint8Array(22),vf=new DataView(fin.buffer);
+  vf.setUint32(0,0x06054b50,true);vf.setUint16(4,0,true);vf.setUint16(6,0,true);
+  vf.setUint16(8,1,true);vf.setUint16(10,1,true);
+  vf.setUint32(12,cen.length,true);vf.setUint32(16,loc.length+db.length,true);vf.setUint16(20,0,true);
+  return new Blob([loc,db,cen,fin],{type:'application/zip'});
+}
+function descargarBlob(nombre,blob){
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=nombre;a.click();
+  setTimeout(function(){URL.revokeObjectURL(a.href);},1500);
 }
 function descargarTxt(nombre,contenido,mime){
-  const blob=new Blob([contenido],{type:mime||'text/plain;charset=utf-8'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=nombre;a.click();URL.revokeObjectURL(a.href);
+  descargarBlob(nombre,new Blob([contenido],{type:mime||'text/plain;charset=utf-8'}));
 }
 
 /* ============================ importación ============================ */
@@ -1396,8 +1483,9 @@ function abrirExportar(){
 }
 function vExportar(){
   const c=cliObj(curCli);if(!c)return '';
-  const nC=compsDe(c.id,ymSel).filter(x=>x.clase==='compra').length;
-  const nV=compsDe(c.id,ymSel).filter(x=>x.clase==='venta').length;
+  const _cs=compsDe(c.id,ymSel).filter(x=>x.clase==='compra'),_vs=compsDe(c.id,ymSel).filter(x=>x.clase==='venta');
+  const eC=_cs.filter(esElectronico).length,eV=_vs.filter(esElectronico).length;
+  const nC=_cs.length-eC,nV=_vs.length-eV;
   return '<div class="card pad">'+
     '<div class="sectit" style="margin-top:0">Imputación de este período</div>'+
     '<div class="autonote" style="background:var(--brand-soft);color:var(--brand)">Los comprobantes importados de Marangatú ya traen su imputación exacta (IVA/IRE/IRP o No Imputar) por cada factura y el REG la respeta tal cual. Lo de abajo aplica solo a los cargados a mano. <b>Podés marcar varios.</b></div>'+
@@ -1407,16 +1495,37 @@ function vExportar(){
     '<div class="chk'+(expOpts.irp?' on':'')+'" onclick="expOpts.irp=!expOpts.irp;render()"><span class="cbx">'+(expOpts.irp?'✓':'')+'</span><span>Imputa al IRP-RSP<small>Rentas y servicios personales</small></span></div></div>'+
     '<div class="btn-row"><button class="btn btn-brand" '+(nC?'':'disabled')+' onclick="exportar(\'compras\')">⬇ REG Compras ('+nC+')</button>'+
     '<button class="btn btn-brand" '+(nV?'':'disabled')+' onclick="exportar(\'ventas\')">⬇ REG Ventas ('+nV+')</button></div>'+
-    '<div class="notice">⚠ Estructura de archivo en modo borrador: verificá el layout contra el spec vigente de la DNIT antes de presentar. Las reglas están aisladas en el bloque REGLAS del código.</div></div>';
+    ((eC+eV)?'<div class="autonote">ℹ '+(eC+eV)+' comprobante'+((eC+eV)>1?'s':'')+' electrónico'+((eC+eV)>1?'s':'')+' (con CDC) queda'+((eC+eV)>1?'n':'')+' afuera del archivo: la DNIT ya los tiene por SIFEN y se traen desde Marangatú con “Obtener Comprobantes Electrónicos y Virtuales”. Mandarlos acá los duplica.</div>':'')+
+    '<div class="notice">Baja un <b>.zip</b> listo para subir, con el nombre que exige la DNIT: <b>'+esc(nombreREG(c.ruc,ymSel,'ventas',(perGet(curCli,ymSel).envio||0)+1))+'.zip</b><br>'+
+    'En Marangatú: <b>Declaraciones Informativas → Gestión de Comprobantes → Importar → Subir Archivo → Enviar</b>. Queda en RECIBIDO y la DNIT valida en hasta 72 h.</div></div>';
 }
 function exportar(clase){
   const c=cliObj(curCli);if(!c)return;
-  const txt=generarREG(c,ymSel,clase,expOpts);
-  if(!txt){toast('No hay comprobantes de '+clase+' en este período');return;}
-  const nombre='REG_'+clase.toUpperCase()+'_'+rucBase(c.ruc)+'_'+ymSel.replace('-','')+'.txt';
-  descargarTxt(nombre,txt);
-  perSet(curCli,ymSel,{exportado:true,estado:'exportado'});
-  toast('Archivo '+nombre+' generado');render();
+  /* Candado: un archivo que Marangatú rechaza es peor que no generarlo.
+     Si hay errores graves en el período, no se baja nada. */
+  const delLote=compsDe(c.id,ymSel).filter(x=>x.clase===(clase==='ventas'?'venta':'compra')&&!esElectronico(x));
+  const chequeo=evaluar(delLote,ymSel);
+  if(chequeo.nBad){
+    toast(chequeo.nBad+' comprobante'+(chequeo.nBad>1?'s':'')+' con errores que Marangatú rechaza. Corregilos primero.');
+    vista='validar';render();return;
+  }
+  const R=generarREG(c,ymSel,clase,expOpts);
+  if(!R.lotes.length){
+    toast(R.nExcluidos?'Los '+R.nExcluidos+' comprobantes de '+clase+' son electrónicos: no van al archivo':'No hay comprobantes de '+clase+' en este período');
+    return;
+  }
+  const per=perGet(curCli,ymSel);
+  let n=per.envio||0;
+  const nombres=[];
+  R.lotes.forEach(function(txt,i){
+    n++;
+    const base=nombreREG(c.ruc,ymSel,clase,n);
+    nombres.push(base+'.zip');
+    setTimeout(function(){descargarBlob(base+'.zip',zipUno(base+'.txt',txt));},i*700);
+  });
+  perSet(curCli,ymSel,{exportado:true,estado:'exportado',envio:n});
+  toast(nombres.length>1?nombres.length+' archivos generados (lotes de '+REGLAS.maxFilas+')':'Generado '+nombres[0]);
+  render();
 }
 
 /* ============================ vencimientos ============================ */
