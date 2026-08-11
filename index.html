@@ -97,6 +97,7 @@ nav.scrolled{background:rgba(11,14,26,.85);border-bottom-color:var(--line)}
   padding:36px 40px;overflow:hidden;background:linear-gradient(150deg,var(--panel),var(--panel2));
   border:1px solid var(--line);border-radius:22px;transition:.32s var(--ease)}
 .showcase:hover{transform:translateY(-5px);border-color:color-mix(in srgb,var(--a) 45%,transparent)}
+.prod-list{max-width:660px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
 .showcase::after{content:'';position:absolute;top:-90px;right:-70px;width:280px;height:280px;pointer-events:none;
   background:radial-gradient(circle,color-mix(in srgb,var(--a) 18%,transparent),transparent 62%);opacity:.75;transition:opacity .32s var(--ease)}
 .showcase:hover::after{opacity:1}
@@ -169,14 +170,24 @@ nav.scrolled{background:rgba(11,14,26,.85);border-bottom-color:var(--line)}
 
 <section class="prod-sec" id="productos"><div class="wrap">
   <div class="prod-head" data-reveal><span class="badge"><span class="d"></span>Disponible ahora</span></div>
-  <a class="showcase" href="app.html" data-reveal>
-    <span class="omark" aria-hidden="true"><span class="r"></span><span class="c"></span><span class="s"></span></span>
-    <span class="sc-body">
-      <h3>orbe <span>tributa</span></h3>
-      <p>Tu gestión tributaria, ordenada y al día.</p>
-    </span>
-    <span class="sc-cta">Entrar <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
-  </a>
+  <div class="prod-list">
+    <a class="showcase" href="app.html" data-reveal>
+      <span class="omark" aria-hidden="true"><span class="r"></span><span class="c"></span><span class="s"></span></span>
+      <span class="sc-body">
+        <h3>orbe <span>tributa</span></h3>
+        <p>Tu gestión tributaria, ordenada y al día.</p>
+      </span>
+      <span class="sc-cta">Entrar <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
+    </a>
+    <a class="showcase" href="https://entrena.orbepy.com" style="--a:var(--lime)" data-reveal>
+      <span class="omark" aria-hidden="true"><span class="r"></span><span class="c"></span><span class="s"></span></span>
+      <span class="sc-body">
+        <h3>orbe <span>entrena</span></h3>
+        <p>Tu academia deportiva en orden: calendario, alumnos y asistencia.</p>
+      </span>
+      <span class="sc-cta">Entrar <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
+    </a>
+  </div>
   <p class="more" data-reveal><span>Más herramientas en órbita, pronto.</span></p>
 </div></section>
 
