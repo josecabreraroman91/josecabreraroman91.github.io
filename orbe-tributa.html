@@ -1321,6 +1321,11 @@ function vCarga(){
   const absv=k=>{const n=Math.abs(Number(val(k,0))||0);return n||'';};
   const totIni=(ec&&ec.totalCol!=null)?Math.abs(ec.totalCol):'';
   h+='<div class="field" style="margin-top:'+(formClase==='compra'?'0':'12px')+'"><label>Total del comprobante</label><input id="cm_total" inputmode="numeric" value="'+totIni+'" placeholder="0" oninput="calcDesglose()"></div>';
+  h+='<div class="inline-sec" style="margin-top:8px"><label style="margin-bottom:8px">Repartir el total por porcentaje <span style="text-transform:none;font-weight:400;color:var(--muted)">(opcional)</span></label>'+
+     '<div class="row2"><div class="field" style="margin:0"><label>% al 10%</label><input id="cm_p10" inputmode="decimal" placeholder="0" oninput="previewReparto()"></div>'+
+     '<div class="field" style="margin:0"><label>% al 5%</label><input id="cm_p5" inputmode="decimal" placeholder="0" oninput="previewReparto()"></div></div>'+
+     '<div id="cm_repHint" class="hint" style="margin-top:6px">Lo que sobra del 100% queda exento. Siempre cuadra exacto con el total.</div>'+
+     '<button class="btn btn-ghost" style="margin-top:8px;font-size:12.5px;padding:9px" onclick="repartirPorPct()">Aplicar sobre el total</button></div>';
   h+='<div class="row2"><div class="field"><label>Gravada 10%</label><input id="cm_g10" inputmode="numeric" value="'+absv('g10')+'" placeholder="0" oninput="calcDesglose()"></div>'+
      '<div class="field"><label>Gravada 5%</label><input id="cm_g5" inputmode="numeric" value="'+absv('g5')+'" placeholder="0" oninput="calcDesglose()"></div></div>';
   h+='<div class="field"><label>Exentas</label><input id="cm_ex" inputmode="numeric" value="'+absv('ex')+'" placeholder="0" oninput="calcDesglose()"></div>';
@@ -1350,6 +1355,38 @@ function calcDesglose(){
     '<div class="hint" style="margin-top:6px">Exentas: <b class="num">'+gs(ex)+'</b></div>'+
     '<div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(11,132,120,.25);display:flex;justify-content:space-between;font-weight:800;color:var(--brand-dark)"><span>Total IVA</span><span class="num">'+gs(ivaTot)+'</span></div>'+
     alerta+'</div>';
+}
+/* Calculadora de reparto: divide el Total según los % elegidos.
+   g10 y g5 salen de los %, y lo que sobra queda exento → la suma cuadra
+   SIEMPRE exacto con el total (si no, Marangatú rechaza la línea). */
+function _repartoCalc(){
+  const tot=Math.abs(normMonto($('cm_total')?$('cm_total').value:0));
+  const pct=id=>{const el=$(id);if(!el)return 0;const v=parseFloat(String(el.value).replace(',','.'));return isFinite(v)&&v>0?v:0;};
+  const p10=pct('cm_p10'),p5=pct('cm_p5');
+  let g10=Math.round(tot*p10/100), g5=Math.round(tot*p5/100);
+  if(g10>tot)g10=tot;
+  if(g10+g5>tot)g5=tot-g10;            /* no pasarse del total */
+  const ex=tot-g10-g5;
+  return {tot,p10,p5,g10,g5,ex,exceso:(p10+p5>100.0001)};
+}
+function previewReparto(){
+  const box=$('cm_repHint');if(!box)return;
+  const R=_repartoCalc();
+  if(R.exceso){box.style.color='var(--warn)';box.innerHTML=' Los porcentajes suman más de 100%. Revisalos.';return;}
+  box.style.color='';
+  if(R.tot<=0){box.innerHTML='Lo que sobra del 100% queda exento. Siempre cuadra exacto con el total.';return;}
+  box.innerHTML='Quedaría → 10%: <b class="num">'+gs(R.g10)+'</b> · 5%: <b class="num">'+gs(R.g5)+'</b> · Exenta: <b class="num">'+gs(R.ex)+'</b>';
+}
+function repartirPorPct(){
+  const R=_repartoCalc();
+  if(R.tot<=0){toast('Cargá primero el total del comprobante');return;}
+  if(R.exceso){toast('Los porcentajes suman más de 100%. Revisalos.');return;}
+  if(R.p10<=0&&R.p5<=0){toast('Poné al menos un porcentaje (10% o 5%)');return;}
+  if($('cm_g10'))$('cm_g10').value=R.g10||'';
+  if($('cm_g5')) $('cm_g5').value =R.g5||'';
+  if($('cm_ex')) $('cm_ex').value =R.ex||'';
+  calcDesglose();
+  toast('Repartido: '+gs(R.g10)+' al 10% · '+gs(R.g5)+' al 5% · '+gs(R.ex)+' exento');
 }
 function toggleSinNom(on){
   ['cm_ruc','cm_nom'].forEach(id=>{const el=$(id);if(el){el.disabled=on;if(on)el.value='';el.style.opacity=on?'.5':'';}});
@@ -1726,7 +1763,7 @@ function bindDrop(){
 }
 
 Object.assign(window,{irTab,volver,abrirCliente,nuevoCliente,guardarCliente,toggleObl,setYm,setBuscar,onFile,cargarDemo,
-  correrValidacion,descargarInforme,abrirExportar,exportar,abrirCarga,guardarComp,condCambia,armarCuotas,calcDesglose,toggleSinNom,agregarTimbrado,borrarTimbrado,sincTimbVenta,
+  correrValidacion,descargarInforme,abrirExportar,exportar,abrirCarga,guardarComp,condCambia,armarCuotas,calcDesglose,previewReparto,repartirPorPct,toggleSinNom,agregarTimbrado,borrarTimbrado,sincTimbVenta,
   borrarComp,borrarCliente,guardarCobro,borrarCobro,traerRUC,autoRUC,autoNombre,importarFilas,fmtNfac,
   agregarSeccion,borrarSeccion,bajarRespaldo,subirRespaldo,borrarTodo,setProvBuscar,salir});
 
