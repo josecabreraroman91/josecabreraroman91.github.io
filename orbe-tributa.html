@@ -566,6 +566,11 @@ function evaluar(comps,mesDecl){
 /* Un comprobante con CDC salió por SIFEN: la DNIT ya lo tiene y NO va al archivo
    importado (la especificación lo excluye expresamente). Si se manda, duplica. */
 function esElectronico(c){return digits(c&&c.cdc).length>0;}
+/* Va afuera del REG todo lo que la DNIT ya tiene por otra vía: los electrónicos
+   (con CDC) y TODO lo importado del Excel de Marangatú ("Obtener Comprobantes
+   Electrónicos y Virtuales"), incluidas las virtuales que NO traen CDC. Solo las
+   físicas cargadas a mano (origen 'manual') van al archivo importado. */
+function excluirDelREG(c){return esElectronico(c)||(c&&c.origen==='planilla');}
 
 /* Los campos van separados por TABULACIÓN. Si una razón social o un número trae
    un tab o un salto de línea (pasa al copiar y pegar desde Excel, un PDF o un
@@ -627,8 +632,8 @@ function lineaREG(c,clase,imputaGlobal){
 }
 function generarREG(cliObj,ym,clase,imputa){
   const todos=compsDe(cliObj.id,ym).filter(c=>c.clase===(clase==='ventas'?'venta':'compra'));
-  const excluidos=todos.filter(esElectronico);
-  const incluidos=todos.filter(c=>!esElectronico(c));
+  const excluidos=todos.filter(excluirDelREG);
+  const incluidos=todos.filter(c=>!excluirDelREG(c));
   const lineas=incluidos.map(c=>lineaREG(c,clase,imputa));
   const lotes=[];
   for(let i=0;i<lineas.length;i+=REGLAS.maxFilas)lotes.push(lineas.slice(i,i+REGLAS.maxFilas).join('\r\n'));
@@ -895,6 +900,10 @@ function cargarDemo(){
   const fv=F(c1,'venta',{fecha:d(10),ruc:'3011222-2',nombre:'DEPOSITO SANTA ANA',timbrado:'99887766',nfac:'001-001-0000789',g10:2200000,totalCol:2200000,cond:'credito',cuotas:[{vto:d(25),monto:1100000},{vto:'',monto:1100000}]});
   S.cobros.push({id:uid(),compId:fv,fecha:d(20),monto:1100000,nota:'Cobro 1ª cuota'});
   F(c1,'venta',{fecha:d(12),ruc:'3011222-2',nombre:'DEPOSITO SANTA ANA',timbrado:'12348765',nfac:'001-001-0000790',tipo:'nc',g10:-220000,totalCol:-220000,nfacAsoc:'001-001-0000789',timbAsoc:'99887766'});
+  /* importados de Marangatú: NO deben ir al REG. Uno electrónico (con CDC) y uno
+     VIRTUAL (sin CDC) — este último es el caso que antes se colaba como físico. */
+  F(c1,'compra',{fecha:d(9),ruc:'80089123-6',nombre:'FERRETERIA EL PROGRESO SRL',timbrado:'11223399',nfac:'002-001-0000900',cdc:'44445555666677778888999900001111222233334444',g10:990000,totalCol:990000,origen:'planilla'});
+  F(c1,'compra',{fecha:d(11),ruc:'3011222-2',nombre:'DEPOSITO SANTA ANA',timbrado:'99887700',nfac:'001-001-0000999',g10:330000,totalCol:330000,origen:'planilla'});
   /* cliente 2: errores para el semáforo */
   F(c2,'compra',{fecha:d(5),ruc:'80028242-9',nombre:'DV EQUIVOCADO S.A.',timbrado:'12345678',nfac:'001-001-0000200',g10:550000,totalCol:550000});
   F(c2,'compra',{fecha:d(8),ruc:'',nombre:'SIN RUC CARGADO',timbrado:'55667788',nfac:'001-001-0009876',ex:450000,totalCol:450000});
@@ -1514,7 +1523,7 @@ function abrirExportar(){
 function vExportar(){
   const c=cliObj(curCli);if(!c)return '';
   const _cs=compsDe(c.id,ymSel).filter(x=>x.clase==='compra'),_vs=compsDe(c.id,ymSel).filter(x=>x.clase==='venta');
-  const eC=_cs.filter(esElectronico).length,eV=_vs.filter(esElectronico).length;
+  const eC=_cs.filter(excluirDelREG).length,eV=_vs.filter(excluirDelREG).length;
   const nC=_cs.length-eC,nV=_vs.length-eV;
   return '<div class="card pad">'+
     '<div class="sectit" style="margin-top:0">Imputación de este período</div>'+
@@ -1525,7 +1534,7 @@ function vExportar(){
     '<div class="chk'+(expOpts.irp?' on':'')+'" onclick="expOpts.irp=!expOpts.irp;render()"><span class="cbx">'+(expOpts.irp?'✓':'')+'</span><span>Imputa al IRP-RSP<small>Rentas y servicios personales</small></span></div></div>'+
     '<div class="btn-row"><button class="btn btn-brand" '+(nC?'':'disabled')+' onclick="exportar(\'compras\')"> REG Compras ('+nC+')</button>'+
     '<button class="btn btn-brand" '+(nV?'':'disabled')+' onclick="exportar(\'ventas\')"> REG Ventas ('+nV+')</button></div>'+
-    ((eC+eV)?'<div class="autonote">ℹ '+(eC+eV)+' comprobante'+((eC+eV)>1?'s':'')+' electrónico'+((eC+eV)>1?'s':'')+' (con CDC) queda'+((eC+eV)>1?'n':'')+' afuera del archivo: la DNIT ya los tiene por SIFEN y se traen desde Marangatú con “Obtener Comprobantes Electrónicos y Virtuales”. Mandarlos acá los duplica.</div>':'')+
+    ((eC+eV)?'<div class="autonote">ℹ '+(eC+eV)+' comprobante'+((eC+eV)>1?'s':'')+' electrónico'+((eC+eV)>1?'s':'')+'/virtual'+((eC+eV)>1?'es':'')+' importado'+((eC+eV)>1?'s':'')+' de Marangatú queda'+((eC+eV)>1?'n':'')+' afuera del archivo: la DNIT ya los tiene (SIFEN o “Obtener Comprobantes Electrónicos y Virtuales”). Mandarlos acá los duplica.</div>':'')+
     '<div class="notice">Baja un <b>.zip</b> listo para subir, con el nombre que exige la DNIT: <b>'+esc(nombreREG(c.ruc,ymSel,'ventas',(perGet(curCli,ymSel).envio||0)+1))+'.zip</b><br>'+
     'En Marangatú: <b>Declaraciones Informativas → Gestión de Comprobantes → Importar → Subir Archivo → Enviar</b>. Queda en RECIBIDO y la DNIT valida en hasta 72 h.</div></div>';
 }
@@ -1533,7 +1542,7 @@ function exportar(clase){
   const c=cliObj(curCli);if(!c)return;
   /* Candado: un archivo que Marangatú rechaza es peor que no generarlo.
      Si hay errores graves en el período, no se baja nada. */
-  const delLote=compsDe(c.id,ymSel).filter(x=>x.clase===(clase==='ventas'?'venta':'compra')&&!esElectronico(x));
+  const delLote=compsDe(c.id,ymSel).filter(x=>x.clase===(clase==='ventas'?'venta':'compra')&&!excluirDelREG(x));
   const chequeo=evaluar(delLote,ymSel);
   if(chequeo.nBad){
     toast(chequeo.nBad+' comprobante'+(chequeo.nBad>1?'s':'')+' con errores que Marangatú rechaza. Corregilos primero.');
@@ -1541,7 +1550,7 @@ function exportar(clase){
   }
   const R=generarREG(c,ymSel,clase,expOpts);
   if(!R.lotes.length){
-    toast(R.nExcluidos?'Los '+R.nExcluidos+' comprobantes de '+clase+' son electrónicos: no van al archivo':'No hay comprobantes de '+clase+' en este período');
+    toast(R.nExcluidos?'Los '+R.nExcluidos+' comprobantes de '+clase+' son electrónicos/virtuales: no van al archivo':'No hay comprobantes de '+clase+' en este período');
     return;
   }
   const per=perGet(curCli,ymSel);
