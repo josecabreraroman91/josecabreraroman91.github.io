@@ -1171,6 +1171,7 @@ function subMovimientos(c,comps){
         ' &nbsp;<button class="linkbtn del" onclick="event.stopPropagation();borrarComp(\''+x.id+'\')">borrar</button></div>'+
         problema+'</div>';
     }).join('')+'</div>';
+    h+='<div style="margin-top:10px"><button class="btn btn-ghost" style="color:var(--bad);border-color:var(--bad)" onclick="borrarMesPlanilla()">Borrar toda la planilla de '+ymLargo(ymSel)+' ('+comps.length+')</button></div>';
   }
   h+='<div style="margin-top:12px"><button class="btn btn-danger" onclick="borrarCliente()">Eliminar cliente y sus datos</button></div>';
   return h;
@@ -1469,6 +1470,19 @@ function guardarComp(){
   else{vista='cliente';cliTab='mov';render();}
 }
 function borrarComp(id){if(!confirm('¿Borrar este comprobante?'))return;S.comprobantes=S.comprobantes.filter(c=>c.id!==id);S.cobros=S.cobros.filter(x=>x.compId!==id);save();render();}
+/* Borra TODA la planilla del mes seleccionado de este contribuyente (importados
+   de Marangatú y cargados a mano). Solo ese mes: los otros meses no se tocan. */
+function borrarMesPlanilla(){
+  const ids=compsDe(curCli,ymSel).map(c=>c.id);
+  if(!ids.length){toast('No hay comprobantes en '+ymLargo(ymSel));return;}
+  if(!confirm('Esto borra los '+ids.length+' comprobantes de '+ymLargo(ymSel)+' de este contribuyente (importados y cargados a mano). Los otros meses NO se tocan. ¿Seguro?'))return;
+  const set=new Set(ids);
+  S.comprobantes=S.comprobantes.filter(c=>!set.has(c.id));
+  S.cobros=S.cobros.filter(x=>!set.has(x.compId));
+  perSet(curCli,ymSel,{estado:'pendiente',exportado:false});
+  save();render();
+  toast('Borrada la planilla de '+ymLargo(ymSel));
+}
 function borrarCliente(){const c=cliObj(curCli);if(!c)return;if(!confirm('Esto borra a '+c.nombre+' y TODOS sus comprobantes y cobros. ¿Seguro?'))return;
   const ids=S.comprobantes.filter(x=>x.clienteId===curCli).map(x=>x.id);
   S.clientes=S.clientes.filter(x=>x.id!==curCli);
@@ -1764,7 +1778,7 @@ function bindDrop(){
 
 Object.assign(window,{irTab,volver,abrirCliente,nuevoCliente,guardarCliente,toggleObl,setYm,setBuscar,onFile,cargarDemo,
   correrValidacion,descargarInforme,abrirExportar,exportar,abrirCarga,guardarComp,condCambia,armarCuotas,calcDesglose,previewReparto,repartirPorPct,toggleSinNom,agregarTimbrado,borrarTimbrado,sincTimbVenta,
-  borrarComp,borrarCliente,guardarCobro,borrarCobro,traerRUC,autoRUC,autoNombre,importarFilas,fmtNfac,
+  borrarComp,borrarMesPlanilla,borrarCliente,guardarCobro,borrarCobro,traerRUC,autoRUC,autoNombre,importarFilas,fmtNfac,
   agregarSeccion,borrarSeccion,bajarRespaldo,subirRespaldo,borrarTodo,setProvBuscar,salir});
 
 /* ============================ ARRANQUE EN LA NUBE ============================ */
