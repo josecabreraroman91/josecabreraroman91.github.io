@@ -1,6 +1,10 @@
 <!DOCTYPE html><html lang="es" class="js"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>OrbePy — Una sola órbita para todo tu trabajo</title>
-<meta name="description" content="OrbePy es la plataforma que reúne tus herramientas de trabajo en un mismo lugar. Empezá con orbe tributa, tu gestión tributaria ordenada y al día.">
+<title>Orbe — Software a medida, automatización e IA para empresas</title>
+<!-- La descripcion se corta cerca de los 160 caracteres en Google: esta entra entera. -->
+<meta name="description" content="Sistemas a medida, automatización de procesos e IA para empresas. Digitalizamos lo que hoy hacés a mano. Productos propios: Orbe Tributa.">
+<meta name="author" content="Orbe">
+<link rel="canonical" href="https://orbepy.com/">
+<meta name="theme-color" content="#0b0e1a">
 
 <!-- ============================================================
      LA TARJETA QUE SE VE AL COMPARTIR EL LINK
@@ -9,64 +13,97 @@
      WhatsApp o en LinkedIn, el recuadro de vista previa sale gris y
      vacío. El link funcionaba igual, pero no invitaba a tocarlo.
 
-     El título y la descripción de acá le hablan al contador, que es
-     quien recibe el link — no repiten el título general del sitio.
+     Desde el reposicionamiento (09/2026) la tarjeta habla de Orbe como
+     empresa de software, no solo de Tributa: el link ahora se comparte
+     con dueños de negocio, no únicamente con contadores.
      La imagen tiene que ser una URL absoluta: si es relativa, ni
      Facebook ni WhatsApp la levantan.
+     OJO: orbe-preview.png sigue siendo la imagen vieja de Tributa.
+     Al cambiarla, forzar el refresco en
+     https://developers.facebook.com/tools/debug/
      ============================================================ -->
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://orbepy.com/">
-<meta property="og:site_name" content="OrbePy">
+<meta property="og:site_name" content="Orbe">
 <meta property="og:locale" content="es_PY">
-<meta property="og:title" content="Orbe Tributa — el REG de Marangatú y los libros de IVA">
-<meta property="og:description" content="Cargás los comprobantes. Él arma el REG y te avisa qué va a rebotar antes de que lo subas. Probalo gratis.">
+<meta property="og:title" content="Orbe — Software que trabaja como trabaja tu negocio">
+<meta property="og:description" content="Sistemas a medida, automatización de procesos e inteligencia artificial para empresas. Contanos qué hacés a mano y lo convertimos en una herramienta.">
 <meta property="og:image" content="https://orbepy.com/orbe-preview.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Orbe Tributa: comprobantes en papel que se ordenan y se vuelven digitales.">
+<meta property="og:image:alt" content="Orbe — desarrollo de software y automatización de procesos.">
 
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Orbe Tributa — el REG de Marangatú y los libros de IVA">
-<meta name="twitter:description" content="Cargás los comprobantes. Él arma el REG y te avisa qué va a rebotar antes de que lo subas. Probalo gratis.">
+<meta name="twitter:title" content="Orbe — Software que trabaja como trabaja tu negocio">
+<meta name="twitter:description" content="Sistemas a medida, automatización de procesos e inteligencia artificial para empresas.">
 <meta name="twitter:image" content="https://orbepy.com/orbe-preview.png">
 
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='11' fill='none' stroke='%23C8FF4D' stroke-width='2.5'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%23C8FF4D'/%3E%3Ccircle cx='16' cy='5' r='2.6' fill='%23C8FF4D'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ProfessionalService",
+  "name": "Orbe",
+  "url": "https://orbepy.com/",
+  "image": "https://orbepy.com/orbe-preview.png",
+  "description": "Desarrollo de sistemas a medida, automatización de procesos, integración de inteligencia artificial y digitalización para empresas.",
+  "availableLanguage": "es",
+  "knowsAbout": ["software a medida","automatización de procesos","digitalización de empresas","sistemas administrativos","inteligencia artificial para empresas"],
+  "makesOffer": {
+    "@type": "Offer",
+    "itemOffered": {
+      "@type": "SoftwareApplication",
+      "name": "Orbe Tributa",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web",
+      "url": "https://orbepy.com/app.html",
+      "description": "Software fiscal para contadores y estudios contables: REG de ventas y compras, formatos para DNIT, validación previa de errores y libros IVA."
+    }
+  }
+}
+</script>
+
 <style>
 :root{
   --bg:#0b0e1a; --panel:#121829; --panel2:#0e1322;
   --ink:#eef1f8; --mut:#9098ab; --dim:#5c6480;
   --lime:#c8ff4d; --cyan:#3dd7d0;
   --line:rgba(255,255,255,.09);
-  --font:'Space Grotesk',system-ui,-apple-system,Segoe UI,sans-serif;
+  --line2:rgba(255,255,255,.055);
+  --display:'Space Grotesk',system-ui,-apple-system,Segoe UI,sans-serif;
+  --text:ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
   --ease:cubic-bezier(.2,.7,.2,1);
+  --sec:clamp(80px,12vh,132px);
 }
 *{margin:0;padding:0;box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{font-family:var(--font);color:var(--ink);background:var(--bg);line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+html{scroll-behavior:smooth;scroll-padding-top:78px}
+body{font-family:var(--text);color:var(--ink);background:var(--bg);line-height:1.62;overflow-x:hidden;-webkit-font-smoothing:antialiased}
 a{text-decoration:none;color:inherit}
-img{display:block}
+img{display:block;max-width:100%}
+h1,h2,h3,.brand,.btn,.eyebrow,.num{font-family:var(--display)}
+::selection{background:var(--lime);color:#0a1000}
 
-/* deep-space backdrop */
+/* fondo espacial */
 body::before{content:'';position:fixed;inset:0;z-index:-2;pointer-events:none;background:
-  radial-gradient(52% 40% at 50% 8%,rgba(200,255,77,.11),transparent 60%),
-  radial-gradient(46% 42% at 84% 76%,rgba(61,215,208,.11),transparent 62%),
-  radial-gradient(44% 40% at 12% 72%,rgba(200,255,77,.06),transparent 62%)}
-body::after{content:'';position:fixed;inset:0;z-index:-1;opacity:.5;pointer-events:none;
+  radial-gradient(52% 40% at 50% 4%,rgba(200,255,77,.11),transparent 60%),
+  radial-gradient(46% 42% at 86% 62%,rgba(61,215,208,.09),transparent 62%),
+  radial-gradient(44% 40% at 10% 88%,rgba(200,255,77,.06),transparent 62%)}
+body::after{content:'';position:fixed;inset:0;z-index:-1;opacity:.42;pointer-events:none;
   background-image:radial-gradient(rgba(255,255,255,.5) .6px,transparent .6px);
-  background-size:46px 46px;mask:radial-gradient(70% 55% at 50% 30%,#000,transparent 78%);
-  -webkit-mask:radial-gradient(70% 55% at 50% 30%,#000,transparent 78%)}
+  background-size:46px 46px;mask:radial-gradient(72% 48% at 50% 16%,#000,transparent 78%);
+  -webkit-mask:radial-gradient(72% 48% at 50% 16%,#000,transparent 78%)}
 
-/* scroll progress */
 #prog{position:fixed;top:0;left:0;height:2px;width:100%;transform:scaleX(0);transform-origin:0 50%;
   background:linear-gradient(90deg,var(--cyan),var(--lime));z-index:60;transition:transform .1s linear}
 
-/* nav */
-nav{display:flex;align-items:center;gap:13px;padding:20px 7vw;position:sticky;top:0;z-index:40;
-  background:rgba(11,14,26,.5);backdrop-filter:blur(12px);border-bottom:1px solid transparent;transition:.35s var(--ease)}
-nav.scrolled{background:rgba(11,14,26,.85);border-bottom-color:var(--line)}
-/* CSS orbit isotipo (reused in nav + footer) */
+/* ---------- nav ---------- */
+nav{display:flex;align-items:center;gap:12px;padding:16px 6vw;position:sticky;top:0;z-index:50;
+  background:rgba(11,14,26,.55);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-bottom:1px solid transparent;transition:.35s var(--ease)}
+nav.scrolled{background:rgba(11,14,26,.9);border-bottom-color:var(--line)}
 .mark{position:relative;flex:none;width:28px;height:28px}
 .mark .r{position:absolute;left:50%;top:50%;width:100%;height:100%;transform:translate(-50%,-50%);border-radius:50%;
   border:1.7px solid var(--lime);box-shadow:0 0 10px rgba(200,255,77,.32)}
@@ -78,94 +115,272 @@ nav.scrolled{background:rgba(11,14,26,.85);border-bottom-color:var(--line)}
 .brand{font-weight:700;font-size:19px;letter-spacing:-.02em}
 .brand i{color:var(--lime);font-style:normal}
 .sp{flex:1}
-.nlink{color:var(--mut);font-size:13.5px;font-weight:500;letter-spacing:.02em;transition:.2s}
+.nmenu{display:flex;align-items:center;gap:26px}
+.nlink{color:var(--mut);font-size:14px;font-weight:500;letter-spacing:.01em;transition:color .2s;position:relative;padding:4px 0}
+.nlink::after{content:'';position:absolute;left:0;bottom:0;height:1.5px;width:0;background:var(--lime);transition:width .25s var(--ease)}
 .nlink:hover{color:var(--ink)}
+.nlink:hover::after{width:100%}
+.burger{display:none;flex:none;width:42px;height:38px;border:1px solid var(--line);border-radius:10px;background:transparent;cursor:pointer;
+  align-items:center;justify-content:center;flex-direction:column;gap:4px}
+.burger span{display:block;width:16px;height:1.6px;background:var(--ink);transition:.25s var(--ease)}
+nav.open .burger span:nth-child(1){transform:translateY(5.6px) rotate(45deg)}
+nav.open .burger span:nth-child(2){opacity:0}
+nav.open .burger span:nth-child(3){transform:translateY(-5.6px) rotate(-45deg)}
+#panel{display:none;position:fixed;top:70px;left:0;right:0;z-index:49;background:rgba(11,14,26,.97);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line);padding:8px 6vw 22px}
+#panel.show{display:block}
+#panel a{display:block;padding:14px 0;border-bottom:1px solid var(--line2);color:var(--mut);font-size:16px;font-weight:500}
+#panel a.pcta{border-bottom:none;margin-top:16px;text-align:center;background:var(--lime);color:#0a1000;
+  border-radius:11px;padding:14px 18px;font-weight:600;font-family:var(--display)}
 
-/* buttons */
-.btn{display:inline-flex;align-items:center;gap:9px;font-family:var(--font);font-weight:600;cursor:pointer;border:none;transition:.25s var(--ease)}
-.btn svg{width:17px;height:17px;transition:transform .25s var(--ease)}
-.btn-lime{background:var(--lime);color:#0a1000;padding:15px 28px;border-radius:12px;font-size:15px;box-shadow:0 10px 34px -12px rgba(200,255,77,.55)}
+/* ---------- botones ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;font-weight:600;cursor:pointer;border:none;
+  transition:.25s var(--ease);white-space:nowrap}
+.btn svg{width:17px;height:17px;flex:none;transition:transform .25s var(--ease)}
+.btn-lime{background:var(--lime);color:#0a1000;padding:15px 26px;border-radius:12px;font-size:15px;box-shadow:0 10px 34px -12px rgba(200,255,77,.55)}
 .btn-lime:hover{transform:translateY(-2px);box-shadow:0 16px 40px -12px rgba(200,255,77,.65)}
 .btn-lime:hover svg{transform:translateX(4px)}
+.btn-ghost{background:transparent;color:var(--ink);padding:14px 24px;border-radius:12px;font-size:15px;border:1px solid var(--line)}
+.btn-ghost:hover{border-color:rgba(200,255,77,.5);background:rgba(200,255,77,.05)}
+.btn-ghost:hover svg{transform:translateX(4px)}
+.btn-cyan{background:transparent;color:var(--cyan);padding:13px 22px;border-radius:11px;font-size:14.5px;border:1px solid color-mix(in srgb,var(--cyan) 40%,transparent)}
+.btn-cyan:hover{background:color-mix(in srgb,var(--cyan) 12%,transparent);border-color:var(--cyan)}
+.btn-cyan:hover svg{transform:translateX(4px)}
+.btn-nav{background:var(--lime);color:#0a1000;padding:10px 18px;border-radius:10px;font-size:13.5px}
+.btn-nav:hover{transform:translateY(-1px)}
+.btn-big{padding:19px 36px;font-size:17px;border-radius:14px}
 
-.wrap{max-width:1080px;margin:0 auto;padding:0 7vw}
-.eyebrow{font-size:12px;font-weight:600;letter-spacing:.24em;text-transform:uppercase;color:var(--dim)}
+/* ---------- layout ---------- */
+.wrap{max-width:1140px;margin:0 auto;padding:0 6vw}
+section{position:relative}
+.eyebrow{display:inline-flex;align-items:center;gap:10px;font-size:11.5px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--dim)}
+.eyebrow::before{content:'';width:22px;height:1px;background:color-mix(in srgb,var(--lime) 55%,transparent)}
+h2{font-size:clamp(27px,3.9vw,44px);line-height:1.12;font-weight:700;letter-spacing:-.025em}
+.lead{font-size:clamp(15px,1.6vw,17px);color:var(--mut);max-width:56ch;margin-top:18px}
+.shead{margin-bottom:clamp(38px,6vw,60px);max-width:760px}
+.shead h2{margin-top:16px}
 
-/* hero */
-.hero{position:relative;text-align:center;padding:clamp(64px,12vh,120px) 0 clamp(80px,14vh,140px)}
-.emblem{position:relative;width:clamp(148px,23vw,208px);aspect-ratio:1;margin:0 auto clamp(34px,6vh,52px)}
-.emblem .halo{position:absolute;inset:-42%;border-radius:50%;
-  background:radial-gradient(circle,rgba(200,255,77,.20),transparent 62%);animation:breathe 6s ease-in-out infinite}
+/* ---------- hero ---------- */
+.hero{padding:clamp(44px,7vh,80px) 0 var(--sec)}
+.hero-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:clamp(30px,5vw,64px);align-items:center}
+.hero h1{font-size:clamp(34px,5.4vw,62px);line-height:1.05;font-weight:700;letter-spacing:-.035em;margin:20px 0 24px}
+.hero h1 .hl{color:var(--lime)}
+.hero .sub{font-size:clamp(15.5px,1.7vw,18px);color:var(--mut);max-width:50ch}
+.hero .cta{display:flex;gap:14px;flex-wrap:wrap;margin-top:36px}
+.facts{display:flex;flex-wrap:wrap;gap:10px 22px;margin-top:38px;padding-top:26px;border-top:1px solid var(--line2)}
+.facts li{list-style:none;font-size:13px;color:var(--dim);display:flex;align-items:center;gap:8px}
+.facts li::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--lime);opacity:.75;flex:none}
+
+.emblem{position:relative;width:min(100%,330px);aspect-ratio:1;margin:0 auto;justify-self:center}
+.emblem .halo{position:absolute;inset:-30%;border-radius:50%;
+  background:radial-gradient(circle,rgba(200,255,77,.18),transparent 62%);animation:breathe 6s ease-in-out infinite}
 .emblem .r{position:absolute;border-radius:50%;left:50%;top:50%;transform:translate(-50%,-50%)}
-.emblem .r1{width:100%;height:100%;border:1px solid rgba(200,255,77,.14)}
-.emblem .r2{width:72%;height:72%;border:2px solid rgba(200,255,77,.6);
-  box-shadow:inset 0 0 26px rgba(200,255,77,.10),0 0 34px rgba(200,255,77,.14)}
+.emblem .r1{width:100%;height:100%;border:1px solid rgba(200,255,77,.13)}
+.emblem .r2{width:70%;height:70%;border:2px solid rgba(200,255,77,.55);
+  box-shadow:inset 0 0 26px rgba(200,255,77,.10),0 0 34px rgba(200,255,77,.13)}
+.emblem .r3{width:46%;height:46%;border:1px solid rgba(61,215,208,.3)}
 .emblem .core{position:absolute;left:50%;top:50%;width:11px;height:11px;transform:translate(-50%,-50%);border-radius:50%;
   background:var(--lime);box-shadow:0 0 22px rgba(200,255,77,.75)}
-.emblem .spin{position:absolute;left:50%;top:50%;width:72%;height:72%;transform:translate(-50%,-50%);animation:spin 7s linear infinite}
+.emblem .spin{position:absolute;left:50%;top:50%;width:70%;height:70%;transform:translate(-50%,-50%);animation:spin 7s linear infinite}
 .emblem .spin::after{content:'';position:absolute;top:-8px;left:50%;transform:translateX(-50%);width:15px;height:15px;border-radius:50%;
   background:var(--lime);box-shadow:0 0 18px var(--lime),0 0 5px #fff}
 .emblem .spin2{position:absolute;left:50%;top:50%;width:100%;height:100%;transform:translate(-50%,-50%);animation:spin 13s linear infinite reverse}
 .emblem .spin2::after{content:'';position:absolute;top:-4px;left:50%;transform:translateX(-50%);width:7px;height:7px;border-radius:50%;
   background:rgba(200,255,77,.7);box-shadow:0 0 10px rgba(200,255,77,.6)}
+.emblem .spin3{position:absolute;left:50%;top:50%;width:46%;height:46%;transform:translate(-50%,-50%);animation:spin 9s linear infinite}
+.emblem .spin3::after{content:'';position:absolute;top:-3px;left:50%;transform:translateX(-50%);width:6px;height:6px;border-radius:50%;
+  background:var(--cyan);box-shadow:0 0 10px var(--cyan)}
 @keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg)}}
-@keyframes breathe{0%,100%{opacity:.8;transform:scale(1)}50%{opacity:1;transform:scale(1.06)}}
+@keyframes breathe{0%,100%{opacity:.8;transform:scale(1)}50%{opacity:1;transform:scale(1.05)}}
 
-.hero h1{font-size:clamp(36px,6.4vw,72px);line-height:1.03;font-weight:700;letter-spacing:-.03em;margin:0 auto 26px;max-width:14ch}
-.hero h1 .hl{color:var(--lime)}
-.hero .sub{font-size:clamp(16px,1.8vw,19px);color:var(--mut);max-width:520px;margin:0 auto 40px}
-.hero .cta{display:flex;justify-content:center}
+/* ---------- qué hacemos ---------- */
+.hacemos{padding:var(--sec) 0}
+.cap-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line2);border:1px solid var(--line2);border-radius:20px;overflow:hidden}
+.cap{background:linear-gradient(160deg,var(--panel),var(--panel2));padding:clamp(26px,3.4vw,40px);position:relative;transition:background .3s var(--ease)}
+.cap:hover{background:linear-gradient(160deg,#151c30,#101627)}
+.cap .num{position:absolute;top:clamp(24px,3vw,34px);right:clamp(24px,3vw,34px);font-size:13px;font-weight:600;color:var(--dim);letter-spacing:.08em}
+.ico{width:38px;height:38px;display:grid;place-items:center;border-radius:11px;border:1px solid color-mix(in srgb,var(--lime) 26%,transparent);
+  background:rgba(200,255,77,.07);margin-bottom:20px}
+.ico svg{width:20px;height:20px;stroke:var(--lime);fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.cap h3{font-size:20px;font-weight:600;letter-spacing:-.015em;margin-bottom:10px}
+.cap p{font-size:14.8px;color:var(--mut);max-width:40ch}
+.tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:18px}
+.tags span{font-size:12px;color:var(--dim);border:1px solid var(--line);border-radius:20px;padding:4px 11px;line-height:1.4}
 
-/* product showcase (single, centered) */
-.prod-sec{padding:0 0 clamp(80px,14vh,130px)}
-.prod-head{text-align:center;margin-bottom:34px}
-.badge{display:inline-flex;align-items:center;gap:9px;font-size:11.5px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;
-  color:var(--cyan);border:1px solid color-mix(in srgb,var(--cyan) 32%,transparent);padding:7px 15px;border-radius:30px}
-.badge .d{width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 9px var(--cyan)}
-.showcase{--a:var(--cyan);max-width:660px;margin:0 auto;position:relative;display:flex;align-items:center;gap:28px;
-  padding:36px 40px;overflow:hidden;background:linear-gradient(150deg,var(--panel),var(--panel2));
-  border:1px solid var(--line);border-radius:22px;transition:.32s var(--ease)}
-.showcase:hover{transform:translateY(-5px);border-color:color-mix(in srgb,var(--a) 45%,transparent)}
-.prod-list{max-width:660px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
-.showcase::after{content:'';position:absolute;top:-90px;right:-70px;width:280px;height:280px;pointer-events:none;
-  background:radial-gradient(circle,color-mix(in srgb,var(--a) 18%,transparent),transparent 62%);opacity:.75;transition:opacity .32s var(--ease)}
-.showcase:hover::after{opacity:1}
-/* orbit mark (accent) */
-.omark{position:relative;flex:none;width:58px;height:58px}
+/* ---------- problemas ---------- */
+.problemas{padding:var(--sec) 0}
+.prob-box{border:1px solid var(--line);border-radius:22px;padding:clamp(28px,4.4vw,56px);
+  background:linear-gradient(155deg,rgba(18,24,41,.85),rgba(14,19,34,.6))}
+.prob-list{display:grid;grid-template-columns:1fr 1fr;gap:0 clamp(24px,4vw,54px);margin-top:6px}
+.prob-list li{list-style:none;display:flex;align-items:flex-start;gap:13px;padding:15px 0;border-bottom:1px solid var(--line2);
+  font-size:15.2px;color:#cdd3e0;transition:color .2s}
+.prob-list li:hover{color:var(--ink)}
+.prob-list li svg{width:17px;height:17px;flex:none;margin-top:4px;stroke:var(--lime);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;opacity:.7}
+.prob-cta{margin-top:clamp(30px,4vw,42px);display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.prob-cta p{font-size:14.5px;color:var(--dim);max-width:34ch}
+
+/* ---------- rubros ---------- */
+.rubros{padding:var(--sec) 0}
+.rub-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.rub{border:1px solid var(--line);border-radius:18px;padding:26px 24px 24px;background:rgba(18,24,41,.5);transition:.3s var(--ease)}
+.rub:hover{transform:translateY(-4px);border-color:rgba(200,255,77,.28);background:rgba(18,24,41,.8)}
+.rub .rico{width:22px;height:22px;stroke:var(--lime);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;opacity:.9;margin-bottom:16px}
+.rub h3{font-size:17.5px;font-weight:600;margin-bottom:8px;letter-spacing:-.01em}
+.rub p{font-size:14px;color:var(--mut)}
+.rub-cta{border:1px dashed rgba(200,255,77,.32);background:rgba(200,255,77,.045);display:flex;flex-direction:column;justify-content:center}
+.rub-cta:hover{transform:none;border-color:rgba(200,255,77,.6);background:rgba(200,255,77,.08)}
+.rub-cta h3{color:var(--lime)}
+.rub-cta .go{font-size:14px;font-weight:600;color:var(--lime);display:inline-flex;align-items:center;gap:8px;margin-top:14px;font-family:var(--display)}
+.rub-cta .go svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .25s var(--ease)}
+.rub-cta:hover .go svg{transform:translateX(4px)}
+
+/* ---------- productos ---------- */
+.productos{padding:var(--sec) 0}
+.badge{display:inline-flex;align-items:center;gap:9px;font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--cyan);border:1px solid color-mix(in srgb,var(--cyan) 32%,transparent);padding:6px 13px;border-radius:30px;font-family:var(--display)}
+.badge .d{width:6px;height:6px;border-radius:50%;background:var(--cyan);box-shadow:0 0 9px var(--cyan)}
+.badge.soon{color:var(--dim);border-color:var(--line)}
+.badge.soon .d{background:var(--dim);box-shadow:none}
+.prod-grid{display:grid;grid-template-columns:1.55fr 1fr;gap:16px;align-items:stretch}
+.prod{--a:var(--cyan);position:relative;overflow:hidden;border:1px solid var(--line);border-radius:22px;
+  background:linear-gradient(150deg,var(--panel),var(--panel2));padding:clamp(26px,3.6vw,42px);transition:.32s var(--ease)}
+.prod::after{content:'';position:absolute;top:-110px;right:-90px;width:300px;height:300px;pointer-events:none;
+  background:radial-gradient(circle,color-mix(in srgb,var(--a) 17%,transparent),transparent 62%);transition:opacity .32s var(--ease);opacity:.8}
+.prod:hover{border-color:color-mix(in srgb,var(--a) 42%,transparent)}
+.prod:hover::after{opacity:1}
+.prod > *{position:relative;z-index:1}
+.prod-top{display:flex;align-items:center;gap:16px;margin:20px 0 12px}
+.omark{position:relative;flex:none;width:50px;height:50px}
 .omark .r{position:absolute;left:50%;top:50%;width:100%;height:100%;transform:translate(-50%,-50%);border-radius:50%;
-  border:1.7px solid color-mix(in srgb,var(--a) 60%,transparent);box-shadow:0 0 20px color-mix(in srgb,var(--a) 28%,transparent)}
-.omark .c{position:absolute;left:50%;top:50%;width:8px;height:8px;transform:translate(-50%,-50%);border-radius:50%;background:var(--a);box-shadow:0 0 12px var(--a)}
+  border:1.7px solid color-mix(in srgb,var(--a) 60%,transparent);box-shadow:0 0 20px color-mix(in srgb,var(--a) 26%,transparent)}
+.omark .c{position:absolute;left:50%;top:50%;width:7px;height:7px;transform:translate(-50%,-50%);border-radius:50%;background:var(--a);box-shadow:0 0 12px var(--a)}
 .omark .s{position:absolute;left:50%;top:50%;width:100%;height:100%;transform:translate(-50%,-50%);animation:spin 6s linear infinite}
-.omark .s::after{content:'';position:absolute;top:-4px;left:50%;transform:translateX(-50%);width:9px;height:9px;border-radius:50%;background:var(--a);box-shadow:0 0 11px var(--a)}
-.sc-body{flex:1;min-width:0}
-.sc-body h3{font-size:25px;font-weight:700;letter-spacing:-.01em;margin-bottom:6px}
-.sc-body h3 span{color:var(--a)}
-.sc-body p{font-size:15px;color:var(--mut)}
-.sc-cta{flex:none;display:inline-flex;align-items:center;gap:9px;font-size:15px;font-weight:600;color:var(--a)}
-.sc-cta svg{width:18px;height:18px;transition:transform .25s var(--ease)}
-.showcase:hover .sc-cta svg{transform:translateX(5px)}
-.more{text-align:center;margin-top:28px;font-size:13.5px;color:var(--dim);letter-spacing:.02em}
-.more span{position:relative;padding-left:20px}
-.more span::before{content:'';position:absolute;left:0;top:50%;width:11px;height:11px;transform:translateY(-50%);border-radius:50%;
-  border:1.4px solid color-mix(in srgb,var(--lime) 45%,transparent)}
-.more span::after{content:'';position:absolute;left:4px;top:50%;width:3px;height:3px;transform:translateY(-50%);border-radius:50%;background:var(--lime)}
+.omark .s::after{content:'';position:absolute;top:-4px;left:50%;transform:translateX(-50%);width:8px;height:8px;border-radius:50%;background:var(--a);box-shadow:0 0 11px var(--a)}
+/* Regla de marca: el isotipo (la O con el punto en orbita) queda SIEMPRE lima,
+   incluso en la pieza de un producto. El cian de Tributa se usa en el nombre,
+   la pildora, los tildes y el boton — nunca en el logo. */
+.prod .omark{--a:var(--lime)}
+.prod h3{font-size:clamp(23px,2.6vw,29px);font-weight:700;letter-spacing:-.02em}
+.prod h3 span{color:var(--a)}
+.prod .desc{font-size:15px;color:var(--mut);max-width:46ch}
+.feat{display:grid;grid-template-columns:1fr 1fr;gap:2px 26px;margin:24px 0 28px}
+.feat li{list-style:none;font-size:14px;color:#c3cad9;display:flex;align-items:flex-start;gap:10px;padding:7px 0}
+.feat li svg{width:15px;height:15px;flex:none;margin-top:4px;stroke:var(--a);fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.prod.soon{--a:var(--dim);display:flex;flex-direction:column;justify-content:space-between;background:rgba(18,24,41,.42)}
+.prod.soon h3{color:var(--mut);font-size:22px;margin-top:20px}
+.prod.soon p{font-size:14.2px;color:var(--dim);margin-top:12px}
+.prod.soon .rings{position:relative;height:96px;margin-top:26px;opacity:.55}
+.prod.soon .rings i{position:absolute;top:50%;transform:translateY(-50%);border-radius:50%;border:1px solid var(--line);display:block}
+.prod.soon .rings i:nth-child(1){width:56px;height:56px;left:0}
+.prod.soon .rings i:nth-child(2){width:82px;height:82px;left:34px;border-style:dashed}
+.prod.soon .rings i:nth-child(3){width:38px;height:38px;left:96px}
 
-/* footer */
-.foot{border-top:1px solid var(--line);padding:30px 7vw;display:flex;align-items:center;gap:14px;flex-wrap:wrap;color:var(--dim);font-size:13px}
+/* ---------- proceso ---------- */
+.proceso{padding:var(--sec) 0}
+.pasos{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.6vw,30px);position:relative}
+.pasos::before{content:'';position:absolute;top:17px;left:6%;right:6%;height:1px;
+  background:linear-gradient(90deg,transparent,var(--line),var(--line),transparent)}
+.paso{position:relative}
+.paso .dot{position:relative;z-index:1;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;
+  background:var(--bg);border:1px solid color-mix(in srgb,var(--lime) 35%,transparent);
+  font-family:var(--display);font-size:13.5px;font-weight:600;color:var(--lime);margin-bottom:20px}
+.paso h3{font-size:17px;font-weight:600;margin-bottom:8px;letter-spacing:-.01em}
+.paso p{font-size:14.2px;color:var(--mut)}
+
+/* ---------- cta final ---------- */
+.final{padding:0 0 var(--sec)}
+.cta-box{position:relative;overflow:hidden;text-align:center;border:1px solid rgba(200,255,77,.22);border-radius:26px;
+  padding:clamp(44px,7vw,84px) clamp(24px,5vw,64px);
+  background:radial-gradient(120% 130% at 50% 0%,rgba(200,255,77,.11),transparent 62%),linear-gradient(160deg,var(--panel),var(--panel2))}
+.cta-box .rings{position:absolute;left:50%;top:0;width:520px;height:520px;transform:translate(-50%,-58%);pointer-events:none;opacity:.35}
+.cta-box .rings i{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);border-radius:50%;border:1px solid rgba(200,255,77,.18)}
+.cta-box .rings i:nth-child(1){width:100%;height:100%}
+.cta-box .rings i:nth-child(2){width:70%;height:70%}
+.cta-box .rings i:nth-child(3){width:42%;height:42%}
+.cta-box h2{max-width:19ch;margin:0 auto;position:relative}
+.cta-box p{font-size:clamp(15px,1.7vw,17px);color:var(--mut);max-width:52ch;margin:20px auto 36px;position:relative}
+.cta-box .btns{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;position:relative}
+.contacto-line{margin-top:30px;font-size:13.5px;color:var(--dim);position:relative}
+.contacto-line a{color:var(--mut);border-bottom:1px solid var(--line)}
+.contacto-line a:hover{color:var(--lime);border-color:var(--lime)}
+
+/* ---------- formulario de correo ----------
+   El correo de Orbe NO va escrito en la pagina. El visitante deja el suyo aca y
+   el mensaje se manda por detras al buzon real, que vive en el script de envio.
+   Asi nadie puede leer la direccion mirando el codigo fuente. */
+.modal{position:fixed;inset:0;z-index:80;display:none;align-items:center;justify-content:center;padding:20px;
+  background:rgba(6,8,16,.74);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.modal.abierto{display:flex}
+.modal-caja{width:100%;max-width:470px;max-height:90vh;overflow-y:auto;text-align:left;
+  border:1px solid var(--line);border-radius:20px;padding:clamp(24px,4vw,34px);
+  background:linear-gradient(160deg,var(--panel),var(--panel2));box-shadow:0 30px 80px -30px rgba(0,0,0,.9)}
+.modal-top{display:flex;align-items:flex-start;gap:14px;margin-bottom:22px}
+.modal-top h2{font-size:22px;line-height:1.2;flex:1;margin:0}
+.modal-top p{font-size:13.5px;color:var(--mut);margin-top:7px}
+.cerrar{flex:none;width:34px;height:34px;border-radius:9px;border:1px solid var(--line);background:transparent;
+  color:var(--mut);cursor:pointer;display:grid;place-items:center;transition:.2s var(--ease);font-family:var(--display)}
+.cerrar:hover{color:var(--ink);border-color:rgba(255,255,255,.28)}
+.cerrar svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round}
+.campo{display:flex;flex-direction:column;gap:7px;margin-bottom:15px}
+.campo label{font-size:12.5px;font-weight:600;color:var(--mut);letter-spacing:.02em;font-family:var(--display)}
+.campo label i{color:var(--dim);font-style:normal;font-weight:500}
+.campo input,.campo textarea{font-family:var(--text);font-size:14.5px;color:var(--ink);
+  background:rgba(8,11,20,.7);border:1px solid var(--line);border-radius:11px;padding:12px 14px;
+  transition:border-color .2s,background .2s;width:100%}
+.campo textarea{resize:vertical;min-height:104px;line-height:1.55}
+.campo input::placeholder,.campo textarea::placeholder{color:#4d5570}
+.campo input:focus,.campo textarea:focus{outline:none;border-color:rgba(200,255,77,.55);background:rgba(8,11,20,.95)}
+.trampa{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+.modal .btn-lime{width:100%;margin-top:8px;justify-content:center}
+.modal .btn-lime[disabled]{opacity:.6;cursor:default;transform:none;box-shadow:none}
+.aviso{margin-top:16px;font-size:13.5px;line-height:1.55;padding:13px 15px;border-radius:11px;display:none}
+.aviso.ver{display:block}
+.aviso.bien{color:#dff5b0;background:rgba(200,255,77,.09);border:1px solid rgba(200,255,77,.32)}
+.aviso.mal{color:#f6c9c9;background:rgba(255,108,108,.09);border:1px solid rgba(255,108,108,.34)}
+.aviso a{color:inherit;font-weight:600;border-bottom:1px solid currentColor}
+.modal-pie{margin-top:18px;padding-top:16px;border-top:1px solid var(--line2);font-size:13px;color:var(--dim)}
+.modal-pie a{color:var(--lime);font-weight:600}
+:focus-visible{outline:2px solid var(--lime);outline-offset:3px;border-radius:4px}
+
+/* ---------- footer ---------- */
+.foot{border-top:1px solid var(--line);padding:34px 6vw;display:flex;align-items:center;gap:16px;flex-wrap:wrap;color:var(--dim);font-size:13px}
 .foot .sp{flex:1}
 .foot a{color:var(--mut)}.foot a:hover{color:var(--ink)}
-.fbrand{display:flex;align-items:center;gap:10px;font-weight:600;color:var(--mut)}
+.fbrand{display:flex;align-items:center;gap:10px;font-weight:600;color:var(--mut);font-family:var(--display)}
 .fbrand .mark{width:22px;height:22px}
+.fnav{display:flex;gap:20px;flex-wrap:wrap}
 
-/* reveal */
-.js [data-reveal]{opacity:0;transform:translateY(26px);
-  transition:opacity .85s var(--ease) var(--rd,0ms),transform .85s var(--ease) var(--rd,0ms)}
+/* ---------- reveal ---------- */
+.js [data-reveal]{opacity:0;transform:translateY(24px);
+  transition:opacity .8s var(--ease) var(--rd,0ms),transform .8s var(--ease) var(--rd,0ms)}
 [data-reveal].in{opacity:1;transform:none}
 
-@media(max-width:640px){
-  .nlink{display:none}
-  .showcase{flex-direction:column;align-items:flex-start;gap:22px;padding:30px 28px}
-  .sc-cta{align-self:flex-start}
+/* ---------- responsive ---------- */
+@media(max-width:980px){
+  .hero-grid{grid-template-columns:1fr}
+  .emblem{width:min(70%,250px);margin:0 0 6px;justify-self:start}
+  .prod-grid{grid-template-columns:1fr}
+  .rub-grid{grid-template-columns:1fr 1fr}
+  .pasos{grid-template-columns:1fr 1fr;gap:32px 26px}
+  .pasos::before{display:none}
+}
+@media(max-width:860px){
+  .nmenu{display:none}
+  .burger{display:flex}
+  html{scroll-padding-top:70px}
+}
+@media(max-width:720px){
+  .cap-grid{grid-template-columns:1fr}
+  .prob-list{grid-template-columns:1fr}
+  .feat{grid-template-columns:1fr;gap:0}
+  .hero .cta .btn{flex:1 1 100%}
+}
+@media(max-width:560px){
+  .rub-grid{grid-template-columns:1fr}
+  .pasos{grid-template-columns:1fr;gap:26px}
+  .facts{gap:8px 16px}
+  .prob-cta .btn{flex:1 1 100%}
+  .cta-box .btns .btn{flex:1 1 100%}
 }
 @media(prefers-reduced-motion:reduce){
   *{animation:none!important;scroll-behavior:auto}
@@ -175,65 +390,314 @@ nav.scrolled{background:rgba(11,14,26,.85);border-bottom-color:var(--line)}
 <div id="prog"></div>
 
 <nav id="nav">
-  <span class="mark" aria-hidden="true"><span class="r"></span><span class="c"></span><span class="s"></span></span>
-  <span class="brand">Orbe<i>Py</i></span>
+  <a href="#inicio" style="display:flex;align-items:center;gap:11px" aria-label="Orbe — inicio">
+    <span class="mark" aria-hidden="true"><span class="r"></span><span class="c"></span><span class="s"></span></span>
+    <span class="brand">Orbe<i>Py</i></span>
+  </a>
   <span class="sp"></span>
-  <a class="nlink" href="#productos">Productos</a>
+  <div class="nmenu">
+    <a class="nlink" href="#inicio">Inicio</a>
+    <a class="nlink" href="#soluciones">Soluciones</a>
+    <a class="nlink" href="#productos">Productos</a>
+    <a class="nlink" href="#proceso">Cómo trabajamos</a>
+    <a class="nlink" href="#contacto">Contacto</a>
+    <a class="btn btn-nav" href="https://wa.me/595982702613?text=Hola%20Orbe%2C%20tengo%20una%20idea%20y%20quiero%20cont%C3%A1rsela." target="_blank" rel="noopener">Contanos tu idea</a>
+  </div>
+  <button class="burger" id="burger" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="panel">
+    <span></span><span></span><span></span>
+  </button>
 </nav>
 
-<section class="hero"><div class="wrap">
-  <div class="emblem" data-reveal>
-    <div class="halo"></div>
-    <div class="r r1"></div>
-    <div class="r r2"></div>
-    <div class="core"></div>
-    <div class="spin"></div>
-    <div class="spin2"></div>
-  </div>
-  <h1 data-reveal>Todo tu trabajo, en una sola <span class="hl">órbita</span>.</h1>
-  <p class="sub" data-reveal>OrbePy es la plataforma que reúne tus herramientas en un mismo lugar. Elegí por dónde empezar.</p>
-  <div class="cta" data-reveal>
-    <a class="btn btn-lime" href="#productos">Ver el producto <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></a>
+<div id="panel">
+  <a href="#inicio">Inicio</a>
+  <a href="#soluciones">Soluciones</a>
+  <a href="#productos">Productos</a>
+  <a href="#proceso">Cómo trabajamos</a>
+  <a href="#contacto">Contacto</a>
+  <a class="pcta" href="https://wa.me/595982702613?text=Hola%20Orbe%2C%20tengo%20una%20idea%20y%20quiero%20cont%C3%A1rsela." target="_blank" rel="noopener">Contanos tu idea</a>
+</div>
+
+<!-- ===================== HERO ===================== -->
+<section class="hero" id="inicio"><div class="wrap">
+  <div class="hero-grid">
+    <div>
+      <span class="eyebrow" data-reveal>Desarrollo de software a medida</span>
+      <h1 data-reveal>Software que trabaja como <span class="hl">trabaja tu negocio</span>.</h1>
+      <p class="sub" data-reveal>Desarrollamos sistemas, automatizaciones y herramientas digitales para empresas que quieren reducir tareas manuales, errores y procesos repetitivos.</p>
+      <div class="cta" data-reveal>
+        <a class="btn btn-lime" href="https://wa.me/595982702613?text=Hola%20Orbe%2C%20quiero%20contarles%20qu%C3%A9%20necesito%20para%20mi%20negocio." target="_blank" rel="noopener">Contanos qué necesitás
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></a>
+        <a class="btn btn-ghost" href="#productos">Conocé nuestros productos</a>
+      </div>
+      <ul class="facts" data-reveal>
+        <li>Sistemas a medida</li>
+        <li>Automatización de procesos</li>
+        <li>Productos propios en producción</li>
+      </ul>
+    </div>
+    <div class="emblem" data-reveal aria-hidden="true">
+      <div class="halo"></div>
+      <div class="r r1"></div>
+      <div class="r r2"></div>
+      <div class="r r3"></div>
+      <div class="core"></div>
+      <div class="spin"></div>
+      <div class="spin2"></div>
+      <div class="spin3"></div>
+    </div>
   </div>
 </div></section>
 
-<section class="prod-sec" id="productos"><div class="wrap">
-  <div class="prod-head" data-reveal><span class="badge"><span class="d"></span>Disponible ahora</span></div>
-  <div class="prod-list">
-    <a class="showcase" href="app.html" data-reveal>
-      <span class="omark" aria-hidden="true"><span class="r"></span><span class="c"></span><span class="s"></span></span>
-      <span class="sc-body">
-        <h3>orbe <span>tributa</span></h3>
-        <p>Tu gestión tributaria, ordenada y al día.</p>
-      </span>
-      <span class="sc-cta">Entrar <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
-    </a>
-    <!-- ORBE ENTRENA — FUERA DE LA PORTADA POR AHORA (27/08/2026, pedido de José).
-         Esta sección dice "Disponible ahora" y el producto todavía está en
-         construcción, así que la tarjeta no va. El repo orbe-entrena queda como
-         está y la página sigue viva en orbepy.com/orbe-entrena/ para quien tenga
-         el link: lo único que se saca es el cartel de la portada.
-         PARA VOLVER A MOSTRARLA: borrar esta línea y la del cierre del comentario.
-    <a class="showcase" href="orbe-entrena/" style="--a:var(--lime)" data-reveal>
-      <span class="omark" aria-hidden="true"><span class="r"></span><span class="c"></span><span class="s"></span></span>
-      <span class="sc-body">
-        <h3>orbe <span>entrena</span></h3>
-        <p>Tu academia deportiva en orden: calendario, alumnos y asistencia.</p>
-      </span>
-      <span class="sc-cta">Entrar <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
-    </a>
-    -->
+<!-- ===================== QUÉ HACEMOS ===================== -->
+<section class="hacemos" id="soluciones"><div class="wrap">
+  <div class="shead">
+    <span class="eyebrow" data-reveal>Qué hacemos</span>
+    <h2 data-reveal>Tecnología creada para resolver problemas reales</h2>
   </div>
-  <p class="more" data-reveal><span>Más herramientas en órbita, pronto.</span></p>
+  <div class="cap-grid">
+    <article class="cap" data-reveal>
+      <span class="num">01</span>
+      <div class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 4v16"/></svg></div>
+      <h3>Sistemas a medida</h3>
+      <p>Desarrollamos herramientas adaptadas a la forma en que trabaja cada empresa.</p>
+      <div class="tags"><span>Clientes</span><span>Ventas</span><span>Reservas</span><span>Stock</span><span>Caja</span><span>Empleados</span><span>Pagos</span><span>Reportes</span></div>
+    </article>
+    <article class="cap" data-reveal>
+      <span class="num">02</span>
+      <div class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h9a4 4 0 0 1 4 4v6"/><path d="m14 14 3 3 3-3"/><circle cx="4" cy="7" r="2"/></svg></div>
+      <h3>Automatización</h3>
+      <p>Transformamos tareas repetitivas y procesos manuales en flujos automáticos.</p>
+      <div class="tags"><span>Avisos</span><span>Cobros</span><span>Planillas</span><span>WhatsApp</span><span>Cierres diarios</span></div>
+    </article>
+    <article class="cap" data-reveal>
+      <span class="num">03</span>
+      <div class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M10 2v3M14 2v3M10 19v3M14 19v3M2 10h3M2 14h3M19 10h3M19 14h3"/></svg></div>
+      <h3>Inteligencia artificial</h3>
+      <p>Integramos IA cuando realmente puede ahorrar tiempo, analizar información o automatizar tareas.</p>
+      <div class="tags"><span>Clasificación</span><span>Lectura de documentos</span><span>Respuestas automáticas</span></div>
+    </article>
+    <article class="cap" data-reveal>
+      <span class="num">04</span>
+      <div class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h7l4 4v12H7z"/><path d="M14 4v4h4"/><path d="M4 8v12h9"/></svg></div>
+      <h3>Digitalización</h3>
+      <p>Convertimos procesos que hoy funcionan con Excel, papeles, cuadernos o WhatsApp en sistemas organizados.</p>
+      <div class="tags"><span>Excel</span><span>Papel</span><span>Cuadernos</span><span>Chats</span></div>
+    </article>
+  </div>
+</div></section>
+
+<!-- ===================== PROBLEMAS ===================== -->
+<section class="problemas" id="problemas"><div class="wrap">
+  <div class="prob-box" data-reveal>
+    <span class="eyebrow">Problemas que resolvemos</span>
+    <h2 style="margin-top:16px;max-width:20ch">Si hoy lo hacés manualmente, probablemente podamos mejorarlo.</h2>
+    <ul class="prob-list">
+      <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3.2-6.9"/><path d="M21 4v5h-5"/></svg>Reservas manejadas por WhatsApp.</li>
+      <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3.2-6.9"/><path d="M21 4v5h-5"/></svg>Control de clientes en Excel.</li>
+      <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3.2-6.9"/><path d="M21 4v5h-5"/></svg>Stock actualizado a mano.</li>
+      <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3.2-6.9"/><path d="M21 4v5h-5"/></svg>Reportes que se arman cada fin de mes.</li>
+      <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3.2-6.9"/><path d="M21 4v5h-5"/></svg>Información repartida en distintos archivos.</li>
+      <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3.2-6.9"/><path d="M21 4v5h-5"/></svg>Cobros sin seguimiento.</li>
+      <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3.2-6.9"/><path d="M21 4v5h-5"/></svg>Procesos administrativos repetitivos.</li>
+      <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3.2-6.9"/><path d="M21 4v5h-5"/></svg>Datos que hay que copiar de un sistema a otro.</li>
+    </ul>
+    <div class="prob-cta">
+      <a class="btn btn-lime" href="https://wa.me/595982702613?text=Hola%20Orbe%2C%20quiero%20contarles%20c%C3%B3mo%20trabajamos%20hoy%20y%20ver%20qu%C3%A9%20se%20puede%20automatizar." target="_blank" rel="noopener">Contanos cómo trabajás
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></a>
+      <p>Con ver cómo lo hacés hoy alcanza para saber si se puede automatizar.</p>
+    </div>
+  </div>
+</div></section>
+
+<!-- ===================== RUBROS ===================== -->
+<section class="rubros" id="rubros"><div class="wrap">
+  <div class="shead">
+    <span class="eyebrow" data-reveal>Ejemplos por rubro</span>
+    <h2 data-reveal>Lo que se puede construir para cada negocio</h2>
+    <p class="lead" data-reveal>Estos sistemas no son productos en venta: son ejemplos de lo que desarrollamos a medida, según cómo trabaja cada empresa.</p>
+  </div>
+  <div class="rub-grid">
+    <article class="rub" data-reveal>
+      <svg class="rico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21h18M5 21V7l7-4 7 4v14"/><path d="M9 21v-5h6v5"/><path d="M9 10h.01M15 10h.01"/></svg>
+      <h3>Hoteles</h3>
+      <p>Reservas, habitaciones, huéspedes, consumos, caja y reportes.</p>
+    </article>
+    <article class="rub" data-reveal>
+      <svg class="rico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 13h18l-2-5H5l-2 5v5h18v-5"/><circle cx="7.5" cy="18" r="1.6"/><circle cx="16.5" cy="18" r="1.6"/></svg>
+      <h3>Talleres</h3>
+      <p>Clientes, vehículos, órdenes de trabajo, presupuestos, repuestos y estados de reparación.</p>
+    </article>
+    <article class="rub" data-reveal>
+      <svg class="rico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="7" r="2.5"/><circle cx="6" cy="17" r="2.5"/><path d="M8 8.5 20 17M8 15.5 20 7"/></svg>
+      <h3>Barberías y peluquerías</h3>
+      <p>Turnos, profesionales, servicios, clientes y caja.</p>
+    </article>
+    <article class="rub" data-reveal>
+      <svg class="rico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8 12 4l9 4-9 4Z"/><path d="M7 11v5c0 1.5 2.2 3 5 3s5-1.5 5-3v-5"/></svg>
+      <h3>Academias deportivas</h3>
+      <p>Alumnos, profesores, horarios, asistencia, pagos y reportes.</p>
+    </article>
+    <article class="rub" data-reveal>
+      <svg class="rico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16l-1 13H5Z"/><path d="M9 7V5a3 3 0 0 1 6 0v2"/></svg>
+      <h3>Comercios</h3>
+      <p>Ventas, stock, clientes, proveedores y análisis.</p>
+    </article>
+    <a class="rub rub-cta" href="https://wa.me/595982702613?text=Hola%20Orbe%2C%20mi%20negocio%20funciona%20distinto.%20Quiero%20contarles%20el%20proceso." target="_blank" rel="noopener" data-reveal>
+      <h3>¿Tu negocio funciona de otra manera?</h3>
+      <p>Podemos desarrollar una solución adaptada a tu proceso.</p>
+      <span class="go">Contanos cómo trabajás
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></span>
+    </a>
+  </div>
+</div></section>
+
+<!-- ===================== PRODUCTOS ===================== -->
+<section class="productos" id="productos"><div class="wrap">
+  <div class="shead">
+    <span class="eyebrow" data-reveal>Productos Orbe</span>
+    <h2 data-reveal>Además del desarrollo a medida, construimos productos propios</h2>
+    <p class="lead" data-reveal>Software que mantenemos y actualizamos nosotros, en uso todos los días.</p>
+  </div>
+  <div class="prod-grid">
+    <article class="prod" data-reveal>
+      <span class="badge"><span class="d"></span>Disponible ahora</span>
+      <div class="prod-top">
+        <span class="omark" aria-hidden="true"><span class="r"></span><span class="c"></span><span class="s"></span></span>
+        <h3>Orbe <span>Tributa</span></h3>
+      </div>
+      <p class="desc">Software fiscal para contadores y estudios contables.</p>
+      <ul class="feat">
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5L19 7"/></svg>Generación del REG de ventas y compras</li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5L19 7"/></svg>Formatos preparados para DNIT</li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5L19 7"/></svg>Validación previa de errores</li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5L19 7"/></svg>Importación desde SIFEN, Marangatú y CSV</li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5L19 7"/></svg>Libros IVA</li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5L19 7"/></svg>Gestión de múltiples contribuyentes</li>
+      </ul>
+      <a class="btn btn-cyan" href="app.html">Conocer Orbe Tributa
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></a>
+    </article>
+
+    <article class="prod soon" data-reveal>
+      <div>
+        <span class="badge soon"><span class="d"></span>En desarrollo</span>
+        <h3>Nuevos productos</h3>
+        <p>Estamos construyendo las próximas herramientas Orbe. Cuando estén listas para usarse, aparecen acá.</p>
+      </div>
+      <div class="rings" aria-hidden="true"><i></i><i></i><i></i></div>
+    </article>
+  </div>
+</div></section>
+
+<!-- ===================== CÓMO TRABAJAMOS ===================== -->
+<section class="proceso" id="proceso"><div class="wrap">
+  <div class="shead">
+    <span class="eyebrow" data-reveal>Cómo trabajamos</span>
+    <h2 data-reveal>Del problema a la herramienta, en cuatro pasos</h2>
+  </div>
+  <div class="pasos">
+    <article class="paso" data-reveal>
+      <div class="dot">1</div>
+      <h3>Nos contás el problema</h3>
+      <p>Queremos entender cómo funciona actualmente tu negocio.</p>
+    </article>
+    <article class="paso" data-reveal>
+      <div class="dot">2</div>
+      <h3>Analizamos el proceso</h3>
+      <p>Identificamos qué partes pueden simplificarse o automatizarse.</p>
+    </article>
+    <article class="paso" data-reveal>
+      <div class="dot">3</div>
+      <h3>Construimos la solución</h3>
+      <p>Desarrollamos una herramienta adaptada a la operación.</p>
+    </article>
+    <article class="paso" data-reveal>
+      <div class="dot">4</div>
+      <h3>Mejoramos con el uso</h3>
+      <p>La solución puede evolucionar según las necesidades reales del negocio.</p>
+    </article>
+  </div>
+</div></section>
+
+<!-- ===================== CTA FINAL / CONTACTO ===================== -->
+<section class="final" id="contacto"><div class="wrap">
+  <div class="cta-box" data-reveal>
+    <div class="rings" aria-hidden="true"><i></i><i></i><i></i></div>
+    <h2>¿Tenés un proceso que te hace perder tiempo todos los días?</h2>
+    <p>Mostranos cómo trabajás y analizamos si podemos convertirlo en una herramienta más rápida, organizada y automática.</p>
+    <div class="btns">
+      <a class="btn btn-lime btn-big" href="https://wa.me/595982702613?text=Hola%20Orbe%2C%20tengo%20un%20proceso%20que%20me%20hace%20perder%20tiempo%20todos%20los%20d%C3%ADas." target="_blank" rel="noopener">Hablar con Orbe
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></a>
+      <button class="btn btn-ghost btn-big" type="button" data-abrir-form hidden>Escribinos por correo</button>
+    </div>
+    <p class="contacto-line">WhatsApp <a href="https://wa.me/595982702613" target="_blank" rel="noopener">+595 982 702 613</a></p>
+  </div>
 </div></section>
 
 <footer class="foot">
   <span class="fbrand"><span class="mark" aria-hidden="true"><span class="r"></span><span class="c"></span><span class="s"></span></span>OrbePy</span>
   <span class="sp"></span>
-  <a href="legal.html">Términos y privacidad</a>
+  <nav class="fnav" aria-label="Pie de página">
+    <a href="#soluciones">Soluciones</a>
+    <a href="#productos">Productos</a>
+    <a href="app.html">Orbe Tributa</a>
+    <a href="legal.html">Términos y privacidad</a>
+  </nav>
 </footer>
 
+<!-- ===================== FORMULARIO DE CORREO ===================== -->
+<div class="modal" id="modalForm" role="dialog" aria-modal="true" aria-labelledby="tituloForm" hidden>
+  <div class="modal-caja">
+    <div class="modal-top">
+      <div>
+        <h2 id="tituloForm">Escribinos</h2>
+        <p>Contanos qué necesitás y te respondemos por correo.</p>
+      </div>
+      <button class="cerrar" type="button" id="cerrarForm" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <form id="formContacto" novalidate>
+      <div class="campo">
+        <label for="fNombre">Nombre</label>
+        <input id="fNombre" name="nombre" type="text" autocomplete="name" maxlength="120" required placeholder="Cómo te llamás">
+      </div>
+      <div class="campo">
+        <label for="fCorreo">Tu correo</label>
+        <input id="fCorreo" name="correo" type="email" autocomplete="email" maxlength="160" required placeholder="Para poder responderte">
+      </div>
+      <div class="campo">
+        <label for="fNegocio">Tu negocio <i>— opcional</i></label>
+        <input id="fNegocio" name="negocio" type="text" maxlength="160" placeholder="Rubro o nombre de la empresa">
+      </div>
+      <div class="campo">
+        <label for="fMensaje">Qué necesitás</label>
+        <textarea id="fMensaje" name="mensaje" maxlength="4000" required placeholder="Contanos cómo trabajás hoy y qué te gustaría resolver."></textarea>
+      </div>
+      <!-- Campo trampa: los robots de spam lo completan, las personas no lo ven. -->
+      <div class="trampa" aria-hidden="true"><label for="fWeb">No completar</label><input id="fWeb" name="web" type="text" tabindex="-1" autocomplete="off"></div>
+      <button class="btn btn-lime" type="submit" id="btnEnviar">Enviar mensaje</button>
+      <div class="aviso" id="avisoForm" role="status" aria-live="polite"></div>
+    </form>
+    <p class="modal-pie">¿Preferís algo más rápido? Escribinos por <a href="https://wa.me/595982702613" target="_blank" rel="noopener">WhatsApp</a>.</p>
+  </div>
+</div>
+
 <script>
+/* ============================================================
+   ENVIO DEL FORMULARIO
+
+   Aca va la direccion del script de Google (Apps Script) que recibe el
+   formulario y reenvia el mensaje al buzon de Orbe. El correo de destino
+   vive DENTRO de ese script, no en esta pagina: por eso nadie lo puede
+   leer mirando el codigo fuente.
+
+   Mientras esta constante este vacia, el boton "Escribinos por correo"
+   queda oculto y la pagina ofrece solo WhatsApp — nunca se muestra un
+   formulario que no anda.
+   ============================================================ */
+var ENVIO_URL = '';
+
 (function(){
   var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   var prog = document.getElementById('prog'), nav = document.getElementById('nav');
@@ -245,16 +709,95 @@ nav.scrolled{background:rgba(11,14,26,.85);border-bottom-color:var(--line)}
   }
   addEventListener('scroll', onScroll, {passive:true}); onScroll();
 
+  /* menu movil */
+  var burger = document.getElementById('burger'), panel = document.getElementById('panel');
+  function cerrar(){ nav.classList.remove('open'); panel.classList.remove('show'); burger.setAttribute('aria-expanded','false'); }
+  burger.addEventListener('click', function(){
+    var abierto = nav.classList.toggle('open');
+    panel.classList.toggle('show', abierto);
+    burger.setAttribute('aria-expanded', abierto ? 'true' : 'false');
+  });
+  panel.addEventListener('click', function(e){ if (e.target.closest('a')) cerrar(); });
+  addEventListener('keydown', function(e){ if (e.key === 'Escape') cerrar(); });
+  addEventListener('resize', function(){ if (innerWidth > 860) cerrar(); });
+
+  /* formulario de correo */
+  var modal = document.getElementById('modalForm');
+  var form = document.getElementById('formContacto');
+  var aviso = document.getElementById('avisoForm');
+  var btnEnviar = document.getElementById('btnEnviar');
+  var abridores = document.querySelectorAll('[data-abrir-form]');
+  var ultimoFoco = null;
+
+  if (ENVIO_URL) {
+    // Solo mostramos la opcion de correo si hay a donde mandarlo.
+    for (var i = 0; i < abridores.length; i++) abridores[i].hidden = false;
+  }
+
+  function mostrarAviso(texto, tipo){
+    aviso.innerHTML = texto;
+    aviso.className = 'aviso ver ' + tipo;
+  }
+  function abrirForm(){
+    ultimoFoco = document.activeElement;
+    modal.hidden = false; modal.classList.add('abierto');
+    document.body.style.overflow = 'hidden';
+    document.getElementById('fNombre').focus();
+  }
+  function cerrarForm(){
+    modal.classList.remove('abierto'); modal.hidden = true;
+    document.body.style.overflow = '';
+    if (ultimoFoco) ultimoFoco.focus();
+  }
+  for (var j = 0; j < abridores.length; j++) abridores[j].addEventListener('click', abrirForm);
+  document.getElementById('cerrarForm').addEventListener('click', cerrarForm);
+  modal.addEventListener('click', function(e){ if (e.target === modal) cerrarForm(); });
+  addEventListener('keydown', function(e){ if (e.key === 'Escape' && modal.classList.contains('abierto')) cerrarForm(); });
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    if (form.web.value) return;                       // lo lleno un robot: no mandamos nada
+    var datos = {
+      nombre:  form.nombre.value.trim(),
+      correo:  form.correo.value.trim(),
+      negocio: form.negocio.value.trim(),
+      mensaje: form.mensaje.value.trim()
+    };
+    if (!datos.nombre || !datos.correo || !datos.mensaje) {
+      return mostrarAviso('Faltan el nombre, el correo o el mensaje.', 'mal');
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(datos.correo)) {
+      return mostrarAviso('Revisá el correo: parece que le falta algo.', 'mal');
+    }
+    btnEnviar.disabled = true; btnEnviar.textContent = 'Enviando…';
+    aviso.className = 'aviso';
+    // text/plain evita el pedido previo de CORS, que Apps Script no contesta.
+    fetch(ENVIO_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'text/plain;charset=utf-8'},
+      body: JSON.stringify(datos)
+    }).then(function(r){ return r.json(); }).then(function(r){
+      if (!r || !r.ok) throw new Error('rechazado');
+      form.reset();
+      mostrarAviso('Listo, nos llegó. Te respondemos a ' + datos.correo + '.', 'bien');
+      btnEnviar.textContent = 'Enviar mensaje';
+    })['catch'](function(){
+      mostrarAviso('No pudimos enviarlo. Probá de nuevo o escribinos por <a href="https://wa.me/595982702613" target="_blank" rel="noopener">WhatsApp</a>.', 'mal');
+      btnEnviar.disabled = false; btnEnviar.textContent = 'Enviar mensaje';
+    }).then(function(){ btnEnviar.disabled = false; });
+  });
+
+  /* aparicion al hacer scroll */
   var els = Array.prototype.slice.call(document.querySelectorAll('[data-reveal]'));
   if (reduce || !('IntersectionObserver' in window)) { els.forEach(function(el){ el.classList.add('in'); }); return; }
   var counts = new Map();
   els.forEach(function(el){
     var p = el.parentElement, i = counts.get(p) || 0; counts.set(p, i + 1);
-    el.style.setProperty('--rd', Math.min(i, 6) * 90 + 'ms');
+    el.style.setProperty('--rd', Math.min(i, 6) * 80 + 'ms');
   });
   var io = new IntersectionObserver(function(entries){
     entries.forEach(function(e){ if (e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
-  }, {threshold:0.15, rootMargin:'0px 0px -6% 0px'});
+  }, {threshold:0.12, rootMargin:'0px 0px -6% 0px'});
   els.forEach(function(el){ io.observe(el); });
 })();
 </script>
