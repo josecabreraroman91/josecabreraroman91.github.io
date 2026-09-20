@@ -46,5 +46,27 @@
     ]
    }
   }
- ]
+ ],
+ "piezas": {
+  "cabecera": {
+   "h": 370
+  },
+  "papel": {
+   "h": 380
+  },
+  "bandaIni": {
+   "h": 38
+  },
+  "bandaMed": {
+   "h": 450
+  },
+  "pie": {
+   "h": 286
+  }
+ },
+ "cabeceraAlto": 370,
+ "pieAlto": 286,
+ "gridArriba": 4,
+ "gridAbajo": 1,
+ "bandaFraccion": 0.4242
 }

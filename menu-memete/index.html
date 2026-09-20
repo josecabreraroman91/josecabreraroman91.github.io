@@ -43,6 +43,7 @@
 
   .fila{display:flex;align-items:center;gap:8px;border:1px solid var(--linea);
         border-radius:10px;padding:7px 8px;margin-bottom:7px;position:relative;background:#FFFDF7}
+  .fila[hidden]{display:none}
   .fila.llena{background:#fff;border-color:#EBD79A}
   .fila .num{font-family:Archivo,sans-serif;font-weight:700;font-size:13px;
              color:var(--amarillo2);width:14px;flex:none;text-align:center}
@@ -136,8 +137,8 @@
 
     <section id="paneMenu">
       <p class="sub">
-        Buscá el plato y elegilo: entra solo con su foto. Esta plantilla lleva
-        <b>hasta 8 platos</b> y no lleva precio.
+        Buscá el plato y elegilo: entra solo con su foto. Van de a dos por renglón y
+        <b>la hoja se alarga o se acorta sola</b> según cuántos cargues.
       </p>
       <div id="filas"></div>
       <div class="acciones">
@@ -145,8 +146,9 @@
         <button class="btn oscuro" id="btnPdf">Descargar PDF</button>
       </div>
       <p class="nota">
-        Si cargás menos de 8, las tarjetas se reparten solas de arriba a abajo.
-        La pieza sale de 1024 × 1536 px.
+        Con 8 platos la hoja sale igual que el diseño original. Con menos se acorta y con
+        más se alarga, siempre de a un renglón.<br>
+        Ahora mide <b id="medida">—</b>.
       </p>
     </section>
 
@@ -208,10 +210,10 @@ const SEMILLA = [
   { nombre:"Mandioca",                  foto:"fotos2/mandioca.jpg" },
   { nombre:"Pancito casero",            foto:"fotos2/pancito-casero.jpg" },
   { nombre:"Jugo natural de naranja",   foto:"fotos2/jugo-natural-de-naranja.jpg" },
-  { nombre:"Zapallito relleno con carne", foto:"fotos2/zapallito-relleno.jpg" },
-  { nombre:"Puchero de carne",            foto:"fotos2/puchero-de-carne.jpg" },
-  { nombre:"Guisado de pollo",            foto:"fotos2/guisado-de-pollo.jpg" },
-  { nombre:"Milanesa de pollo",           foto:"fotos2/milanesa-de-pollo.jpg" },
+  // Zapallito relleno, puchero, guisado y milanesa de pollo NO están acá a propósito:
+  // sus fotos salían de la primera pieza, donde el hueco era una franja muy ancha y
+  // baja. No hay recorte de esas fotos que sirva para un hueco casi cuadrado. Esos
+  // cuatro platos hay que cargarlos desde "Mis platos" con una foto propia.
 ];
 
 /* ==========================================================================
@@ -238,12 +240,15 @@ const ALMACEN = {
    GEOMETRÍA — medida sobre la plantilla, no tocar sin volver a medir.
    Cada plato es un calco de tarjeta que se estampa donde le toca.
    ========================================================================== */
-const LIENZO  = { w:1024, h:1536 };
-const RANURAS = 8;
-const PRIMERA = 374, ULTIMA = 1063;          // arriba del primer y del último renglón
-const FILAS_DISENO = [374, 605, 835, 1063];  // las cuatro del diseño original
-const PASO = (ULTIMA - PRIMERA) / 3;         // separación entre renglones, la del diseño
+const ANCHO   = 1024;
+const RANURAS = 20;                  // tope de platos; en pantalla se ven solo los necesarios
+
+// La plantilla viene cortada en piezas para poder armar la hoja del alto que haga falta.
+const PIEZA = { cabecera:370, papel:380, bandaIni:38, bandaMed:450, pie:286, pieArte:242 };
+const PASO = 229.667;                // separación entre renglones de tarjetas, la del diseño
 const ALTO_TARJETA = 230;
+const GRID_ARRIBA = 4, GRID_ABAJO = 1;
+const BANDA_FRACCION = 0.4242;       // dónde arranca la franja amarilla del borde derecho
 
 const COL = [
   { x:25,  w:488, foto:{x:21, y:23, w:202, h:185},
@@ -264,8 +269,8 @@ let CATALOGO = [];
 const elegidos = Array(RANURAS).fill(null);
 const lienzo = document.getElementById("lienzo");
 const ctx = lienzo.getContext("2d");
-let base = null;
 const calcos = [], mascaras = [];
+const piezas = {};
 let editando = null, fotoEnEdicion = null;
 const cacheFotos = new Map();
 const q = (sel) => document.querySelector(sel);
@@ -293,6 +298,14 @@ function mostrar(cual){
 }
 
 /* ---------- armar el menú ---------- */
+
+// Se muestran las ranuras que hacen falta: siempre dos libres al final, mínimo ocho.
+function refrescarRanuras(){
+  let ultima = -1;
+  elegidos.forEach((p, i) => { if(p) ultima = i; });
+  const visibles = Math.min(RANURAS, Math.max(8, ultima + 3));
+  document.querySelectorAll(".fila").forEach((f, i) => { f.hidden = i >= visibles; });
+}
 
 function armarFilas(){
   const cont = id("filas");
@@ -338,11 +351,13 @@ function armarFilas(){
 
 function vaciar(i){
   elegidos[i] = null;
+  setTimeout(refrescarRanuras, 0);
   q(`input[data-i="${i}"]`).value = "";
   q(`.fila[data-fila="${i}"]`).classList.remove("llena");
 }
 function poner(i, p){
   elegidos[i] = { ...p };
+  setTimeout(refrescarRanuras, 0);
   q(`input[data-i="${i}"]`).value = p.nombre;
   q(`.fila[data-fila="${i}"]`).classList.add("llena");
 }
@@ -501,16 +516,12 @@ id("archivoRespaldo").onchange = (e) => {
 /* ---------- dibujo ---------- */
 
 // dónde va cada renglón de tarjetas según cuántos platos haya
-// Con menos de 4 renglones NO se estiran: se respeta la separación del diseño y el
-// bloque queda centrado, para que no se abra un agujero en el medio de la pieza.
-function alturas(n){
-  const filas = Math.ceil(n / 2);
-  if(filas >= 4) return FILAS_DISENO;
-  const banda = (ULTIMA + ALTO_TARJETA) - PRIMERA;
-  const bloque = (filas - 1) * PASO + ALTO_TARJETA;
-  const arriba = PRIMERA + (banda - bloque) / 2;
-  return Array.from({length:filas}, (_, i) => Math.round(arriba + i * PASO));
-}
+// La hoja crece y se achica con la cantidad de platos: dos por renglón.
+const renglones = (n) => Math.max(1, Math.ceil(n / 2));
+const altoGrilla = (filas) => Math.round((filas - 1) * PASO + ALTO_TARJETA + GRID_ARRIBA + GRID_ABAJO);
+const altoPieza  = (filas) => PIEZA.cabecera + altoGrilla(filas) + PIEZA.pieArte;
+const alturas    = (n) => Array.from({length: renglones(n)},
+                     (_, i) => Math.round(PIEZA.cabecera + GRID_ARRIBA + i * PASO));
 
 function anchoCon(texto, tam){
   ctx.font = NOMBRE.fuente.replace("{t}", tam);
@@ -558,19 +569,35 @@ function dibujarNombre(nombre, cx, y, anchoMax){
 }
 
 async function dibujar(){
-  ctx.clearRect(0, 0, LIENZO.w, LIENZO.h);
-  ctx.drawImage(base, 0, 0, LIENZO.w, LIENZO.h);
-
   const activos = elegidos.filter(Boolean);
+  const filas = renglones(activos.length);
+  const alto = altoPieza(filas);
+
+  if(lienzo.height !== alto){ lienzo.height = alto; }
+  ctx.clearRect(0, 0, ANCHO, alto);
+
+  // 1) el papel, repetido hasta cubrir toda la hoja
+  for(let y = 0; y < alto; y += PIEZA.papel) ctx.drawImage(piezas.papel, 0, y);
+
+  // 2) la franja amarilla del borde derecho: arranque + tramo estirado hasta el pie
+  const yb = PIEZA.cabecera + Math.round(BANDA_FRACCION * altoGrilla(filas));
+  const hastaPie = alto - PIEZA.pie;
+  ctx.drawImage(piezas.bandaIni, 0, yb);
+  const medio = hastaPie - (yb + PIEZA.bandaIni);
+  if(medio > 0) ctx.drawImage(piezas.bandaMed, 0, yb + PIEZA.bandaIni, ANCHO, medio);
+
+  // 3) cabecera y pie, cada uno pegado a su borde
+  ctx.drawImage(piezas.cabecera, 0, 0);
+  ctx.drawImage(piezas.pie, 0, hastaPie);
+
+  // 4) las tarjetas
   const ys = alturas(activos.length);
   const tapiz = document.createElement("canvas");
   const tctx = tapiz.getContext("2d");
 
   for(let i = 0; i < activos.length; i++){
     const p = activos[i], ci = i % 2, y = ys[Math.floor(i / 2)], c = COL[ci];
-
     ctx.drawImage(calcos[ci], c.x, y);
-
     try{
       const im = await fotoDe(p.foto);
       const f = c.foto;
@@ -584,9 +611,10 @@ async function dibujar(){
       tctx.globalCompositeOperation = "source-over";
       ctx.drawImage(tapiz, c.x + f.x, y + f.y);
     }catch(err){ /* sin foto: queda el marco vacío */ }
-
     dibujarNombre(p.nombre, c.x + c.texto.centro, y, c.texto.anchoMax);
   }
+
+  id("medida").textContent = ANCHO + " × " + alto + " px";
 }
 
 /* ---------- descargas ---------- */
@@ -608,8 +636,8 @@ id("btnPng").onclick = () => {
 id("btnPdf").onclick = () => {
   try{ lienzo.toDataURL("image/jpeg", .5); }catch(e){ alert(AVISO_FILE); return; }
   const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF({ orientation:"portrait", unit:"px", format:[LIENZO.w, LIENZO.h] });
-  pdf.addImage(lienzo.toDataURL("image/jpeg", 0.95), "JPEG", 0, 0, LIENZO.w, LIENZO.h);
+  const pdf = new jsPDF({ orientation:"portrait", unit:"px", format:[lienzo.width, lienzo.height] });
+  pdf.addImage(lienzo.toDataURL("image/jpeg", 0.95), "JPEG", 0, 0, lienzo.width, lienzo.height);
   pdf.save(nombreArchivo("pdf"));
 };
 
@@ -617,7 +645,8 @@ id("btnPdf").onclick = () => {
 
 (async () => {
   try{
-    base = await cargarImagen("assets/p3/base.png");
+    for(const n of ["cabecera","papel","bandaIni","bandaMed","pie"])
+      piezas[n] = await cargarImagen(`assets/p3/${n}.png`);
     for(let i=1;i<=2;i++){
       calcos.push(await cargarImagen(`assets/p3/tarjeta${i}.png`));
       mascaras.push(await cargarImagen(`assets/p3/mask${i}.png`));
@@ -633,6 +662,7 @@ id("btnPdf").onclick = () => {
     if(Array.isArray(guardado))
       guardado.forEach((p, i) => { if(p && i < RANURAS) poner(i, p); });
 
+    refrescarRanuras();
     await dibujar();
     id("cargando").remove();
   }catch(err){
