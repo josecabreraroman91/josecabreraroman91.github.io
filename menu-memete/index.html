@@ -1,0 +1,623 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Menú Tentación Memete</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&family=Lato:wght@400&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --amarillo:#FDD735;
+    --amarillo2:#F2B705;
+    --negro:#161616;
+    --linea:#E7E0CD;
+    --texto:#2A2A2A;
+    --suave:#736C5E;
+    --fondo:#F3EEE0;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--fondo);color:var(--texto);
+       font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:14px}
+
+  header{background:var(--negro);color:#fff;padding:12px 16px;display:flex;
+         align-items:center;gap:10px;position:sticky;top:0;z-index:50}
+  header h1{font-family:Archivo,sans-serif;font-weight:700;font-size:16px;
+            letter-spacing:.3px;margin:0;text-transform:uppercase}
+  header .punto{width:9px;height:9px;border-radius:50%;background:var(--amarillo);flex:none}
+  header small{color:#A9A296;font-size:11px;margin-left:auto;text-align:right}
+
+  .wrap{display:grid;grid-template-columns:430px 1fr;gap:22px;
+        padding:22px;max-width:1340px;margin:0 auto;align-items:start}
+
+  .panel{background:#fff;border:1px solid var(--linea);border-radius:14px;padding:16px}
+
+  .solapas{display:flex;gap:6px;margin-bottom:14px}
+  .solapas button{flex:1;padding:10px;border:1px solid var(--linea);background:#FBF8F0;
+                  border-radius:9px;font:inherit;font-size:13px;font-weight:600;
+                  color:var(--suave);cursor:pointer}
+  .solapas button.activa{background:var(--amarillo);border-color:var(--amarillo2);color:var(--negro)}
+
+  .sub{font-size:12px;color:var(--suave);margin:0 0 14px;line-height:1.55}
+
+  .fila{border:1px solid var(--linea);border-radius:11px;padding:9px 9px 3px;
+        margin-bottom:9px;position:relative;background:#FFFDF7}
+  .fila.llena{background:#fff;border-color:#EBD79A}
+  .fila .cab{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+  .fila .num{font-family:Archivo,sans-serif;font-weight:700;font-size:13px;
+             color:var(--amarillo2);width:14px;flex:none}
+  .fila .limpiar{margin-left:auto;width:23px;height:23px;border:0;background:none;
+                 color:#BBB3A3;cursor:pointer;font-size:16px;line-height:1;border-radius:6px;flex:none}
+  .fila .limpiar:hover{background:#F2EEE6;color:var(--negro)}
+  .par{display:flex;gap:6px}
+  .par input:first-child{flex:1;min-width:0}
+  .par input:last-child{width:105px;text-align:right;flex:none}
+
+  input[type=text]{width:100%;padding:9px 10px;border:1px solid var(--linea);border-radius:8px;
+                   font:inherit;font-size:13px;background:#fff;color:var(--texto);margin-bottom:6px}
+  input[type=text]:focus{outline:none;border-color:var(--amarillo2);
+                         box-shadow:0 0 0 3px rgba(242,183,5,.18)}
+  .fila .buscar{margin-bottom:0}
+
+  .lista{position:absolute;z-index:30;left:9px;right:9px;top:40px;background:#fff;
+         border:1px solid var(--linea);border-radius:10px;
+         box-shadow:0 12px 28px rgba(0,0,0,.16);max-height:250px;overflow:auto;display:none}
+  .lista.abierta{display:block}
+  .lista button{display:flex;align-items:center;gap:9px;width:100%;padding:7px 9px;border:0;
+                background:none;cursor:pointer;text-align:left;font:inherit;font-size:13px;
+                color:var(--texto);border-bottom:1px solid #F5F2EA}
+  .lista button:last-child{border-bottom:0}
+  .lista button:hover,.lista button.marcado{background:#FEF8E3}
+  .lista img{width:52px;height:27px;object-fit:cover;border-radius:4px;flex:none;background:#EEE}
+  .lista .vacio{padding:13px 11px;color:var(--suave);font-size:13px}
+
+  .acciones{display:flex;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--linea)}
+  .btn{flex:1;padding:12px;border:0;border-radius:9px;font:inherit;font-weight:700;
+       font-size:13px;cursor:pointer;background:var(--amarillo);color:var(--negro)}
+  .btn.oscuro{background:var(--negro);color:#fff}
+  .btn.borde{background:#fff;border:1px solid var(--linea);color:var(--texto);font-weight:600}
+  .btn:hover{filter:brightness(1.06)}
+  .nota{margin-top:11px;font-size:12px;color:var(--suave);line-height:1.55}
+
+  /* --- catálogo --- */
+  .plato{display:flex;align-items:center;gap:10px;padding:8px;border:1px solid var(--linea);
+         border-radius:10px;margin-bottom:8px;background:#fff}
+  .plato img{width:70px;height:36px;object-fit:cover;border-radius:5px;flex:none;
+             background:#EFE9DA;border:1px solid var(--linea)}
+  .plato .txt{flex:1;min-width:0}
+  .plato b{display:block;font-size:13px;font-weight:600;white-space:nowrap;
+           overflow:hidden;text-overflow:ellipsis}
+  .plato span{display:block;font-size:11px;color:var(--suave);white-space:nowrap;
+              overflow:hidden;text-overflow:ellipsis}
+  .plato .gs{font-family:Archivo,sans-serif;font-weight:700;font-size:12px;flex:none}
+  .plato .ico{width:28px;height:28px;border:1px solid var(--linea);background:#fff;
+              border-radius:7px;cursor:pointer;font-size:13px;line-height:1;flex:none;padding:0}
+  .plato .ico:hover{background:#FBF6E8}
+
+  .editor{border:1px solid #EBD79A;background:#FFFDF5;border-radius:12px;padding:13px;margin-top:12px}
+  .editor h3{margin:0 0 10px;font-size:12px;letter-spacing:1.2px;text-transform:uppercase;
+             color:var(--suave)}
+  .cargafoto{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+  .cargafoto .prev{width:104px;height:54px;border-radius:7px;border:1px dashed var(--linea);
+                   background:#fff center/cover no-repeat;flex:none}
+  .cargafoto label{flex:1;padding:10px;border:1px solid var(--linea);border-radius:8px;
+                   background:#fff;font-size:12.5px;font-weight:600;text-align:center;cursor:pointer}
+  .cargafoto input{display:none}
+  .aviso{margin-top:10px;padding:9px 11px;border-radius:8px;font-size:12px;line-height:1.5;display:none}
+  .aviso.ver{display:block}
+  .aviso.mal{background:#FDECEC;color:#8E2A2A}
+  .aviso.bien{background:#EEF8EC;color:#2C6A32}
+
+  .vista{background:#fff;border:1px solid var(--linea);border-radius:14px;padding:14px;
+         display:flex;justify-content:center}
+  canvas{width:100%;max-width:470px;height:auto;display:block;border-radius:6px;
+         box-shadow:0 6px 24px rgba(0,0,0,.13)}
+
+  .cargando{position:fixed;inset:0;background:var(--fondo);display:flex;align-items:center;
+            justify-content:center;font-weight:600;color:var(--suave);z-index:99;padding:20px;
+            text-align:center}
+
+  @media (max-width:980px){
+    .wrap{grid-template-columns:1fr;padding:12px;gap:14px}
+    canvas{max-width:100%}
+    .vista{padding:10px}
+    input[type=text]{font-size:16px}          /* evita que el celu haga zoom al escribir */
+  }
+</style>
+</head>
+<body>
+
+<div class="cargando" id="cargando">Cargando plantilla…</div>
+
+<header>
+  <span class="punto"></span>
+  <h1>Menú Memete</h1>
+  <small id="contador"></small>
+</header>
+
+<div class="wrap">
+  <div class="panel">
+    <div class="solapas">
+      <button id="tabMenu" class="activa">Armar el menú</button>
+      <button id="tabCat">Mis platos</button>
+    </div>
+
+    <!-- ARMAR EL MENÚ -->
+    <section id="paneMenu">
+      <p class="sub">
+        Buscá el plato y elegilo: entran solos la foto, la descripción y el precio.
+        Los dos campos de abajo se corrigen a mano y solo afectan a este menú.
+      </p>
+      <div id="filas"></div>
+      <div class="acciones">
+        <button class="btn" id="btnPng">Descargar PNG</button>
+        <button class="btn oscuro" id="btnPdf">Descargar PDF</button>
+      </div>
+      <p class="nota">
+        Con menos de 6 platos los renglones se reparten solos dentro del recuadro.
+        La pieza sale de 1024 × 1536 px.
+      </p>
+    </section>
+
+    <!-- CATÁLOGO -->
+    <section id="paneCat" hidden>
+      <p class="sub">
+        Acá se cargan los platos una sola vez y quedan guardados en este dispositivo.
+        Después aparecen en el buscador.
+      </p>
+      <div id="platos"></div>
+
+      <div class="editor">
+        <h3 id="tituloEditor">Agregar un plato</h3>
+        <div class="cargafoto">
+          <div class="prev" id="prev"></div>
+          <label for="archivo" id="rotuloFoto">Elegir foto</label>
+          <input type="file" id="archivo" accept="image/*">
+        </div>
+        <input type="text" id="eNombre" placeholder="Nombre del plato" autocomplete="off">
+        <input type="text" id="eDesc" placeholder="Breve descripción" autocomplete="off">
+        <input type="text" id="ePrecio" placeholder="Precio, solo números: 35.000" autocomplete="off">
+        <div class="acciones" style="margin-top:4px;padding-top:0;border:0">
+          <button class="btn" id="btnGuardar">Guardar plato</button>
+          <button class="btn borde" id="btnCancelar" hidden>Cancelar</button>
+        </div>
+        <div class="aviso" id="aviso"></div>
+      </div>
+
+      <div class="acciones">
+        <button class="btn borde" id="btnExportar">Bajar respaldo</button>
+        <label class="btn borde" for="archivoRespaldo" style="text-align:center;line-height:1.4">Cargar respaldo</label>
+        <input type="file" id="archivoRespaldo" accept="application/json" style="display:none">
+      </div>
+      <p class="nota">
+        <b>Ojo:</b> los platos se guardan en <b>este</b> dispositivo. Lo que cargues en la
+        computadora no aparece en el celular. Para pasarlos, usá “Bajar respaldo” en uno y
+        “Cargar respaldo” en el otro.
+      </p>
+    </section>
+  </div>
+
+  <div class="vista"><canvas id="lienzo" width="1024" height="1536"></canvas></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+/* ==========================================================================
+   CATÁLOGO DE ARRANQUE
+   Solo se usa la primera vez, mientras no haya nada guardado en el dispositivo.
+   A partir de ahí manda lo que se cargue desde la solapa "Mis platos".
+   ========================================================================== */
+const SEMILLA = [
+  { nombre:"Zapallito relleno con carne", desc:"Relleno de carne y queso gratinado", precio:"35.000", foto:"fotos2/zapallito-relleno.jpg" },
+  { nombre:"Puchero de carne",            desc:"Con choclo, papa y zanahoria",       precio:"38.000", foto:"fotos2/puchero-de-carne.jpg" },
+  { nombre:"Guisado de pollo",            desc:"Con arroz blanco",                   precio:"32.000", foto:"fotos2/guisado-de-pollo.jpg" },
+  { nombre:"Milanesa de pollo",           desc:"Con papas fritas y ensalada",        precio:"35.000", foto:"fotos2/milanesa-de-pollo.jpg" },
+  { nombre:"Mandioca",                    desc:"Porción",                            precio:"8.000",  foto:"fotos2/mandioca.jpg" },
+  { nombre:"Pancito casero",              desc:"Recién horneado, por unidad",        precio:"3.000",  foto:"fotos2/pancito-casero.jpg" },
+];
+
+/* ==========================================================================
+   DÓNDE SE GUARDA
+   Hoy: en el propio dispositivo (localStorage).
+   Para que se comparta entre la compu y el celular hay que cambiar SOLO estas
+   tres funciones por Firebase. El resto del archivo no se toca.
+   ========================================================================== */
+const ALMACEN = {
+  claveCat: "memete.catalogo.v1",
+  claveMenu: "memete.menu.v1",
+  leerCatalogo(){
+    try{ const c = JSON.parse(localStorage.getItem(this.claveCat)); return Array.isArray(c) ? c : null; }
+    catch(e){ return null; }
+  },
+  guardarCatalogo(lista){
+    try{ localStorage.setItem(this.claveCat, JSON.stringify(lista)); return {ok:true}; }
+    catch(e){ return {ok:false, motivo:"Se llenó el espacio del dispositivo. Borrá algún plato viejo."}; }
+  },
+  leerMenu(){ try{ return JSON.parse(localStorage.getItem(this.claveMenu)) || null; }catch(e){ return null; } },
+  guardarMenu(sel){ try{ localStorage.setItem(this.claveMenu, JSON.stringify(sel)); }catch(e){} },
+};
+
+/* ==========================================================================
+   GEOMETRÍA — medida sobre la plantilla, no tocar sin volver a medir.
+   ========================================================================== */
+const LIENZO  = { w:1024, h:1536 };
+const CALCO   = { x:52, w:756, h:131 };
+const PRIMERA = 477, ULTIMA = 1165;
+const FOTO    = { x:20,  y:7,   w:226, h:117 };
+const NOMBRE  = { x:276, base:43,  anchoMax:272, fuente:'700 {t}px Archivo, sans-serif' };
+const DESC    = { x:277, base:68,  anchoMax:271, fuente:'400 {t}px Lato, sans-serif' };
+const PRECIO  = { x:620, base:109, hasta:726,    fuente:'700 {t}px Archivo, sans-serif' };
+const TINTA   = "#0A0A0A";
+const FOTO_GUARDADA = { w:452, h:234 };     // el doble del hueco: nítido y liviano
+
+/* ========================================================================== */
+
+let CATALOGO = [];
+const elegidos = Array(6).fill(null);
+const lienzo = document.getElementById("lienzo");
+const ctx = lienzo.getContext("2d");
+let base = null, calco = null, mascaraFoto = null;
+let editando = null, fotoEnEdicion = null;
+const cacheFotos = new Map();
+const q = (sel) => document.querySelector(sel);
+const id = (x) => document.getElementById(x);
+
+const cargarImagen = (src) => new Promise((ok, err) => {
+  const im = new Image();
+  im.onload = () => ok(im);
+  im.onerror = () => err(new Error("No se pudo cargar la foto"));
+  im.src = src;
+});
+async function fotoDe(src){
+  if(!cacheFotos.has(src)) cacheFotos.set(src, await cargarImagen(src));
+  return cacheFotos.get(src);
+}
+
+/* ---------- solapas ---------- */
+id("tabMenu").onclick = () => mostrar("menu");
+id("tabCat").onclick  = () => mostrar("cat");
+function mostrar(cual){
+  id("paneMenu").hidden = cual !== "menu";
+  id("paneCat").hidden  = cual !== "cat";
+  id("tabMenu").classList.toggle("activa", cual === "menu");
+  id("tabCat").classList.toggle("activa", cual === "cat");
+}
+
+/* ---------- armar el menú ---------- */
+
+function armarFilas(){
+  const cont = id("filas");
+  for(let i=0;i<6;i++){
+    const f = document.createElement("div");
+    f.className = "fila"; f.dataset.fila = i;
+    f.innerHTML = `
+      <div class="cab">
+        <span class="num">${i+1}</span>
+        <input class="buscar" type="text" placeholder="Buscar plato…" autocomplete="off" data-i="${i}">
+        <button class="limpiar" title="Vaciar" data-limpiar="${i}">×</button>
+      </div>
+      <div class="par">
+        <input type="text" placeholder="Breve descripción" data-desc="${i}">
+        <input type="text" placeholder="Gs." data-precio="${i}">
+      </div>
+      <div class="lista" data-lista="${i}"></div>`;
+    cont.appendChild(f);
+  }
+
+  cont.addEventListener("input", e => {
+    const t = e.target;
+    if(t.dataset.i !== undefined){ abrirLista(+t.dataset.i, t.value); return; }
+    const i = t.dataset.desc ?? t.dataset.precio;
+    if(i === undefined || !elegidos[i]) return;
+    if(t.dataset.desc   !== undefined) elegidos[i].desc   = t.value;
+    if(t.dataset.precio !== undefined) elegidos[i].precio = t.value;
+    guardarSeleccion(); dibujar();
+  });
+  cont.addEventListener("focusin", e => {
+    if(e.target.dataset.i === undefined) return;
+    e.target.select(); abrirLista(+e.target.dataset.i, e.target.value);
+  });
+  cont.addEventListener("click", e => {
+    const b = e.target.closest("[data-limpiar]");
+    if(!b) return;
+    vaciar(+b.dataset.limpiar); cerrarListas(); guardarSeleccion(); dibujar();
+  });
+  cont.addEventListener("keydown", e => {
+    if(e.target.dataset.i === undefined) return;
+    const lista = cont.querySelector(`[data-lista="${e.target.dataset.i}"]`);
+    if(!lista.classList.contains("abierta")) return;
+    const ops = [...lista.querySelectorAll("button")];
+    if(!ops.length) return;
+    let n = ops.findIndex(o => o.classList.contains("marcado"));
+    if(e.key === "ArrowDown"){ e.preventDefault(); n = Math.min(n+1, ops.length-1); }
+    else if(e.key === "ArrowUp"){ e.preventDefault(); n = Math.max(n-1, 0); }
+    else if(e.key === "Enter"){ e.preventDefault(); (ops[n] || ops[0]).click(); return; }
+    else if(e.key === "Escape"){ cerrarListas(); return; }
+    else return;
+    ops.forEach(o => o.classList.remove("marcado"));
+    ops[n].classList.add("marcado"); ops[n].scrollIntoView({block:"nearest"});
+  });
+  document.addEventListener("click", e => { if(!e.target.closest(".fila")) cerrarListas(); });
+}
+
+function vaciar(i){
+  elegidos[i] = null;
+  q(`input[data-i="${i}"]`).value = "";
+  q(`input[data-desc="${i}"]`).value = "";
+  q(`input[data-precio="${i}"]`).value = "";
+  q(`.fila[data-fila="${i}"]`).classList.remove("llena");
+}
+function poner(i, p){
+  elegidos[i] = { ...p };
+  q(`input[data-i="${i}"]`).value = p.nombre;
+  q(`input[data-desc="${i}"]`).value = p.desc || "";
+  q(`input[data-precio="${i}"]`).value = p.precio || "";
+  q(`.fila[data-fila="${i}"]`).classList.add("llena");
+}
+const cerrarListas = () => document.querySelectorAll(".lista").forEach(l => l.classList.remove("abierta"));
+const guardarSeleccion = () => ALMACEN.guardarMenu(elegidos);
+
+function abrirLista(i, texto){
+  cerrarListas();
+  const lista = q(`[data-lista="${i}"]`);
+  const t = texto.trim().toLowerCase();
+  const halla = CATALOGO.filter(p => p.nombre.toLowerCase().includes(t));
+  lista.innerHTML = "";
+  if(!halla.length){
+    lista.innerHTML = `<div class="vacio">Ningún plato con “${texto.trim()}”. Cargalo en “Mis platos”.</div>`;
+  }else{
+    halla.forEach(p => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.innerHTML = `<img src="${p.foto}" alt=""><span></span>`;
+      b.querySelector("span").textContent = p.nombre;
+      b.onclick = () => { poner(i, p); cerrarListas(); guardarSeleccion(); dibujar(); };
+      lista.appendChild(b);
+    });
+  }
+  lista.classList.add("abierta");
+}
+
+/* ---------- catálogo ---------- */
+
+function pintarCatalogo(){
+  const cont = id("platos");
+  cont.innerHTML = "";
+  if(!CATALOGO.length){
+    cont.innerHTML = `<p class="sub">Todavía no hay platos cargados.</p>`;
+  }
+  CATALOGO.forEach((p, n) => {
+    const d = document.createElement("div");
+    d.className = "plato";
+    d.innerHTML = `<img src="${p.foto}" alt="">
+      <div class="txt"><b></b><span></span></div>
+      <span class="gs"></span>
+      <button class="ico" data-editar="${n}" title="Editar">✎</button>
+      <button class="ico" data-borrar="${n}" title="Borrar">🗑</button>`;
+    d.querySelector("b").textContent = p.nombre;
+    d.querySelector(".txt span").textContent = p.desc || "—";
+    d.querySelector(".gs").textContent = p.precio ? "Gs. " + p.precio : "";
+    cont.appendChild(d);
+  });
+  id("contador").textContent = CATALOGO.length + (CATALOGO.length === 1 ? " plato" : " platos");
+}
+
+id("platos").addEventListener("click", e => {
+  const ed = e.target.closest("[data-editar]"), bo = e.target.closest("[data-borrar]");
+  if(ed) return abrirEditor(+ed.dataset.editar);
+  if(bo){
+    const n = +bo.dataset.borrar;
+    if(!confirm(`¿Borrar “${CATALOGO[n].nombre}” del catálogo?`)) return;
+    CATALOGO.splice(n, 1);
+    persistir("Plato borrado.");
+  }
+});
+
+function abrirEditor(n){
+  editando = n;
+  const p = CATALOGO[n];
+  fotoEnEdicion = p.foto;
+  id("tituloEditor").textContent = "Editar plato";
+  id("prev").style.backgroundImage = `url("${p.foto}")`;
+  id("rotuloFoto").textContent = "Cambiar foto";
+  id("eNombre").value = p.nombre;
+  id("eDesc").value   = p.desc || "";
+  id("ePrecio").value = p.precio || "";
+  id("btnCancelar").hidden = false;
+  id("btnGuardar").textContent = "Guardar cambios";
+  id("eNombre").focus();
+}
+function limpiarEditor(){
+  editando = null; fotoEnEdicion = null;
+  id("tituloEditor").textContent = "Agregar un plato";
+  id("prev").style.backgroundImage = "";
+  id("rotuloFoto").textContent = "Elegir foto";
+  id("eNombre").value = ""; id("eDesc").value = ""; id("ePrecio").value = "";
+  id("archivo").value = "";
+  id("btnCancelar").hidden = true;
+  id("btnGuardar").textContent = "Guardar plato";
+}
+id("btnCancelar").onclick = () => { limpiarEditor(); avisar(""); };
+
+function avisar(texto, tipo){
+  const a = id("aviso");
+  a.textContent = texto;
+  a.className = "aviso" + (texto ? " ver " + (tipo || "bien") : "");
+}
+
+// achica la foto al doble del hueco: nítida y liviana para guardar
+id("archivo").onchange = (e) => {
+  const f = e.target.files[0];
+  if(!f) return;
+  const lector = new FileReader();
+  lector.onload = () => {
+    const im = new Image();
+    im.onload = () => {
+      const c = document.createElement("canvas");
+      c.width = FOTO_GUARDADA.w; c.height = FOTO_GUARDADA.h;
+      const g = c.getContext("2d");
+      const esc = Math.max(c.width / im.width, c.height / im.height);
+      const aw = im.width * esc, ah = im.height * esc;
+      g.drawImage(im, (c.width - aw)/2, (c.height - ah)/2, aw, ah);
+      fotoEnEdicion = c.toDataURL("image/jpeg", 0.85);
+      id("prev").style.backgroundImage = `url("${fotoEnEdicion}")`;
+      avisar("Foto lista (" + Math.round(fotoEnEdicion.length/1024) + " KB).", "bien");
+    };
+    im.onerror = () => avisar("Ese archivo no es una imagen que se pueda leer.", "mal");
+    im.src = lector.result;
+  };
+  lector.readAsDataURL(f);
+};
+
+id("btnGuardar").onclick = () => {
+  const nombre = id("eNombre").value.trim();
+  if(!nombre) return avisar("Falta el nombre del plato.", "mal");
+  if(!fotoEnEdicion) return avisar("Falta la foto.", "mal");
+  const p = { nombre, desc: id("eDesc").value.trim(),
+              precio: id("ePrecio").value.trim(), foto: fotoEnEdicion };
+  if(editando === null) CATALOGO.push(p); else CATALOGO[editando] = p;
+  persistir(editando === null ? "Plato agregado." : "Cambios guardados.");
+};
+
+function persistir(mensaje){
+  const r = ALMACEN.guardarCatalogo(CATALOGO);
+  cacheFotos.clear();
+  pintarCatalogo();
+  limpiarEditor();
+  avisar(r.ok ? mensaje : r.motivo, r.ok ? "bien" : "mal");
+  dibujar();
+}
+
+/* ---------- respaldo, para pasar de un aparato a otro ---------- */
+
+id("btnExportar").onclick = () => {
+  const b = new Blob([JSON.stringify(CATALOGO, null, 1)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(b);
+  a.download = "platos-memete.json";
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+};
+id("archivoRespaldo").onchange = (e) => {
+  const f = e.target.files[0];
+  if(!f) return;
+  const l = new FileReader();
+  l.onload = () => {
+    try{
+      const lista = JSON.parse(l.result);
+      if(!Array.isArray(lista) || !lista.every(p => p && p.nombre && p.foto))
+        throw new Error("El archivo no tiene la forma esperada.");
+      if(!confirm(`El respaldo trae ${lista.length} plato(s). ¿Reemplazar lo que hay cargado?`)) return;
+      CATALOGO = lista;
+      persistir("Respaldo cargado: " + lista.length + " plato(s).");
+    }catch(err){ avisar("No se pudo leer el respaldo. " + err.message, "mal"); }
+    e.target.value = "";
+  };
+  l.readAsText(f);
+};
+
+/* ---------- dibujo ---------- */
+
+function alturas(n){
+  if(n === 1) return [Math.round((PRIMERA + ULTIMA) / 2)];
+  const paso = (ULTIMA - PRIMERA) / (n - 1);
+  return Array.from({length:n}, (_, i) => Math.round(PRIMERA + i * paso));
+}
+function escribir(texto, x, base, anchoMax, plantilla, tamIdeal, minimo){
+  let t = tamIdeal;
+  ctx.font = plantilla.replace("{t}", t);
+  while(ctx.measureText(texto).width > anchoMax && t > minimo){
+    t -= 1; ctx.font = plantilla.replace("{t}", t);
+  }
+  ctx.fillText(texto, x, base);
+}
+
+async function dibujar(){
+  ctx.clearRect(0, 0, LIENZO.w, LIENZO.h);
+  ctx.drawImage(base, 0, 0, LIENZO.w, LIENZO.h);
+
+  const activos = elegidos.filter(Boolean);
+  const ys = alturas(activos.length);
+  const tapiz = document.createElement("canvas");
+  const tctx = tapiz.getContext("2d");
+
+  for(let i = 0; i < activos.length; i++){
+    const p = activos[i], y = ys[i];
+    ctx.drawImage(calco, CALCO.x, y);
+    try{
+      const im = await fotoDe(p.foto);
+      tapiz.width = FOTO.w; tapiz.height = FOTO.h;
+      tctx.clearRect(0, 0, FOTO.w, FOTO.h);
+      const e = Math.max(FOTO.w / im.width, FOTO.h / im.height);
+      const aw = im.width * e, ah = im.height * e;
+      tctx.drawImage(im, (FOTO.w - aw)/2, (FOTO.h - ah)/2, aw, ah);
+      tctx.globalCompositeOperation = "destination-in";
+      tctx.drawImage(mascaraFoto, 0, 0, FOTO.w, FOTO.h);
+      tctx.globalCompositeOperation = "source-over";
+      ctx.drawImage(tapiz, CALCO.x + FOTO.x, y + FOTO.y);
+    }catch(err){ /* sin foto: queda el marco vacío */ }
+
+    ctx.fillStyle = TINTA; ctx.textBaseline = "alphabetic"; ctx.textAlign = "left";
+    escribir(p.nombre, CALCO.x + NOMBRE.x, y + NOMBRE.base, NOMBRE.anchoMax, NOMBRE.fuente, 40, 26);
+    if(p.desc)   escribir(p.desc,   CALCO.x + DESC.x,   y + DESC.base,   DESC.anchoMax,        DESC.fuente,   26, 17);
+    if(p.precio) escribir(p.precio, CALCO.x + PRECIO.x, y + PRECIO.base, PRECIO.hasta-PRECIO.x, PRECIO.fuente, 31, 20);
+  }
+}
+
+/* ---------- descargas ---------- */
+
+const AVISO_FILE = "Para descargar, la página tiene que abrirse desde una dirección web, " +
+  "no con doble clic sobre el archivo.";
+function nombreArchivo(ext){
+  const d = new Date(), p = n => String(n).padStart(2, "0");
+  return `menu-memete-${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}.${ext}`;
+}
+id("btnPng").onclick = () => {
+  try{ lienzo.toDataURL("image/png"); }catch(e){ alert(AVISO_FILE); return; }
+  lienzo.toBlob(b => {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(b); a.download = nombreArchivo("png"); a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  }, "image/png");
+};
+id("btnPdf").onclick = () => {
+  try{ lienzo.toDataURL("image/jpeg", .5); }catch(e){ alert(AVISO_FILE); return; }
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ orientation:"portrait", unit:"px", format:[LIENZO.w, LIENZO.h] });
+  pdf.addImage(lienzo.toDataURL("image/jpeg", 0.95), "JPEG", 0, 0, LIENZO.w, LIENZO.h);
+  pdf.save(nombreArchivo("pdf"));
+};
+
+/* ---------- arranque ---------- */
+
+(async () => {
+  try{
+    base        = await cargarImagen("assets/p2/base.png");
+    calco       = await cargarImagen("assets/p2/fila.png");
+    mascaraFoto = await cargarImagen("assets/p2/mask-foto.png");
+    if(document.fonts && document.fonts.load){
+      await Promise.all([
+        document.fonts.load('700 40px Archivo'),
+        document.fonts.load('400 26px Lato'),
+      ]);
+      await document.fonts.ready;
+    }
+    CATALOGO = ALMACEN.leerCatalogo() || SEMILLA.slice();
+    armarFilas();
+    pintarCatalogo();
+    limpiarEditor();
+
+    const guardado = ALMACEN.leerMenu();
+    if(Array.isArray(guardado))
+      guardado.forEach((p, i) => { if(p && i < 6) poner(i, p); });
+
+    await dibujar();
+    id("cargando").remove();
+  }catch(err){
+    id("cargando").textContent = "No se pudo abrir: " + err.message;
+  }
+})();
+</script>
+</body>
+</html>

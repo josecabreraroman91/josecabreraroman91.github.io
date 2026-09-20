@@ -1,0 +1,49 @@
+{
+ "lienzo": {
+  "w": 1024,
+  "h": 1536
+ },
+ "contenedor": {
+  "x0": 52,
+  "x1": 807,
+  "y0": 468,
+  "y1": 1321
+ },
+ "calco": {
+  "w": 756,
+  "h": 131,
+  "x": 52
+ },
+ "filaTopDiseno": [
+  477,
+  612,
+  749,
+  889,
+  1026,
+  1165
+ ],
+ "foto": {
+  "x": 20,
+  "y": 7,
+  "w": 226,
+  "h": 117
+ },
+ "nombre": {
+  "x": 276,
+  "base": 43,
+  "alturaMayus": 28,
+  "anchoMax": 272
+ },
+ "desc": {
+  "x": 277,
+  "base": 68,
+  "tam": 26,
+  "anchoMax": 271
+ },
+ "precio": {
+  "x": 620,
+  "base": 109,
+  "alturaMayus": 22,
+  "derecha": 726
+ }
+}
