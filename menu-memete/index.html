@@ -6,7 +6,7 @@
 <title>Menú Tentación Memete</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&family=Saira+Condensed:wght@700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&family=Saira+Condensed:wght@700&family=Kaushan+Script&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
     --amarillo:#FDD735;
@@ -148,8 +148,11 @@
       <p class="nota">
         Con 8 platos la hoja sale igual que el diseño original. Con menos se acorta y con
         más se alarga, siempre de a un renglón.<br>
-        Ahora mide <b id="medida">—</b>.
+        Ahora mide <b id="medida">—</b>.<br>
+        <b>Con un solo plato</b> se usa la plantilla especial: foto grande y el nombre
+        abajo, sin grilla.
       </p>
+      <p class="aviso" id="avisoFoto"></p>
     </section>
 
     <section id="paneCat" hidden>
@@ -261,7 +264,18 @@ const COL = [
 const NOMBRE = { fuente:'700 {t}px "Saira Condensed", sans-serif', tam:42, min:26,
                  base1:92, dos:[66,100], tamDos:40, minDos:26 };
 const TINTA  = "#0A0A0A";
-const FOTO_GUARDADA = { w:404, h:370 };      // el doble del hueco: nítido y liviano
+
+// Plantilla de PLATO ÚNICO: se usa sola, cuando hay exactamente un plato cargado.
+const UNICO = {
+  alto: 1536,
+  foto: { x:123, y:443, w:762, h:602 },
+  nombre: { centro:505, medio:1124, anchoMax:670, tam:78, min:34,
+            fuente:'{t}px "Kaushan Script", cursive' },
+};
+// Tiene que servir para los dos huecos: el de la grilla (202×185) y el del plato
+// único (762×602). Se guarda en un punto intermedio y bien grande.
+const FOTO_GUARDADA = { w:820, h:700 };
+const FOTO_MINIMA = 700;                     // menos de esto se ve borroso en plato único
 
 /* ========================================================================== */
 
@@ -271,6 +285,7 @@ const lienzo = document.getElementById("lienzo");
 const ctx = lienzo.getContext("2d");
 const calcos = [], mascaras = [];
 const piezas = {};
+const unico = {};
 let editando = null, fotoEnEdicion = null;
 const cacheFotos = new Map();
 const q = (sel) => document.querySelector(sel);
@@ -568,8 +583,53 @@ function dibujarNombre(nombre, cx, y, anchoMax){
   ctx.fillText(nombre, cx, y + NOMBRE.base1);
 }
 
+// Un solo plato: va la plantilla especial, con la foto grande y el nombre en el pincelazo.
+async function dibujarUnico(p){
+  if(lienzo.height !== UNICO.alto) lienzo.height = UNICO.alto;
+  ctx.clearRect(0, 0, ANCHO, UNICO.alto);
+  ctx.drawImage(unico.plantilla, 0, 0);
+
+  const f = UNICO.foto;
+  let chica = false;
+  try{
+    const im = await fotoDe(p.foto);
+    chica = im.width < FOTO_MINIMA;
+    const t = document.createElement("canvas");
+    t.width = f.w; t.height = f.h;
+    const g = t.getContext("2d");
+    const e = Math.max(f.w / im.width, f.h / im.height);
+    const aw = im.width * e, ah = im.height * e;
+    g.drawImage(im, (f.w - aw)/2, (f.h - ah)/2, aw, ah);
+    g.globalCompositeOperation = "destination-in";
+    g.drawImage(unico.mascara, 0, 0, f.w, f.h);
+    ctx.drawImage(t, f.x, f.y);
+  }catch(err){ /* sin foto: queda el hueco blanco */ }
+
+  const N = UNICO.nombre;
+  let t = N.tam;
+  ctx.font = N.fuente.replace("{t}", t);
+  while(ctx.measureText(p.nombre).width > N.anchoMax && t > N.min){
+    t -= 1; ctx.font = N.fuente.replace("{t}", t);
+  }
+  const m = ctx.measureText(p.nombre);
+  ctx.fillStyle = TINTA; ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
+  ctx.fillText(p.nombre, N.centro, N.medio + (m.actualBoundingBoxAscent - m.actualBoundingBoxDescent) / 2);
+
+  id("medida").textContent = ANCHO + " × " + UNICO.alto + " px";
+  avisarFoto(chica ? "La foto de “" + p.nombre + "” es chica para esta plantilla y se va a " +
+    "ver borrosa. Cargala de nuevo desde “Mis platos” con una de 1600 × 1360 px." : "");
+}
+
+function avisarFoto(texto){
+  const a = id("avisoFoto");
+  a.textContent = texto;
+  a.className = "aviso" + (texto ? " ver mal" : "");
+}
+
 async function dibujar(){
   const activos = elegidos.filter(Boolean);
+  if(activos.length === 1) return dibujarUnico(activos[0]);
+  avisarFoto("");
   const filas = renglones(activos.length);
   const alto = altoPieza(filas);
 
@@ -647,12 +707,17 @@ id("btnPdf").onclick = () => {
   try{
     for(const n of ["cabecera","papel","bandaIni","bandaMed","pie"])
       piezas[n] = await cargarImagen(`assets/p3/${n}.png`);
+    unico.plantilla = await cargarImagen("assets/p4/plantilla.png");
+    unico.mascara   = await cargarImagen("assets/p4/mask.png");
     for(let i=1;i<=2;i++){
       calcos.push(await cargarImagen(`assets/p3/tarjeta${i}.png`));
       mascaras.push(await cargarImagen(`assets/p3/mask${i}.png`));
     }
     if(document.fonts && document.fonts.load){
-      await document.fonts.load('700 42px "Saira Condensed"');
+      await Promise.all([
+        document.fonts.load('700 42px "Saira Condensed"'),
+        document.fonts.load('78px "Kaushan Script"'),
+      ]);
       await document.fonts.ready;
     }
     CATALOGO = ALMACEN.leerCatalogo() || SEMILLA.slice();
