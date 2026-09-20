@@ -186,11 +186,15 @@
       </div>
 
       <div class="acciones">
+        <button class="btn borde" id="btnSemilla">Traer los platos que faltan</button>
+      </div>
+      <div class="acciones" style="margin-top:8px;padding-top:0;border:0">
         <button class="btn borde" id="btnExportar">Bajar respaldo</button>
         <label class="btn borde" for="archivoRespaldo" style="text-align:center;line-height:1.4">Cargar respaldo</label>
         <input type="file" id="archivoRespaldo" accept="application/json" style="display:none">
       </div>
       <p class="nota">
+        <b>Los precios vienen vacíos.</b> Hay que cargarlos una vez acá y quedan guardados.<br>
         <b>Ojo:</b> los platos se guardan en <b>este</b> dispositivo. Lo que cargues en la
         computadora no aparece en el celular. Para pasarlos, usá “Bajar respaldo” en uno y
         “Cargar respaldo” en el otro.
@@ -209,12 +213,22 @@
    A partir de ahí manda lo que se cargue desde la solapa "Mis platos".
    ========================================================================== */
 const SEMILLA = [
-  { nombre:"Zapallito relleno con carne", desc:"Relleno de carne y queso gratinado", precio:"35.000", foto:"fotos2/zapallito-relleno.jpg" },
-  { nombre:"Puchero de carne",            desc:"Con choclo, papa y zanahoria",       precio:"38.000", foto:"fotos2/puchero-de-carne.jpg" },
-  { nombre:"Guisado de pollo",            desc:"Con arroz blanco",                   precio:"32.000", foto:"fotos2/guisado-de-pollo.jpg" },
-  { nombre:"Milanesa de pollo",           desc:"Con papas fritas y ensalada",        precio:"35.000", foto:"fotos2/milanesa-de-pollo.jpg" },
-  { nombre:"Mandioca",                    desc:"Porción",                            precio:"8.000",  foto:"fotos2/mandioca.jpg" },
-  { nombre:"Pancito casero",              desc:"Recién horneado, por unidad",        precio:"3.000",  foto:"fotos2/pancito-casero.jpg" },
+  // De la pieza que pasó José el 20/09. Los precios vienen VACÍOS a propósito:
+  // en esa pieza las pastillas dicen solo "Gs.". Se cargan desde la pantalla.
+  { nombre:"Vacío al horno",            desc:"", precio:"", foto:"fotos2/vacio-al-horno.jpg" },
+  { nombre:"Costilla vacuna",           desc:"", precio:"", foto:"fotos2/costilla-vacuna.jpg" },
+  { nombre:"Milanesa a la napolitana",  desc:"", precio:"", foto:"fotos2/milanesa-a-la-napolitana.jpg" },
+  { nombre:"Sopa paraguaya",            desc:"", precio:"", foto:"fotos2/sopa-paraguaya.jpg" },
+  { nombre:"Ensaladas",                 desc:"", precio:"", foto:"fotos2/ensaladas.jpg" },
+  { nombre:"Mandioca",                  desc:"", precio:"", foto:"fotos2/mandioca.jpg" },
+  { nombre:"Pancito casero",            desc:"", precio:"", foto:"fotos2/pancito-casero.jpg" },
+  { nombre:"Jugo natural de naranja",   desc:"", precio:"", foto:"fotos2/jugo-natural-de-naranja.jpg" },
+  // De la primera pieza. Las fotos son recortes de aquella imagen: se ven bien
+  // pero son de menor calidad que las de arriba.
+  { nombre:"Zapallito relleno con carne", desc:"", precio:"", foto:"fotos2/zapallito-relleno.jpg" },
+  { nombre:"Puchero de carne",            desc:"", precio:"", foto:"fotos2/puchero-de-carne.jpg" },
+  { nombre:"Guisado de pollo",            desc:"", precio:"", foto:"fotos2/guisado-de-pollo.jpg" },
+  { nombre:"Milanesa de pollo",           desc:"", precio:"", foto:"fotos2/milanesa-de-pollo.jpg" },
 ];
 
 /* ==========================================================================
@@ -245,7 +259,10 @@ const LIENZO  = { w:1024, h:1536 };
 const CALCO   = { x:52, w:756, h:131 };
 const PRIMERA = 477, ULTIMA = 1165;
 const FOTO    = { x:20,  y:7,   w:226, h:117 };
-const NOMBRE  = { x:276, base:43,  anchoMax:272, fuente:'700 {t}px Archivo, sans-serif' };
+const NOMBRE  = { x:276, base:43,  anchoMax:272, fuente:'700 {t}px Archivo, sans-serif',
+                  tam:40, min:21,
+                  // si el plato no tiene descripción, un nombre largo usa los dos renglones
+                  dosLineas:{ base1:38, base2:76, tam:36, min:24 } };
 const DESC    = { x:277, base:68,  anchoMax:271, fuente:'400 {t}px Lato, sans-serif' };
 const PRECIO  = { x:620, base:109, hasta:726,    fuente:'700 {t}px Archivo, sans-serif' };
 const TINTA   = "#0A0A0A";
@@ -491,6 +508,16 @@ function persistir(mensaje){
 
 /* ---------- respaldo, para pasar de un aparato a otro ---------- */
 
+// La herramienta viene con platos de fábrica. Si el dispositivo ya tenía cosas
+// guardadas, este botón suma solamente los que falten, comparando por nombre.
+id("btnSemilla").onclick = () => {
+  const hay = new Set(CATALOGO.map(p => p.nombre.trim().toLowerCase()));
+  const faltan = SEMILLA.filter(p => !hay.has(p.nombre.trim().toLowerCase()));
+  if(!faltan.length) return avisar("Ya están todos los platos que trae la herramienta.", "bien");
+  CATALOGO = CATALOGO.concat(faltan.map(p => ({...p})));
+  persistir("Se agregaron " + faltan.length + " plato(s).");
+};
+
 id("btnExportar").onclick = () => {
   const b = new Blob([JSON.stringify(CATALOGO, null, 1)], {type:"application/json"});
   const a = document.createElement("a");
@@ -524,13 +551,54 @@ function alturas(n){
   const paso = (ULTIMA - PRIMERA) / (n - 1);
   return Array.from({length:n}, (_, i) => Math.round(PRIMERA + i * paso));
 }
+// escribe achicando la letra hasta que entre; si aun asi no entra, corta con puntos
 function escribir(texto, x, base, anchoMax, plantilla, tamIdeal, minimo){
   let t = tamIdeal;
   ctx.font = plantilla.replace("{t}", t);
   while(ctx.measureText(texto).width > anchoMax && t > minimo){
     t -= 1; ctx.font = plantilla.replace("{t}", t);
   }
+  while(texto.length > 4 && ctx.measureText(texto).width > anchoMax)
+    texto = texto.slice(0, -2) + "…";
   ctx.fillText(texto, x, base);
+}
+
+// parte un texto en dos renglones lo mas parejos posible
+function enDos(texto, tam, plantilla, anchoMax){
+  const pal = texto.split(/\s+/);
+  if(pal.length < 2) return null;
+  ctx.font = plantilla.replace("{t}", tam);
+  let mejor = null;
+  for(let k = 1; k < pal.length; k++){
+    const a = pal.slice(0, k).join(" "), b = pal.slice(k).join(" ");
+    const wa = ctx.measureText(a).width, wb = ctx.measureText(b).width;
+    if(wa > anchoMax || wb > anchoMax) continue;
+    const dif = Math.abs(wa - wb);
+    if(!mejor || dif < mejor.dif) mejor = {a, b, dif};
+  }
+  return mejor;
+}
+
+function dibujarNombre(nombre, y, tieneDesc){
+  const N = NOMBRE;
+  ctx.font = N.fuente.replace("{t}", N.tam);
+  const entra = ctx.measureText(nombre).width <= N.anchoMax;
+
+  // entra de una, o hay descripción abajo y no se puede usar el segundo renglón
+  if(entra || tieneDesc)
+    return escribir(nombre, CALCO.x + N.x, y + N.base, N.anchoMax, N.fuente, N.tam, N.min);
+
+  const d = N.dosLineas;
+  for(let t = d.tam; t >= d.min; t--){
+    const p = enDos(nombre, t, N.fuente, N.anchoMax);
+    if(p){
+      ctx.font = N.fuente.replace("{t}", t);
+      ctx.fillText(p.a, CALCO.x + N.x, y + d.base1);
+      ctx.fillText(p.b, CALCO.x + N.x, y + d.base2);
+      return;
+    }
+  }
+  escribir(nombre, CALCO.x + N.x, y + N.base, N.anchoMax, N.fuente, N.tam, N.min);
 }
 
 async function dibujar(){
@@ -559,7 +627,7 @@ async function dibujar(){
     }catch(err){ /* sin foto: queda el marco vacío */ }
 
     ctx.fillStyle = TINTA; ctx.textBaseline = "alphabetic"; ctx.textAlign = "left";
-    escribir(p.nombre, CALCO.x + NOMBRE.x, y + NOMBRE.base, NOMBRE.anchoMax, NOMBRE.fuente, 40, 26);
+    dibujarNombre(p.nombre, y, !!p.desc);
     if(p.desc)   escribir(p.desc,   CALCO.x + DESC.x,   y + DESC.base,   DESC.anchoMax,        DESC.fuente,   26, 17);
     if(p.precio) escribir(p.precio, CALCO.x + PRECIO.x, y + PRECIO.base, PRECIO.hasta-PRECIO.x, PRECIO.fuente, 31, 20);
   }
