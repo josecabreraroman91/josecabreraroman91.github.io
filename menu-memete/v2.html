@@ -6,7 +6,7 @@
 <title>Menú Tentación Memete</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&family=Saira+Condensed:wght@700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&family=Lato:wght@400&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
     --amarillo:#FDD735;
@@ -15,7 +15,7 @@
     --linea:#E7E0CD;
     --texto:#2A2A2A;
     --suave:#736C5E;
-    --fondo:#F5F0E2;
+    --fondo:#F3EEE0;
   }
   *{box-sizing:border-box}
   body{margin:0;background:var(--fondo);color:var(--texto);
@@ -28,8 +28,8 @@
   header .punto{width:9px;height:9px;border-radius:50%;background:var(--amarillo);flex:none}
   header small{color:#A9A296;font-size:11px;margin-left:auto;text-align:right}
 
-  .wrap{display:grid;grid-template-columns:400px 1fr;gap:22px;
-        padding:22px;max-width:1320px;margin:0 auto;align-items:start}
+  .wrap{display:grid;grid-template-columns:430px 1fr;gap:22px;
+        padding:22px;max-width:1340px;margin:0 auto;align-items:start}
 
   .panel{background:#fff;border:1px solid var(--linea);border-radius:14px;padding:16px}
 
@@ -41,22 +41,26 @@
 
   .sub{font-size:12px;color:var(--suave);margin:0 0 14px;line-height:1.55}
 
-  .fila{display:flex;align-items:center;gap:8px;border:1px solid var(--linea);
-        border-radius:10px;padding:7px 8px;margin-bottom:7px;position:relative;background:#FFFDF7}
+  .fila{border:1px solid var(--linea);border-radius:11px;padding:9px 9px 3px;
+        margin-bottom:9px;position:relative;background:#FFFDF7}
   .fila.llena{background:#fff;border-color:#EBD79A}
+  .fila .cab{display:flex;align-items:center;gap:8px;margin-bottom:6px}
   .fila .num{font-family:Archivo,sans-serif;font-weight:700;font-size:13px;
-             color:var(--amarillo2);width:14px;flex:none;text-align:center}
-  .fila .limpiar{width:23px;height:23px;border:0;background:none;color:#BBB3A3;cursor:pointer;
-                 font-size:16px;line-height:1;border-radius:6px;flex:none}
+             color:var(--amarillo2);width:14px;flex:none}
+  .fila .limpiar{margin-left:auto;width:23px;height:23px;border:0;background:none;
+                 color:#BBB3A3;cursor:pointer;font-size:16px;line-height:1;border-radius:6px;flex:none}
   .fila .limpiar:hover{background:#F2EEE6;color:var(--negro)}
-  .fila input{flex:1;min-width:0;margin:0}
+  .par{display:flex;gap:6px}
+  .par input:first-child{flex:1;min-width:0}
+  .par input:last-child{width:105px;text-align:right;flex:none}
 
   input[type=text]{width:100%;padding:9px 10px;border:1px solid var(--linea);border-radius:8px;
                    font:inherit;font-size:13px;background:#fff;color:var(--texto);margin-bottom:6px}
   input[type=text]:focus{outline:none;border-color:var(--amarillo2);
                          box-shadow:0 0 0 3px rgba(242,183,5,.18)}
+  .fila .buscar{margin-bottom:0}
 
-  .lista{position:absolute;z-index:30;left:8px;right:8px;top:38px;background:#fff;
+  .lista{position:absolute;z-index:30;left:9px;right:9px;top:40px;background:#fff;
          border:1px solid var(--linea);border-radius:10px;
          box-shadow:0 12px 28px rgba(0,0,0,.16);max-height:250px;overflow:auto;display:none}
   .lista.abierta{display:block}
@@ -65,7 +69,7 @@
                 color:var(--texto);border-bottom:1px solid #F5F2EA}
   .lista button:last-child{border-bottom:0}
   .lista button:hover,.lista button.marcado{background:#FEF8E3}
-  .lista img{width:42px;height:38px;object-fit:cover;border-radius:5px;flex:none;background:#EEE}
+  .lista img{width:52px;height:27px;object-fit:cover;border-radius:4px;flex:none;background:#EEE}
   .lista .vacio{padding:13px 11px;color:var(--suave);font-size:13px}
 
   .acciones{display:flex;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--linea)}
@@ -76,21 +80,26 @@
   .btn:hover{filter:brightness(1.06)}
   .nota{margin-top:11px;font-size:12px;color:var(--suave);line-height:1.55}
 
+  /* --- catálogo --- */
   .plato{display:flex;align-items:center;gap:10px;padding:8px;border:1px solid var(--linea);
          border-radius:10px;margin-bottom:8px;background:#fff}
-  .plato img{width:56px;height:50px;object-fit:cover;border-radius:6px;flex:none;
+  .plato img{width:70px;height:36px;object-fit:cover;border-radius:5px;flex:none;
              background:#EFE9DA;border:1px solid var(--linea)}
   .plato .txt{flex:1;min-width:0}
   .plato b{display:block;font-size:13px;font-weight:600;white-space:nowrap;
            overflow:hidden;text-overflow:ellipsis}
+  .plato span{display:block;font-size:11px;color:var(--suave);white-space:nowrap;
+              overflow:hidden;text-overflow:ellipsis}
+  .plato .gs{font-family:Archivo,sans-serif;font-weight:700;font-size:12px;flex:none}
   .plato .ico{width:28px;height:28px;border:1px solid var(--linea);background:#fff;
               border-radius:7px;cursor:pointer;font-size:13px;line-height:1;flex:none;padding:0}
   .plato .ico:hover{background:#FBF6E8}
 
   .editor{border:1px solid #EBD79A;background:#FFFDF5;border-radius:12px;padding:13px;margin-top:12px}
-  .editor h3{margin:0 0 10px;font-size:12px;letter-spacing:1.2px;text-transform:uppercase;color:var(--suave)}
+  .editor h3{margin:0 0 10px;font-size:12px;letter-spacing:1.2px;text-transform:uppercase;
+             color:var(--suave)}
   .cargafoto{display:flex;align-items:center;gap:10px;margin-bottom:9px}
-  .cargafoto .prev{width:66px;height:60px;border-radius:8px;border:1px dashed var(--linea);
+  .cargafoto .prev{width:104px;height:54px;border-radius:7px;border:1px dashed var(--linea);
                    background:#fff center/cover no-repeat;flex:none}
   .cargafoto label{flex:1;padding:10px;border:1px solid var(--linea);border-radius:8px;
                    background:#fff;font-size:12.5px;font-weight:600;text-align:center;cursor:pointer}
@@ -113,7 +122,7 @@
     .wrap{grid-template-columns:1fr;padding:12px;gap:14px}
     canvas{max-width:100%}
     .vista{padding:10px}
-    input[type=text]{font-size:16px}
+    input[type=text]{font-size:16px}          /* evita que el celu haga zoom al escribir */
   }
 </style>
 </head>
@@ -134,10 +143,11 @@
       <button id="tabCat">Mis platos</button>
     </div>
 
+    <!-- ARMAR EL MENÚ -->
     <section id="paneMenu">
       <p class="sub">
-        Buscá el plato y elegilo: entra solo con su foto. Esta plantilla lleva
-        <b>hasta 8 platos</b> y no lleva precio.
+        Buscá el plato y elegilo: entran solos la foto, la descripción y el precio.
+        Los dos campos de abajo se corrigen a mano y solo afectan a este menú.
       </p>
       <div id="filas"></div>
       <div class="acciones">
@@ -145,11 +155,12 @@
         <button class="btn oscuro" id="btnPdf">Descargar PDF</button>
       </div>
       <p class="nota">
-        Si cargás menos de 8, las tarjetas se reparten solas de arriba a abajo.
+        Con menos de 6 platos los renglones se reparten solos dentro del recuadro.
         La pieza sale de 1024 × 1536 px.
       </p>
     </section>
 
+    <!-- CATÁLOGO -->
     <section id="paneCat" hidden>
       <p class="sub">
         Acá se cargan los platos una sola vez y quedan guardados en este dispositivo.
@@ -165,6 +176,8 @@
           <input type="file" id="archivo" accept="image/*">
         </div>
         <input type="text" id="eNombre" placeholder="Nombre del plato" autocomplete="off">
+        <input type="text" id="eDesc" placeholder="Breve descripción" autocomplete="off">
+        <input type="text" id="ePrecio" placeholder="Precio, solo números: 35.000" autocomplete="off">
         <div class="acciones" style="margin-top:4px;padding-top:0;border:0">
           <button class="btn" id="btnGuardar">Guardar plato</button>
           <button class="btn borde" id="btnCancelar" hidden>Cancelar</button>
@@ -181,8 +194,7 @@
         <input type="file" id="archivoRespaldo" accept="application/json" style="display:none">
       </div>
       <p class="nota">
-        <b>Fotos: 1200 × 1100 px, casi cuadradas.</b> El hueco de esta plantilla es casi
-        cuadrado, no una franja como el de la plantilla con precios.<br>
+        <b>Los precios vienen vacíos.</b> Hay que cargarlos una vez acá y quedan guardados.<br>
         <b>Ojo:</b> los platos se guardan en <b>este</b> dispositivo. Lo que cargues en la
         computadora no aparece en el celular. Para pasarlos, usá “Bajar respaldo” en uno y
         “Cargar respaldo” en el otro.
@@ -197,31 +209,37 @@
 <script>
 /* ==========================================================================
    CATÁLOGO DE ARRANQUE
-   Solo se usa mientras no haya nada guardado en el dispositivo.
+   Solo se usa la primera vez, mientras no haya nada guardado en el dispositivo.
+   A partir de ahí manda lo que se cargue desde la solapa "Mis platos".
    ========================================================================== */
 const SEMILLA = [
-  { nombre:"Vacío al horno",            foto:"fotos2/vacio-al-horno.jpg" },
-  { nombre:"Costilla vacuna",           foto:"fotos2/costilla-vacuna.jpg" },
-  { nombre:"Milanesa a la napolitana",  foto:"fotos2/milanesa-a-la-napolitana.jpg" },
-  { nombre:"Sopa paraguaya",            foto:"fotos2/sopa-paraguaya.jpg" },
-  { nombre:"Ensaladas",                 foto:"fotos2/ensaladas.jpg" },
-  { nombre:"Mandioca",                  foto:"fotos2/mandioca.jpg" },
-  { nombre:"Pancito casero",            foto:"fotos2/pancito-casero.jpg" },
-  { nombre:"Jugo natural de naranja",   foto:"fotos2/jugo-natural-de-naranja.jpg" },
-  { nombre:"Zapallito relleno con carne", foto:"fotos2/zapallito-relleno.jpg" },
-  { nombre:"Puchero de carne",            foto:"fotos2/puchero-de-carne.jpg" },
-  { nombre:"Guisado de pollo",            foto:"fotos2/guisado-de-pollo.jpg" },
-  { nombre:"Milanesa de pollo",           foto:"fotos2/milanesa-de-pollo.jpg" },
+  // De la pieza que pasó José el 20/09. Los precios vienen VACÍOS a propósito:
+  // en esa pieza las pastillas dicen solo "Gs.". Se cargan desde la pantalla.
+  { nombre:"Vacío al horno",            desc:"", precio:"", foto:"fotos2/vacio-al-horno.jpg" },
+  { nombre:"Costilla vacuna",           desc:"", precio:"", foto:"fotos2/costilla-vacuna.jpg" },
+  { nombre:"Milanesa a la napolitana",  desc:"", precio:"", foto:"fotos2/milanesa-a-la-napolitana.jpg" },
+  { nombre:"Sopa paraguaya",            desc:"", precio:"", foto:"fotos2/sopa-paraguaya.jpg" },
+  { nombre:"Ensaladas",                 desc:"", precio:"", foto:"fotos2/ensaladas.jpg" },
+  { nombre:"Mandioca",                  desc:"", precio:"", foto:"fotos2/mandioca.jpg" },
+  { nombre:"Pancito casero",            desc:"", precio:"", foto:"fotos2/pancito-casero.jpg" },
+  { nombre:"Jugo natural de naranja",   desc:"", precio:"", foto:"fotos2/jugo-natural-de-naranja.jpg" },
+  // De la primera pieza. Las fotos son recortes de aquella imagen: se ven bien
+  // pero son de menor calidad que las de arriba.
+  { nombre:"Zapallito relleno con carne", desc:"", precio:"", foto:"fotos2/zapallito-relleno.jpg" },
+  { nombre:"Puchero de carne",            desc:"", precio:"", foto:"fotos2/puchero-de-carne.jpg" },
+  { nombre:"Guisado de pollo",            desc:"", precio:"", foto:"fotos2/guisado-de-pollo.jpg" },
+  { nombre:"Milanesa de pollo",           desc:"", precio:"", foto:"fotos2/milanesa-de-pollo.jpg" },
 ];
 
 /* ==========================================================================
    DÓNDE SE GUARDA
-   Hoy: en el propio dispositivo. Para compartir entre la compu y el celular
-   hay que cambiar SOLO estas funciones por Firebase.
+   Hoy: en el propio dispositivo (localStorage).
+   Para que se comparta entre la compu y el celular hay que cambiar SOLO estas
+   tres funciones por Firebase. El resto del archivo no se toca.
    ========================================================================== */
 const ALMACEN = {
   claveCat: "memete.catalogo.v1",
-  claveMenu: "memete.menu.v3",
+  claveMenu: "memete.menu.v1",
   leerCatalogo(){
     try{ const c = JSON.parse(localStorage.getItem(this.claveCat)); return Array.isArray(c) ? c : null; }
     catch(e){ return null; }
@@ -236,36 +254,27 @@ const ALMACEN = {
 
 /* ==========================================================================
    GEOMETRÍA — medida sobre la plantilla, no tocar sin volver a medir.
-   Cada plato es un calco de tarjeta que se estampa donde le toca.
    ========================================================================== */
 const LIENZO  = { w:1024, h:1536 };
-const RANURAS = 8;
-const PRIMERA = 374, ULTIMA = 1063;          // arriba del primer y del último renglón
-const FILAS_DISENO = [374, 605, 835, 1063];  // las cuatro del diseño original
-const PASO = (ULTIMA - PRIMERA) / 3;         // separación entre renglones, la del diseño
-const ALTO_TARJETA = 230;
-
-const COL = [
-  { x:25,  w:488, foto:{x:21, y:23, w:202, h:185},
-    texto:{ centro:356, anchoMax:244 } },
-  { x:512, w:489, foto:{x:20, y:23, w:195, h:185},
-    texto:{ centro:354, anchoMax:250 } },
-];
-// Saira Condensed es la más parecida a la condensada del diseño: a la misma altura de
-// mayúscula, los nombres miden casi lo mismo que en la pieza original.
-const NOMBRE = { fuente:'700 {t}px "Saira Condensed", sans-serif', tam:42, min:26,
-                 base1:92, dos:[66,100], tamDos:40, minDos:26 };
-const TINTA  = "#0A0A0A";
-const FOTO_GUARDADA = { w:404, h:370 };      // el doble del hueco: nítido y liviano
+const CALCO   = { x:52, w:756, h:131 };
+const PRIMERA = 477, ULTIMA = 1165;
+const FOTO    = { x:20,  y:7,   w:226, h:117 };
+const NOMBRE  = { x:276, base:43,  anchoMax:272, fuente:'700 {t}px Archivo, sans-serif',
+                  tam:40, min:21,
+                  // si el plato no tiene descripción, un nombre largo usa los dos renglones
+                  dosLineas:{ base1:38, base2:76, tam:36, min:24 } };
+const DESC    = { x:277, base:68,  anchoMax:271, fuente:'400 {t}px Lato, sans-serif' };
+const PRECIO  = { x:620, base:109, hasta:726,    fuente:'700 {t}px Archivo, sans-serif' };
+const TINTA   = "#0A0A0A";
+const FOTO_GUARDADA = { w:452, h:234 };     // el doble del hueco: nítido y liviano
 
 /* ========================================================================== */
 
 let CATALOGO = [];
-const elegidos = Array(RANURAS).fill(null);
+const elegidos = Array(6).fill(null);
 const lienzo = document.getElementById("lienzo");
 const ctx = lienzo.getContext("2d");
-let base = null;
-const calcos = [], mascaras = [];
+let base = null, calco = null, mascaraFoto = null;
 let editando = null, fotoEnEdicion = null;
 const cacheFotos = new Map();
 const q = (sel) => document.querySelector(sel);
@@ -274,7 +283,7 @@ const id = (x) => document.getElementById(x);
 const cargarImagen = (src) => new Promise((ok, err) => {
   const im = new Image();
   im.onload = () => ok(im);
-  im.onerror = () => err(new Error("No se pudo cargar " + src));
+  im.onerror = () => err(new Error("No se pudo cargar la foto"));
   im.src = src;
 });
 async function fotoDe(src){
@@ -296,18 +305,31 @@ function mostrar(cual){
 
 function armarFilas(){
   const cont = id("filas");
-  for(let i=0;i<RANURAS;i++){
+  for(let i=0;i<6;i++){
     const f = document.createElement("div");
     f.className = "fila"; f.dataset.fila = i;
     f.innerHTML = `
-      <span class="num">${i+1}</span>
-      <input type="text" placeholder="Buscar plato…" autocomplete="off" data-i="${i}">
-      <button class="limpiar" title="Vaciar" data-limpiar="${i}">×</button>
+      <div class="cab">
+        <span class="num">${i+1}</span>
+        <input class="buscar" type="text" placeholder="Buscar plato…" autocomplete="off" data-i="${i}">
+        <button class="limpiar" title="Vaciar" data-limpiar="${i}">×</button>
+      </div>
+      <div class="par">
+        <input type="text" placeholder="Breve descripción" data-desc="${i}">
+        <input type="text" placeholder="Gs." data-precio="${i}">
+      </div>
       <div class="lista" data-lista="${i}"></div>`;
     cont.appendChild(f);
   }
+
   cont.addEventListener("input", e => {
-    if(e.target.dataset.i !== undefined) abrirLista(+e.target.dataset.i, e.target.value);
+    const t = e.target;
+    if(t.dataset.i !== undefined){ abrirLista(+t.dataset.i, t.value); return; }
+    const i = t.dataset.desc ?? t.dataset.precio;
+    if(i === undefined || !elegidos[i]) return;
+    if(t.dataset.desc   !== undefined) elegidos[i].desc   = t.value;
+    if(t.dataset.precio !== undefined) elegidos[i].precio = t.value;
+    guardarSeleccion(); dibujar();
   });
   cont.addEventListener("focusin", e => {
     if(e.target.dataset.i === undefined) return;
@@ -339,11 +361,15 @@ function armarFilas(){
 function vaciar(i){
   elegidos[i] = null;
   q(`input[data-i="${i}"]`).value = "";
+  q(`input[data-desc="${i}"]`).value = "";
+  q(`input[data-precio="${i}"]`).value = "";
   q(`.fila[data-fila="${i}"]`).classList.remove("llena");
 }
 function poner(i, p){
   elegidos[i] = { ...p };
   q(`input[data-i="${i}"]`).value = p.nombre;
+  q(`input[data-desc="${i}"]`).value = p.desc || "";
+  q(`input[data-precio="${i}"]`).value = p.precio || "";
   q(`.fila[data-fila="${i}"]`).classList.add("llena");
 }
 const cerrarListas = () => document.querySelectorAll(".lista").forEach(l => l.classList.remove("abierta"));
@@ -375,14 +401,20 @@ function abrirLista(i, texto){
 function pintarCatalogo(){
   const cont = id("platos");
   cont.innerHTML = "";
-  if(!CATALOGO.length) cont.innerHTML = `<p class="sub">Todavía no hay platos cargados.</p>`;
+  if(!CATALOGO.length){
+    cont.innerHTML = `<p class="sub">Todavía no hay platos cargados.</p>`;
+  }
   CATALOGO.forEach((p, n) => {
     const d = document.createElement("div");
     d.className = "plato";
-    d.innerHTML = `<img src="${p.foto}" alt=""><div class="txt"><b></b></div>
+    d.innerHTML = `<img src="${p.foto}" alt="">
+      <div class="txt"><b></b><span></span></div>
+      <span class="gs"></span>
       <button class="ico" data-editar="${n}" title="Editar">✎</button>
       <button class="ico" data-borrar="${n}" title="Borrar">🗑</button>`;
     d.querySelector("b").textContent = p.nombre;
+    d.querySelector(".txt span").textContent = p.desc || "—";
+    d.querySelector(".gs").textContent = p.precio ? "Gs. " + p.precio : "";
     cont.appendChild(d);
   });
   id("contador").textContent = CATALOGO.length + (CATALOGO.length === 1 ? " plato" : " platos");
@@ -394,7 +426,8 @@ id("platos").addEventListener("click", e => {
   if(bo){
     const n = +bo.dataset.borrar;
     if(!confirm(`¿Borrar “${CATALOGO[n].nombre}” del catálogo?`)) return;
-    CATALOGO.splice(n, 1); persistir("Plato borrado.");
+    CATALOGO.splice(n, 1);
+    persistir("Plato borrado.");
   }
 });
 
@@ -406,6 +439,8 @@ function abrirEditor(n){
   id("prev").style.backgroundImage = `url("${p.foto}")`;
   id("rotuloFoto").textContent = "Cambiar foto";
   id("eNombre").value = p.nombre;
+  id("eDesc").value   = p.desc || "";
+  id("ePrecio").value = p.precio || "";
   id("btnCancelar").hidden = false;
   id("btnGuardar").textContent = "Guardar cambios";
   id("eNombre").focus();
@@ -415,7 +450,8 @@ function limpiarEditor(){
   id("tituloEditor").textContent = "Agregar un plato";
   id("prev").style.backgroundImage = "";
   id("rotuloFoto").textContent = "Elegir foto";
-  id("eNombre").value = ""; id("archivo").value = "";
+  id("eNombre").value = ""; id("eDesc").value = ""; id("ePrecio").value = "";
+  id("archivo").value = "";
   id("btnCancelar").hidden = true;
   id("btnGuardar").textContent = "Guardar plato";
 }
@@ -427,6 +463,7 @@ function avisar(texto, tipo){
   a.className = "aviso" + (texto ? " ver " + (tipo || "bien") : "");
 }
 
+// achica la foto al doble del hueco: nítida y liviana para guardar
 id("archivo").onchange = (e) => {
   const f = e.target.files[0];
   if(!f) return;
@@ -454,19 +491,25 @@ id("btnGuardar").onclick = () => {
   const nombre = id("eNombre").value.trim();
   if(!nombre) return avisar("Falta el nombre del plato.", "mal");
   if(!fotoEnEdicion) return avisar("Falta la foto.", "mal");
-  const p = { nombre, foto: fotoEnEdicion };
-  if(editando === null) CATALOGO.push(p); else CATALOGO[editando] = { ...CATALOGO[editando], ...p };
+  const p = { nombre, desc: id("eDesc").value.trim(),
+              precio: id("ePrecio").value.trim(), foto: fotoEnEdicion };
+  if(editando === null) CATALOGO.push(p); else CATALOGO[editando] = p;
   persistir(editando === null ? "Plato agregado." : "Cambios guardados.");
 };
 
 function persistir(mensaje){
   const r = ALMACEN.guardarCatalogo(CATALOGO);
   cacheFotos.clear();
-  pintarCatalogo(); limpiarEditor();
+  pintarCatalogo();
+  limpiarEditor();
   avisar(r.ok ? mensaje : r.motivo, r.ok ? "bien" : "mal");
   dibujar();
 }
 
+/* ---------- respaldo, para pasar de un aparato a otro ---------- */
+
+// La herramienta viene con platos de fábrica. Si el dispositivo ya tenía cosas
+// guardadas, este botón suma solamente los que falten, comparando por nombre.
 id("btnSemilla").onclick = () => {
   const hay = new Set(CATALOGO.map(p => p.nombre.trim().toLowerCase()));
   const faltan = SEMILLA.filter(p => !hay.has(p.nombre.trim().toLowerCase()));
@@ -474,10 +517,13 @@ id("btnSemilla").onclick = () => {
   CATALOGO = CATALOGO.concat(faltan.map(p => ({...p})));
   persistir("Se agregaron " + faltan.length + " plato(s).");
 };
+
 id("btnExportar").onclick = () => {
   const b = new Blob([JSON.stringify(CATALOGO, null, 1)], {type:"application/json"});
   const a = document.createElement("a");
-  a.href = URL.createObjectURL(b); a.download = "platos-memete.json"; a.click();
+  a.href = URL.createObjectURL(b);
+  a.download = "platos-memete.json";
+  a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 };
 id("archivoRespaldo").onchange = (e) => {
@@ -500,61 +546,59 @@ id("archivoRespaldo").onchange = (e) => {
 
 /* ---------- dibujo ---------- */
 
-// dónde va cada renglón de tarjetas según cuántos platos haya
-// Con menos de 4 renglones NO se estiran: se respeta la separación del diseño y el
-// bloque queda centrado, para que no se abra un agujero en el medio de la pieza.
 function alturas(n){
-  const filas = Math.ceil(n / 2);
-  if(filas >= 4) return FILAS_DISENO;
-  const banda = (ULTIMA + ALTO_TARJETA) - PRIMERA;
-  const bloque = (filas - 1) * PASO + ALTO_TARJETA;
-  const arriba = PRIMERA + (banda - bloque) / 2;
-  return Array.from({length:filas}, (_, i) => Math.round(arriba + i * PASO));
+  if(n === 1) return [Math.round((PRIMERA + ULTIMA) / 2)];
+  const paso = (ULTIMA - PRIMERA) / (n - 1);
+  return Array.from({length:n}, (_, i) => Math.round(PRIMERA + i * paso));
+}
+// escribe achicando la letra hasta que entre; si aun asi no entra, corta con puntos
+function escribir(texto, x, base, anchoMax, plantilla, tamIdeal, minimo){
+  let t = tamIdeal;
+  ctx.font = plantilla.replace("{t}", t);
+  while(ctx.measureText(texto).width > anchoMax && t > minimo){
+    t -= 1; ctx.font = plantilla.replace("{t}", t);
+  }
+  while(texto.length > 4 && ctx.measureText(texto).width > anchoMax)
+    texto = texto.slice(0, -2) + "…";
+  ctx.fillText(texto, x, base);
 }
 
-function anchoCon(texto, tam){
-  ctx.font = NOMBRE.fuente.replace("{t}", tam);
-  return ctx.measureText(texto).width;
-}
-// parte el nombre en dos renglones lo más parejos posible
-function enDos(texto, tam, anchoMax){
+// parte un texto en dos renglones lo mas parejos posible
+function enDos(texto, tam, plantilla, anchoMax){
   const pal = texto.split(/\s+/);
   if(pal.length < 2) return null;
+  ctx.font = plantilla.replace("{t}", tam);
   let mejor = null;
   for(let k = 1; k < pal.length; k++){
     const a = pal.slice(0, k).join(" "), b = pal.slice(k).join(" ");
-    const wa = anchoCon(a, tam), wb = anchoCon(b, tam);
+    const wa = ctx.measureText(a).width, wb = ctx.measureText(b).width;
     if(wa > anchoMax || wb > anchoMax) continue;
-    // castigo cortar dejando colgada una palabra corta ("Milanesa a / la napolitana")
-    const corta = pal[k-1].length <= 2 ? 120 : 0;
-    const dif = Math.abs(wa - wb) + corta;
+    const dif = Math.abs(wa - wb);
     if(!mejor || dif < mejor.dif) mejor = {a, b, dif};
   }
   return mejor;
 }
 
-function dibujarNombre(nombre, cx, y, anchoMax){
-  ctx.fillStyle = TINTA;
-  ctx.textBaseline = "alphabetic";
-  ctx.textAlign = "center";
+function dibujarNombre(nombre, y, tieneDesc){
+  const N = NOMBRE;
+  ctx.font = N.fuente.replace("{t}", N.tam);
+  const entra = ctx.measureText(nombre).width <= N.anchoMax;
 
-  if(anchoCon(nombre, NOMBRE.tam) <= anchoMax){
-    ctx.font = NOMBRE.fuente.replace("{t}", NOMBRE.tam);
-    return ctx.fillText(nombre, cx, y + NOMBRE.base1);
-  }
-  for(let t = NOMBRE.tamDos; t >= NOMBRE.minDos; t--){
-    const p = enDos(nombre, t, anchoMax);
+  // entra de una, o hay descripción abajo y no se puede usar el segundo renglón
+  if(entra || tieneDesc)
+    return escribir(nombre, CALCO.x + N.x, y + N.base, N.anchoMax, N.fuente, N.tam, N.min);
+
+  const d = N.dosLineas;
+  for(let t = d.tam; t >= d.min; t--){
+    const p = enDos(nombre, t, N.fuente, N.anchoMax);
     if(p){
-      ctx.font = NOMBRE.fuente.replace("{t}", t);
-      ctx.fillText(p.a, cx, y + NOMBRE.dos[0]);
-      ctx.fillText(p.b, cx, y + NOMBRE.dos[1]);
+      ctx.font = N.fuente.replace("{t}", t);
+      ctx.fillText(p.a, CALCO.x + N.x, y + d.base1);
+      ctx.fillText(p.b, CALCO.x + N.x, y + d.base2);
       return;
     }
   }
-  let t = NOMBRE.tam;                       // una sola palabra muy larga: achicar
-  while(anchoCon(nombre, t) > anchoMax && t > NOMBRE.min) t--;
-  ctx.font = NOMBRE.fuente.replace("{t}", t);
-  ctx.fillText(nombre, cx, y + NOMBRE.base1);
+  escribir(nombre, CALCO.x + N.x, y + N.base, N.anchoMax, N.fuente, N.tam, N.min);
 }
 
 async function dibujar(){
@@ -567,25 +611,25 @@ async function dibujar(){
   const tctx = tapiz.getContext("2d");
 
   for(let i = 0; i < activos.length; i++){
-    const p = activos[i], ci = i % 2, y = ys[Math.floor(i / 2)], c = COL[ci];
-
-    ctx.drawImage(calcos[ci], c.x, y);
-
+    const p = activos[i], y = ys[i];
+    ctx.drawImage(calco, CALCO.x, y);
     try{
       const im = await fotoDe(p.foto);
-      const f = c.foto;
-      tapiz.width = f.w; tapiz.height = f.h;
-      tctx.clearRect(0, 0, f.w, f.h);
-      const e = Math.max(f.w / im.width, f.h / im.height);
+      tapiz.width = FOTO.w; tapiz.height = FOTO.h;
+      tctx.clearRect(0, 0, FOTO.w, FOTO.h);
+      const e = Math.max(FOTO.w / im.width, FOTO.h / im.height);
       const aw = im.width * e, ah = im.height * e;
-      tctx.drawImage(im, (f.w - aw)/2, (f.h - ah)/2, aw, ah);
+      tctx.drawImage(im, (FOTO.w - aw)/2, (FOTO.h - ah)/2, aw, ah);
       tctx.globalCompositeOperation = "destination-in";
-      tctx.drawImage(mascaras[ci], 0, 0, f.w, f.h);
+      tctx.drawImage(mascaraFoto, 0, 0, FOTO.w, FOTO.h);
       tctx.globalCompositeOperation = "source-over";
-      ctx.drawImage(tapiz, c.x + f.x, y + f.y);
+      ctx.drawImage(tapiz, CALCO.x + FOTO.x, y + FOTO.y);
     }catch(err){ /* sin foto: queda el marco vacío */ }
 
-    dibujarNombre(p.nombre, c.x + c.texto.centro, y, c.texto.anchoMax);
+    ctx.fillStyle = TINTA; ctx.textBaseline = "alphabetic"; ctx.textAlign = "left";
+    dibujarNombre(p.nombre, y, !!p.desc);
+    if(p.desc)   escribir(p.desc,   CALCO.x + DESC.x,   y + DESC.base,   DESC.anchoMax,        DESC.fuente,   26, 17);
+    if(p.precio) escribir(p.precio, CALCO.x + PRECIO.x, y + PRECIO.base, PRECIO.hasta-PRECIO.x, PRECIO.fuente, 31, 20);
   }
 }
 
@@ -617,21 +661,24 @@ id("btnPdf").onclick = () => {
 
 (async () => {
   try{
-    base = await cargarImagen("assets/p3/base.png");
-    for(let i=1;i<=2;i++){
-      calcos.push(await cargarImagen(`assets/p3/tarjeta${i}.png`));
-      mascaras.push(await cargarImagen(`assets/p3/mask${i}.png`));
-    }
+    base        = await cargarImagen("assets/p2/base.png");
+    calco       = await cargarImagen("assets/p2/fila.png");
+    mascaraFoto = await cargarImagen("assets/p2/mask-foto.png");
     if(document.fonts && document.fonts.load){
-      await document.fonts.load('700 42px "Saira Condensed"');
+      await Promise.all([
+        document.fonts.load('700 40px Archivo'),
+        document.fonts.load('400 26px Lato'),
+      ]);
       await document.fonts.ready;
     }
     CATALOGO = ALMACEN.leerCatalogo() || SEMILLA.slice();
-    armarFilas(); pintarCatalogo(); limpiarEditor();
+    armarFilas();
+    pintarCatalogo();
+    limpiarEditor();
 
     const guardado = ALMACEN.leerMenu();
     if(Array.isArray(guardado))
-      guardado.forEach((p, i) => { if(p && i < RANURAS) poner(i, p); });
+      guardado.forEach((p, i) => { if(p && i < 6) poner(i, p); });
 
     await dibujar();
     id("cargando").remove();
