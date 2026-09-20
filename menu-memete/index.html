@@ -126,6 +126,7 @@
   <span class="punto"></span>
   <h1>Menú Memete</h1>
   <small id="contador"></small>
+  <small id="modo" style="margin-left:10px"></small>
 </header>
 
 <div class="wrap">
@@ -186,11 +187,12 @@
         <input type="file" id="archivoRespaldo" accept="application/json" style="display:none">
       </div>
       <p class="nota">
-        <b>Fotos: 1200 × 1100 px, casi cuadradas.</b> El hueco de esta plantilla es casi
+        <b>Fotos: 1600 × 1360 px.</b> El hueco de esta plantilla es casi
         cuadrado, no una franja como el de la plantilla con precios.<br>
-        <b>Ojo:</b> los platos se guardan en <b>este</b> dispositivo. Lo que cargues en la
-        computadora no aparece en el celular. Para pasarlos, usá “Bajar respaldo” en uno y
-        “Cargar respaldo” en el otro.
+        Arriba, al lado del contador, dice dónde se están guardando. <b>“En la nube”</b>
+        quiere decir que lo que cargues lo ve cualquiera que abra el link, al toque.
+        <b>“Solo en este aparato”</b> quiere decir que no sale de acá: para pasarlo a otro
+        teléfono usá “Bajar respaldo” en uno y “Cargar respaldo” en el otro.
       </p>
     </section>
   </div>
@@ -198,6 +200,9 @@
   <div class="vista"><canvas id="lienzo" width="1024" height="1536"></canvas></div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="firebase-config.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
 /* ==========================================================================
@@ -227,17 +232,90 @@ const SEMILLA = [
    Hoy: en el propio dispositivo. Para compartir entre la compu y el celular
    hay que cambiar SOLO estas funciones por Firebase.
    ========================================================================== */
+let notificar = () => {};
+
 const ALMACEN = {
   claveCat: "memete.catalogo.v1",
   claveMenu: "memete.menu.v3",
-  leerCatalogo(){
+  ref: null,                                   // referencia a la nube, o null
+
+  // Si firebase-config.js está completo se conecta y queda escuchando: lo que
+  // carga una persona le aparece a las demás sin recargar. Si no, guarda acá nomás.
+  async iniciar(alCambiar){
+    notificar = alCambiar;
+    const cfg = window.MEMETE_FIREBASE;
+    const hayConfig = cfg && cfg.apiKey && cfg.databaseURL &&
+                      typeof firebase !== "undefined" && firebase.database;
+    if(!hayConfig) return "local";
+    id("cargando").textContent = "Conectando con la nube…";
+    try{
+      firebase.initializeApp(cfg);
+      this.ref = firebase.database().ref("catalogo");
+      await new Promise((ok, err) => {
+        let primera = true;
+        const cerrar = (f, arg) => { if(primera){ primera = false; f(arg); } };
+        this.ref.on("value", (snap) => {
+          const lista = [];
+          snap.forEach(h => { lista.push({ id: h.key, ...h.val() }); });
+          notificar(lista);
+          cerrar(ok);
+        }, (e) => cerrar(err, e));
+        setTimeout(() => cerrar(err, new Error("la nube no contestó")), 8000);
+      });
+      return "nube";
+    }catch(e){
+      this.ref = null;
+      this.falla = e.message;
+      console.warn("No se pudo usar la nube:", e.message);
+      return "falla";           // hay configuración pero no anda: hay que avisar
+    }
+  },
+
+  leerLocal(){
     try{ const c = JSON.parse(localStorage.getItem(this.claveCat)); return Array.isArray(c) ? c : null; }
     catch(e){ return null; }
   },
-  guardarCatalogo(lista){
-    try{ localStorage.setItem(this.claveCat, JSON.stringify(lista)); return {ok:true}; }
+  guardarLocal(lista){
+    try{ localStorage.setItem(this.claveCat, JSON.stringify(lista)); notificar(lista); return {ok:true}; }
     catch(e){ return {ok:false, motivo:"Se llenó el espacio del dispositivo. Borrá algún plato viejo."}; }
   },
+
+  async guardarPlato(p){                       // sirve para alta y para edición
+    if(this.ref){
+      try{
+        const id = p.id || this.ref.push().key;
+        await this.ref.child(id).set({ nombre: p.nombre, foto: p.foto });
+        return {ok:true};
+      }catch(e){ return {ok:false, motivo:"La nube rechazó el plato: " + e.message}; }
+    }
+    const lista = this.leerLocal() || [];
+    const n = p.id ? lista.findIndex(q => q.id === p.id) : -1;
+    if(n >= 0) lista[n] = p;
+    else lista.push({ ...p, id: p.id || "l" + Date.now().toString(36) + Math.random().toString(36).slice(2,6) });
+    return this.guardarLocal(lista);
+  },
+
+  async borrarPlato(id){
+    if(this.ref){
+      try{ await this.ref.child(id).remove(); return {ok:true}; }
+      catch(e){ return {ok:false, motivo:"La nube no dejó borrar: " + e.message}; }
+    }
+    return this.guardarLocal((this.leerLocal() || []).filter(q => q.id !== id));
+  },
+
+  async reemplazarTodo(lista){
+    if(this.ref){
+      try{
+        const bulto = {};
+        lista.forEach(p => { bulto[p.id || this.ref.push().key] = { nombre: p.nombre, foto: p.foto }; });
+        await this.ref.set(bulto);
+        return {ok:true};
+      }catch(e){ return {ok:false, motivo:"La nube rechazó el respaldo: " + e.message}; }
+    }
+    return this.guardarLocal(lista.map((p, i) => ({ ...p, id: p.id || "l" + i + Date.now().toString(36) })));
+  },
+
+  // El menú armado NO se comparte: es de cada persona.
   leerMenu(){ try{ return JSON.parse(localStorage.getItem(this.claveMenu)) || null; }catch(e){ return null; } },
   guardarMenu(sel){ try{ localStorage.setItem(this.claveMenu, JSON.stringify(sel)); }catch(e){} },
 };
@@ -425,9 +503,9 @@ id("platos").addEventListener("click", e => {
   const ed = e.target.closest("[data-editar]"), bo = e.target.closest("[data-borrar]");
   if(ed) return abrirEditor(+ed.dataset.editar);
   if(bo){
-    const n = +bo.dataset.borrar;
-    if(!confirm(`¿Borrar “${CATALOGO[n].nombre}” del catálogo?`)) return;
-    CATALOGO.splice(n, 1); persistir("Plato borrado.");
+    const p = CATALOGO[+bo.dataset.borrar];
+    if(!confirm(`¿Borrar “${p.nombre}” del catálogo?`)) return;
+    aplicar(ALMACEN.borrarPlato(p.id), "Plato borrado.");
   }
 });
 
@@ -487,26 +565,52 @@ id("btnGuardar").onclick = () => {
   const nombre = id("eNombre").value.trim();
   if(!nombre) return avisar("Falta el nombre del plato.", "mal");
   if(!fotoEnEdicion) return avisar("Falta la foto.", "mal");
-  const p = { nombre, foto: fotoEnEdicion };
-  if(editando === null) CATALOGO.push(p); else CATALOGO[editando] = { ...CATALOGO[editando], ...p };
-  persistir(editando === null ? "Plato agregado." : "Cambios guardados.");
+  const viejo = editando === null ? null : CATALOGO[editando];
+  aplicar(ALMACEN.guardarPlato({ id: viejo && viejo.id, nombre, foto: fotoEnEdicion }),
+          editando === null ? "Plato agregado." : "Cambios guardados.");
 };
 
-function persistir(mensaje){
-  const r = ALMACEN.guardarCatalogo(CATALOGO);
-  cacheFotos.clear();
-  pintarCatalogo(); limpiarEditor();
+// Corre la operación, avisa cómo salió y deja la pantalla lista.
+async function aplicar(promesa, mensaje){
+  avisar("Guardando…", "bien");
+  const r = await promesa;
+  limpiarEditor();
   avisar(r.ok ? mensaje : r.motivo, r.ok ? "bien" : "mal");
+}
+
+// Lo llama tanto la nube (cuando alguien cambia algo) como el guardado local.
+function alCambiarCatalogo(lista){
+  CATALOGO = lista;
+  cacheFotos.clear();
+  pintarCatalogo();
   dibujar();
 }
 
-id("btnSemilla").onclick = () => {
+id("btnSemilla").onclick = async () => {
   const hay = new Set(CATALOGO.map(p => p.nombre.trim().toLowerCase()));
   const faltan = SEMILLA.filter(p => !hay.has(p.nombre.trim().toLowerCase()));
   if(!faltan.length) return avisar("Ya están todos los platos que trae la herramienta.", "bien");
-  CATALOGO = CATALOGO.concat(faltan.map(p => ({...p})));
-  persistir("Se agregaron " + faltan.length + " plato(s).");
+  avisar("Guardando…", "bien");
+  // Al subirlos a la nube, la foto tiene que ir adentro del plato y no como archivo.
+  for(const p of faltan){
+    const foto = ALMACEN.ref ? await aTexto(p.foto) : p.foto;
+    const r = await ALMACEN.guardarPlato({ nombre: p.nombre, foto });
+    if(!r.ok) return avisar(r.motivo, "mal");
+  }
+  avisar("Se agregaron " + faltan.length + " plato(s).", "bien");
 };
+
+// Convierte una foto que es archivo en la misma foto guardada como texto.
+async function aTexto(src){
+  if(src.startsWith("data:")) return src;
+  const im = await cargarImagen(src);
+  const c = document.createElement("canvas");
+  c.width = FOTO_GUARDADA.w; c.height = FOTO_GUARDADA.h;
+  const g = c.getContext("2d");
+  const e = Math.max(c.width / im.width, c.height / im.height);
+  g.drawImage(im, (c.width - im.width*e)/2, (c.height - im.height*e)/2, im.width*e, im.height*e);
+  return c.toDataURL("image/jpeg", 0.78);
+}
 id("btnExportar").onclick = () => {
   const b = new Blob([JSON.stringify(CATALOGO, null, 1)], {type:"application/json"});
   const a = document.createElement("a");
@@ -523,8 +627,7 @@ id("archivoRespaldo").onchange = (e) => {
       if(!Array.isArray(lista) || !lista.every(p => p && p.nombre && p.foto))
         throw new Error("El archivo no tiene la forma esperada.");
       if(!confirm(`El respaldo trae ${lista.length} plato(s). ¿Reemplazar lo que hay cargado?`)) return;
-      CATALOGO = lista;
-      persistir("Respaldo cargado: " + lista.length + " plato(s).");
+      aplicar(ALMACEN.reemplazarTodo(lista), "Respaldo cargado: " + lista.length + " plato(s).");
     }catch(err){ avisar("No se pudo leer el respaldo. " + err.message, "mal"); }
     e.target.value = "";
   };
@@ -723,7 +826,26 @@ id("btnPdf").onclick = () => {
       ]);
       await document.fonts.ready;
     }
-    CATALOGO = ALMACEN.leerCatalogo() || SEMILLA.slice();
+    const modo = await ALMACEN.iniciar(alCambiarCatalogo);
+    if(modo === "nube"){
+      id("modo").textContent = "· en la nube";
+      id("modo").title = "Los platos los ven todos los que abran el link";
+    }else{
+      if(modo === "falla"){
+        id("modo").textContent = "· la nube no responde";
+        id("modo").style.color = "#FF9B8A";
+        id("modo").title = "Revisá firebase-config.js y las reglas. Mientras tanto se " +
+                           "guarda solo en este aparato. (" + ALMACEN.falla + ")";
+      }else{
+        id("modo").textContent = "· solo en este aparato";
+        id("modo").title = "Para compartirlos hay que completar firebase-config.js";
+      }
+      CATALOGO = ALMACEN.leerLocal();
+      if(!CATALOGO){                           // primera vez en este aparato
+        CATALOGO = SEMILLA.map((p, i) => ({ ...p, id: "s" + i }));
+        try{ localStorage.setItem(ALMACEN.claveCat, JSON.stringify(CATALOGO)); }catch(e){}
+      }
+    }
     armarFilas(); pintarCatalogo(); limpiarEditor();
 
     const guardado = ALMACEN.leerMenu();

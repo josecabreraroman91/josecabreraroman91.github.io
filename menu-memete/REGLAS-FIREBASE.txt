@@ -1,0 +1,39 @@
+Reglas para pegar en:
+Firebase → Realtime Database → pestaña "Reglas" → Publicar
+
+Van SIN login, como pediste: cualquiera que tenga el link puede ver y también
+cargar o borrar platos. Lo único que hacen estas reglas es controlar la FORMA de
+lo que se guarda, para que un error o un descuido no rompa la base:
+
+  - solo se puede escribir adentro de "catalogo", nada más
+  - cada plato tiene que tener nombre y foto
+  - el nombre, hasta 80 letras
+  - la foto, hasta 400 KB de texto (una foto de 820x700 pesa unos 115 KB)
+
+Si más adelante querés que solo vos puedas cargar, se cambian estas mismas
+reglas por unas con login y listo: el código ya está preparado.
+
+------------------------------------------------------------------ copiar desde acá
+
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "catalogo": {
+      ".read": true,
+      ".write": true,
+      "$plato": {
+        ".validate": "newData.hasChildren(['nombre','foto'])",
+        "nombre": {
+          ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 80"
+        },
+        "foto": {
+          ".validate": "newData.isString() && newData.val().length <= 400000"
+        },
+        "$otro": { ".validate": false }
+      }
+    }
+  }
+}
+
+------------------------------------------------------------------ hasta acá
