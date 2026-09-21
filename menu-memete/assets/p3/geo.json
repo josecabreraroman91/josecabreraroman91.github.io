@@ -68,5 +68,15 @@
  "pieAlto": 286,
  "gridArriba": 4,
  "gridAbajo": 1,
- "bandaFraccion": 0.4242
+ "bandaFraccion": 0.4242,
+ "sinFoto": [
+  {
+   "centro": 243,
+   "anchoMax": 439
+  },
+  {
+   "centro": 244,
+   "anchoMax": 440
+  }
+ ]
 }

@@ -1,0 +1,36 @@
+{
+ "ancho": 1024,
+ "cabecera": 366,
+ "pieArte": 261,
+ "pieAlto": 286,
+ "paso": 129.6,
+ "margenArriba": 2,
+ "bandaFraccion": 0.3727,
+ "pieza": {
+  "papel": 320,
+  "bandaIni": 40,
+  "bandaMed": 504
+ },
+ "texto": {
+  "centro": 525,
+  "baseDesdeArriba": 106,
+  "anchoMax": 700
+ },
+ "chispa": {
+  "w": 67,
+  "h": 64,
+  "separacion": 45,
+  "centroDesdeBase": -49
+ },
+ "subrayado": {
+  "w": 290,
+  "h": 36,
+  "desplazaX": 19,
+  "topeDesdeBase": -12
+ },
+ "separador": {
+  "w": 928,
+  "h": 5,
+  "x": 47
+ }
+}

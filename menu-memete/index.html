@@ -87,6 +87,10 @@
   .plato .ico{width:28px;height:28px;border:1px solid var(--linea);background:#fff;
               border-radius:7px;cursor:pointer;font-size:13px;line-height:1;flex:none;padding:0}
   .plato .ico:hover{background:#FBF6E8}
+  .nofoto{width:56px;height:50px;border-radius:6px;flex:none;border:1px dashed var(--linea);
+          background:#FBF8F0;color:#B5AEA2;font-size:9px;line-height:1.15;text-align:center;
+          display:flex;align-items:center;justify-content:center}
+  .nofoto.chico{width:42px;height:38px;font-size:8px}
 
   .editor{border:1px solid #EBD79A;background:#FFFDF5;border-radius:12px;padding:13px;margin-top:12px}
   .editor h3{margin:0 0 10px;font-size:12px;letter-spacing:1.2px;text-transform:uppercase;color:var(--suave)}
@@ -138,7 +142,7 @@
 
     <section id="paneMenu">
       <p class="sub">
-        Buscá el plato y elegilo: entra solo con su foto. Van de a dos por renglón y
+        Buscá el plato y elegilo. Van de a dos por renglón y
         <b>la hoja se alarga o se acorta sola</b> según cuántos cargues.
       </p>
       <div id="filas"></div>
@@ -150,8 +154,9 @@
         Con 8 platos la hoja sale igual que el diseño original. Con menos se acorta y con
         más se alarga, siempre de a un renglón.<br>
         Ahora mide <b id="medida">—</b>.<br>
-        <b>Con un solo plato</b> se usa la plantilla especial: foto grande y el nombre
-        abajo, sin grilla.
+        <b>Con un solo plato y con foto</b> se usa la plantilla especial: foto grande y
+        el nombre abajo. El plato que no tenga foto sale con la tarjeta sin el hueco,
+        solo con el nombre.
       </p>
       <p class="aviso" id="avisoFoto"></p>
     </section>
@@ -169,6 +174,7 @@
           <div class="prev" id="prev"></div>
           <label for="archivo" id="rotuloFoto">Elegir foto</label>
           <input type="file" id="archivo" accept="image/*">
+          <button class="ico" id="btnSinFoto" title="Dejarlo sin foto" hidden>🗑</button>
         </div>
         <input type="text" id="eNombre" placeholder="Nombre del plato" autocomplete="off">
         <div class="acciones" style="margin-top:4px;padding-top:0;border:0">
@@ -342,9 +348,24 @@ const COL = [
 ];
 // Saira Condensed es la más parecida a la condensada del diseño: a la misma altura de
 // mayúscula, los nombres miden casi lo mismo que en la pieza original.
+// Cuando el plato no tiene foto se usa otro calco, sin el hueco, y el nombre va
+// centrado en toda la tarjeta.
+const SIN_FOTO = [ { centro:243, anchoMax:439 }, { centro:244, anchoMax:440 } ];
+
 const NOMBRE = { fuente:'700 {t}px "Saira Condensed", sans-serif', tam:42, min:26,
                  base1:92, dos:[66,100], tamDos:40, minDos:26 };
 const TINTA  = "#0A0A0A";
+
+// Plantilla de SOLO NOMBRES: se usa cuando ningún plato del menú tiene foto.
+const P5 = {
+  cabecera:366, pieAlto:286, pieArte:261, paso:129.6, margen:2,
+  papel:320, bandaIni:40, bandaFraccion:0.3727,
+  texto:{ centro:525, base:106, tam:75, min:44, anchoMax:620,
+          fuente:'{t}px "Kaushan Script", cursive' },
+  chispa:{ sep:45, dy:-49 },
+  subrayado:{ dx:19, dy:-12 },
+  separador:{ x:47 },
+};
 
 // Plantilla de PLATO ÚNICO: se usa sola, cuando hay exactamente un plato cargado.
 const UNICO = {
@@ -364,8 +385,9 @@ let CATALOGO = [];
 const elegidos = Array(RANURAS).fill(null);
 const lienzo = document.getElementById("lienzo");
 const ctx = lienzo.getContext("2d");
-const calcos = [], mascaras = [];
-const piezas = {};
+const calcos = [], calcosSinFoto = [], mascaras = [];
+const piezas = {};      // las cinco piezas de la hoja de la grilla
+const solo = {};        // las piezas y adornos de la plantilla de solo nombres
 const unico = {};
 let editando = null, fotoEnEdicion = null;
 const cacheFotos = new Map();
@@ -472,7 +494,7 @@ function abrirLista(i, texto){
     halla.forEach(p => {
       const b = document.createElement("button");
       b.type = "button";
-      b.innerHTML = `<img src="${p.foto}" alt=""><span></span>`;
+      b.innerHTML = `${p.foto ? `<img src="${p.foto}" alt="">` : `<span class="nofoto chico">sin<br>foto</span>`}<span></span>`;
       b.querySelector("span").textContent = p.nombre;
       b.onclick = () => { poner(i, p); cerrarListas(); guardarSeleccion(); dibujar(); };
       lista.appendChild(b);
@@ -490,7 +512,7 @@ function pintarCatalogo(){
   CATALOGO.forEach((p, n) => {
     const d = document.createElement("div");
     d.className = "plato";
-    d.innerHTML = `<img src="${p.foto}" alt=""><div class="txt"><b></b></div>
+    d.innerHTML = `${p.foto ? `<img src="${p.foto}" alt="">` : `<span class="nofoto">sin<br>foto</span>`}<div class="txt"><b></b></div>
       <button class="ico" data-editar="${n}" title="Editar">✎</button>
       <button class="ico" data-borrar="${n}" title="Borrar">🗑</button>`;
     d.querySelector("b").textContent = p.nombre;
@@ -512,10 +534,11 @@ id("platos").addEventListener("click", e => {
 function abrirEditor(n){
   editando = n;
   const p = CATALOGO[n];
-  fotoEnEdicion = p.foto;
+  fotoEnEdicion = p.foto || null;
   id("tituloEditor").textContent = "Editar plato";
-  id("prev").style.backgroundImage = `url("${p.foto}")`;
-  id("rotuloFoto").textContent = "Cambiar foto";
+  id("prev").style.backgroundImage = p.foto ? `url("${p.foto}")` : "";
+  id("rotuloFoto").textContent = p.foto ? "Cambiar foto" : "Elegir foto";
+  id("btnSinFoto").hidden = !p.foto;
   id("eNombre").value = p.nombre;
   id("btnCancelar").hidden = false;
   id("btnGuardar").textContent = "Guardar cambios";
@@ -526,11 +549,22 @@ function limpiarEditor(){
   id("tituloEditor").textContent = "Agregar un plato";
   id("prev").style.backgroundImage = "";
   id("rotuloFoto").textContent = "Elegir foto";
+  id("btnSinFoto").hidden = true;
   id("eNombre").value = ""; id("archivo").value = "";
   id("btnCancelar").hidden = true;
   id("btnGuardar").textContent = "Guardar plato";
 }
 id("btnCancelar").onclick = () => { limpiarEditor(); avisar(""); };
+
+// Sacarle la foto a un plato: en la pieza va a salir solo con el nombre.
+id("btnSinFoto").onclick = () => {
+  fotoEnEdicion = null;
+  id("archivo").value = "";
+  id("prev").style.backgroundImage = "";
+  id("btnSinFoto").hidden = true;
+  id("rotuloFoto").textContent = "Elegir foto";
+  avisar("Este plato va a salir sin foto, solo con el nombre.", "bien");
+};
 
 function avisar(texto, tipo){
   const a = id("aviso");
@@ -553,6 +587,7 @@ id("archivo").onchange = (e) => {
       g.drawImage(im, (c.width - aw)/2, (c.height - ah)/2, aw, ah);
       fotoEnEdicion = c.toDataURL("image/jpeg", 0.85);
       id("prev").style.backgroundImage = `url("${fotoEnEdicion}")`;
+      id("btnSinFoto").hidden = false;
       avisar("Foto lista (" + Math.round(fotoEnEdicion.length/1024) + " KB).", "bien");
     };
     im.onerror = () => avisar("Ese archivo no es una imagen que se pueda leer.", "mal");
@@ -564,9 +599,9 @@ id("archivo").onchange = (e) => {
 id("btnGuardar").onclick = () => {
   const nombre = id("eNombre").value.trim();
   if(!nombre) return avisar("Falta el nombre del plato.", "mal");
-  if(!fotoEnEdicion) return avisar("Falta la foto.", "mal");
   const viejo = editando === null ? null : CATALOGO[editando];
-  aplicar(ALMACEN.guardarPlato({ id: viejo && viejo.id, nombre, foto: fotoEnEdicion }),
+  // La foto es opcional: sin ella, en la pieza sale la tarjeta sin el hueco.
+  aplicar(ALMACEN.guardarPlato({ id: viejo && viejo.id, nombre, foto: fotoEnEdicion || "" }),
           editando === null ? "Plato agregado." : "Cambios guardados.");
 };
 
@@ -624,7 +659,7 @@ id("archivoRespaldo").onchange = (e) => {
   l.onload = () => {
     try{
       const lista = JSON.parse(l.result);
-      if(!Array.isArray(lista) || !lista.every(p => p && p.nombre && p.foto))
+      if(!Array.isArray(lista) || !lista.every(p => p && p.nombre))
         throw new Error("El archivo no tiene la forma esperada.");
       if(!confirm(`El respaldo trae ${lista.length} plato(s). ¿Reemplazar lo que hay cargado?`)) return;
       aplicar(ALMACEN.reemplazarTodo(lista), "Respaldo cargado: " + lista.length + " plato(s).");
@@ -726,6 +761,64 @@ async function dibujarUnico(p){
     "ver borrosa. Cargala de nuevo desde “Mis platos” con una de 1600 × 1360 px." : "");
 }
 
+// Plantilla de solo nombres: cada plato es el nombre en script, con las chispitas
+// a los costados, el pincelazo abajo y una línea fina que lo separa del siguiente.
+async function dibujarSoloNombres(activos){
+  const n = activos.length;
+  const zona = Math.round(n * P5.paso) + P5.margen;
+  const alto = P5.cabecera + zona + P5.pieArte;
+  if(lienzo.height !== alto) lienzo.height = alto;
+  ctx.clearRect(0, 0, ANCHO, alto);
+
+  for(let y = 0; y < alto; y += P5.papel) ctx.drawImage(solo.papel, 0, y);
+
+  const yb = P5.cabecera + Math.round(P5.bandaFraccion * zona);
+  const hastaPie = alto - P5.pieAlto;
+  ctx.drawImage(solo.bandaIni, 0, yb);
+  const medio = hastaPie - (yb + P5.bandaIni);
+  if(medio > 0) ctx.drawImage(solo.bandaMed, 0, yb + P5.bandaIni, ANCHO, medio);
+  ctx.drawImage(solo.cabecera, 0, 0);
+  ctx.drawImage(solo.pie, 0, hastaPie);
+
+  const T = P5.texto;
+  ctx.fillStyle = TINTA; ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
+
+  for(let i = 0; i < n; i++){
+    const arriba = P5.cabecera + P5.margen + Math.round(i * P5.paso);
+    const base = arriba + T.base;
+
+    let t = T.tam;
+    ctx.font = T.fuente.replace("{t}", t);
+    while(ctx.measureText(activos[i].nombre).width > T.anchoMax && t > T.min){
+      t -= 1; ctx.font = T.fuente.replace("{t}", t);
+    }
+    const ancho = ctx.measureText(activos[i].nombre).width;
+    const x0 = T.centro - ancho/2, x1 = T.centro + ancho/2;
+
+    // el pincelazo, estirado al ancho del nombre
+    const su = solo.subrayado;
+    ctx.drawImage(su, T.centro + P5.subrayado.dx - ancho/2, base + P5.subrayado.dy, ancho, su.height);
+
+    // las chispitas, la de la derecha es la misma espejada
+    const ch = solo.chispa, cy = base + P5.chispa.dy - ch.height/2;
+    ctx.drawImage(ch, x0 - P5.chispa.sep - ch.width, cy);
+    ctx.save();
+    ctx.translate(x1 + P5.chispa.sep + ch.width, cy);
+    ctx.scale(-1, 1);
+    ctx.drawImage(ch, 0, 0);
+    ctx.restore();
+
+    ctx.fillText(activos[i].nombre, T.centro, base);
+
+    if(i < n - 1)
+      ctx.drawImage(solo.separador, P5.separador.x,
+                    Math.round(arriba + P5.paso - solo.separador.height / 2));
+  }
+
+  id("medida").textContent = ANCHO + " × " + alto + " px";
+  avisarFoto("");
+}
+
 function avisarFoto(texto){
   const a = id("avisoFoto");
   a.textContent = texto;
@@ -734,7 +827,10 @@ function avisarFoto(texto){
 
 async function dibujar(){
   const activos = elegidos.filter(Boolean);
-  if(activos.length === 1) return dibujarUnico(activos[0]);
+  // La plantilla de plato único es una foto gigante: sin foto no tiene sentido.
+  if(activos.length === 1 && activos[0].foto) return dibujarUnico(activos[0]);
+  // Si NINGÚN plato tiene foto, va la plantilla de solo nombres.
+  if(activos.length && activos.every(p => !p.foto)) return dibujarSoloNombres(activos);
   avisarFoto("");
   const filas = renglones(activos.length);
   const alto = altoPieza(filas);
@@ -763,9 +859,14 @@ async function dibujar(){
 
   for(let i = 0; i < activos.length; i++){
     const p = activos[i], ci = i % 2, y = ys[Math.floor(i / 2)], c = COL[ci];
-    ctx.drawImage(calcos[ci], c.x, y);
-    try{
-      const im = await fotoDe(p.foto);
+    let conFoto = !!p.foto, im = null;
+    if(conFoto){
+      try{ im = await fotoDe(p.foto); }catch(err){ conFoto = false; }
+    }
+
+    ctx.drawImage(conFoto ? calcos[ci] : calcosSinFoto[ci], c.x, y);
+
+    if(conFoto){
       const f = c.foto;
       tapiz.width = f.w; tapiz.height = f.h;
       tctx.clearRect(0, 0, f.w, f.h);
@@ -776,8 +877,10 @@ async function dibujar(){
       tctx.drawImage(mascaras[ci], 0, 0, f.w, f.h);
       tctx.globalCompositeOperation = "source-over";
       ctx.drawImage(tapiz, c.x + f.x, y + f.y);
-    }catch(err){ /* sin foto: queda el marco vacío */ }
-    dibujarNombre(p.nombre, c.x + c.texto.centro, y, c.texto.anchoMax);
+    }
+
+    const t = conFoto ? c.texto : SIN_FOTO[ci];
+    dibujarNombre(p.nombre, c.x + t.centro, y, t.anchoMax);
   }
 
   id("medida").textContent = ANCHO + " × " + alto + " px";
@@ -815,8 +918,11 @@ id("btnPdf").onclick = () => {
       piezas[n] = await cargarImagen(`assets/p3/${n}.png`);
     unico.plantilla = await cargarImagen("assets/p4/plantilla.png");
     unico.mascara   = await cargarImagen("assets/p4/mask.png");
+    for(const n of ["cabecera","papel","bandaIni","bandaMed","pie","chispa","subrayado","separador"])
+      solo[n] = await cargarImagen(`assets/p5/${n}.png`);
     for(let i=1;i<=2;i++){
       calcos.push(await cargarImagen(`assets/p3/tarjeta${i}.png`));
+      calcosSinFoto.push(await cargarImagen(`assets/p3/tarjetaSinFoto${i}.png`));
       mascaras.push(await cargarImagen(`assets/p3/mask${i}.png`));
     }
     if(document.fonts && document.fonts.load){
