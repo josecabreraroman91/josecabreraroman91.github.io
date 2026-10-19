@@ -101,6 +101,12 @@
   .st-bad{background:var(--bad-bg);color:var(--bad)}.st-off{background:var(--chip);color:var(--chip-tx)}
   .rstate{display:inline-block;font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:999px;margin-top:6px}
   .topbar{display:flex;gap:8px;margin-bottom:12px;align-items:center}
+  .recor{margin-bottom:12px}
+  .recor-h{display:flex;gap:14px;align-items:flex-start;justify-content:space-between}
+  .recor-t{font-size:14px;font-weight:800;margin-bottom:3px}
+  .sw{flex:none;width:46px;height:28px;border:none;border-radius:14px;background:var(--line);position:relative;cursor:pointer;transition:background .15s;padding:0}
+  .sw span{position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .15s}
+  .sw.on{background:var(--brand)}.sw.on span{transform:translateX(18px)}
   .topbar input[type=month]{max-width:150px}
   .topbar .search{flex:1}
   .sectit{font-size:11.5px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:16px 2px 8px;display:flex;align-items:center;gap:7px}
@@ -282,7 +288,7 @@ function load(){return estadoInicial();}   /* arranca vac\u00edo; los datos real
 const SB_URL="https://udmulzlkseeecugangbs.supabase.co";
 const SB_KEY="sb_publishable_LlKL-0Gp2IQVmoslwDOYmQ_LVL1mq4K";
 const sb=window.supabase.createClient(SB_URL,SB_KEY);
-let ACCOUNT_ID=null,_saveTimer=null;
+let ACCOUNT_ID=null,USER_EMAIL='',_saveTimer=null;
 function save(){
   try{localStorage.setItem(K,JSON.stringify(S));}catch(e){}   /* respaldo local de emergencia */
   if(!ACCOUNT_ID)return;
@@ -1660,7 +1666,7 @@ function exportar(clase){
 /* ============================ vencimientos ============================ */
 function vVencimientos(){
   if(!S.clientes.length)return '<div class="card empty"><div class="em">📅</div><p><b>Sin clientes en cartera</b></p><p>Agregá clientes en Cartera para ver sus vencimientos acá.</p></div>';
-  let h='<div class="topbar"><input type="month" value="'+ymSel+'" onchange="setYm(this.value)" style="max-width:170px"><span class="hint">Período declarado</span></div>';
+  let h=vRecordatorios()+'<div class="topbar"><input type="month" value="'+ymSel+'" onchange="setYm(this.value)" style="max-width:170px"><span class="hint">Período declarado</span></div>';
   const items=S.clientes.map(c=>({c,v:vencimiento(rucBase(c.ruc),ymSel),exp:perGet(c.id,ymSel).exportado})).sort((a,b)=>a.v<b.v?-1:1);
   let lastV='';
   items.forEach(x=>{
@@ -1672,6 +1678,33 @@ function vVencimientos(){
   });
   h+='<div class="hint" style="margin:10px 2px">Días según el calendario perpetuo DNIT por terminación de RUC (fin de semana corre al hábil siguiente). Feriados no contemplados: ante la duda, confirmá en Marangatu.</div>';
   return h;
+}
+/* Recordatorios por correo: el envío lo hace una función programada en Supabase
+   (10:00 y 20:00) que lee S.ajustes.recordatorios = {activo, correo}. */
+function vRecordatorios(){
+  const r=S.ajustes.recordatorios||{},on=!!r.activo;
+  let h='<div class="card pad recor"><div class="recor-h"><div>'+
+    '<div class="recor-t">Recordatorios por correo</div>'+
+    '<div class="hint">Los días que vencen tus clientes te llega un correo a las 10:00 y otro a las 20:00 con los que siguen sin archivo listo.</div></div>'+
+    '<button class="sw'+(on?' on':'')+'" role="switch" aria-checked="'+on+'" aria-label="Recordatorios por correo" onclick="recorToggle()"><span></span></button></div>';
+  if(on){
+    h+='<div class="rowflex" style="margin-top:12px"><input id="rc_mail" type="email" inputmode="email" value="'+esc(r.correo||'')+'" placeholder="tucorreo@ejemplo.com"><button class="mini" onclick="recorGuardarMail()">Guardar</button></div>'+
+      '<div class="hint" style="margin-top:6px">'+(r.correo?'Llegan a <b>'+esc(r.correo)+'</b>.':'Cargá el correo donde querés recibirlos.')+'</div>';
+  }
+  return h+'</div>';
+}
+function recorToggle(){
+  const r=Object.assign({},S.ajustes.recordatorios);
+  r.activo=!r.activo;
+  if(r.activo&&!r.correo)r.correo=USER_EMAIL;
+  S.ajustes.recordatorios=r;save();
+  toast(r.activo?'Recordatorios prendidos':'Recordatorios apagados');render();
+}
+function recorGuardarMail(){
+  const v=$('rc_mail').value.trim().toLowerCase();
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)){toast('Ese correo no parece válido');return;}
+  S.ajustes.recordatorios=Object.assign({},S.ajustes.recordatorios,{correo:v});save();
+  toast('Correo guardado');render();
 }
 
 /* ============================ respaldo / ajustes ============================ */
@@ -1863,6 +1896,7 @@ async function boot(){
   let session=null;
   try{ const r=await sb.auth.getSession(); session=r.data.session; }catch(e){}
   if(!session){ location.href='app.html'; return; }
+  USER_EMAIL=(session.user&&session.user.email)||'';
 
   // 2) Resolver el estudio (cuenta) del usuario
   try{
