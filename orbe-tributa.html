@@ -1856,8 +1856,6 @@ Object.assign(window,{irTab,volver,abrirCliente,nuevoCliente,guardarCliente,togg
 /* ============================ ARRANQUE EN LA NUBE ============================ */
 
 function mostrarPrecios(){
-  const WA='595982702613';
-  const MAIL='josecabreraroman91@gmail.com';
   const planes=[
     {id:'inicial',   n:'Inicial',      t:'Hasta 15 contribuyentes',  p:'150.000'},
     {id:'profesional',n:'Profesional', t:'Hasta 30 contribuyentes',  p:'220.000', star:true},
@@ -1866,16 +1864,14 @@ function mostrarPrecios(){
   ];
   const card=p=>{
     const msg=encodeURIComponent('Hola! Quiero contratar orbe tributa, plan '+p.n+' (Gs. '+p.p+'/mes). Mi correo de la cuenta es: ');
-    const wa='https://wa.me/'+WA+'?text='+msg;
-    const mail='mailto:'+MAIL+'?subject='+encodeURIComponent('Contratar orbe tributa - Plan '+p.n)+'&body='+msg;
+    const consulta='https://orbepy.com/?consulta='+msg+'#contacto';
     return '<div style="border:1px solid '+(p.star?'#0FA79A':'#e2e7d6')+';border-radius:16px;padding:22px 20px;background:'+(p.star?'#f2fbf9':'#fff')+';position:relative">'
       +(p.star?'<div style="position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:#0FA79A;color:#fff;font:600 11px sans-serif;padding:3px 12px;border-radius:20px">Recomendado</div>':'')
       +'<div style="font-family:\'Sora\',sans-serif;font-weight:700;font-size:17px;color:#12180f;margin-bottom:3px">'+p.n+'</div>'
       +'<div style="color:#5E7684;font:13px sans-serif;margin-bottom:12px">'+p.t+'</div>'
       +'<div style="font-family:\'Sora\',sans-serif;font-weight:700;font-size:26px;color:#12180f">Gs. '+p.p+'<span style="font-size:13px;font-weight:400;color:#5E7684">/mes</span></div>'
       +'<div style="display:flex;gap:8px;margin-top:16px">'
-      +'<a href="'+wa+'" target="_blank" style="flex:1;text-align:center;background:#25D366;color:#fff;text-decoration:none;padding:10px;border-radius:9px;font:600 13px sans-serif">WhatsApp</a>'
-      +'<a href="'+mail+'" style="flex:1;text-align:center;background:#0FA79A;color:#fff;text-decoration:none;padding:10px;border-radius:9px;font:600 13px sans-serif">Correo</a>'
+      +'<a href="'+consulta+'" target="_blank" rel="noopener" style="flex:1;text-align:center;background:#0FA79A;color:#fff;text-decoration:none;padding:10px;border-radius:9px;font:600 13px sans-serif">Escribinos</a>'
       +'</div></div>';
   };
   document.getElementById('app').innerHTML=

@@ -1207,8 +1207,6 @@ function exportLiq(fmt){
 }
 
 function mostrarAccesoPausa(){
-  const WA='595982702613';
-  const MAIL='josecabreraroman91@gmail.com';
   const planes=[
     {n:'Inicial',    t:'Hasta 10 empleados',  p:'45.000'},
     {n:'Equipo',     t:'Hasta 25 empleados',  p:'90.000', star:true},
@@ -1217,16 +1215,14 @@ function mostrarAccesoPausa(){
   ];
   const card=p=>{
     const msg=encodeURIComponent('Hola! Quiero contratar Orbe Time Tracker, plan '+p.n+' (Gs. '+p.p+'/mes). Mi empresa es: ');
-    const wa='https://wa.me/'+WA+'?text='+msg;
-    const mail='mailto:'+MAIL+'?subject='+encodeURIComponent('Contratar Orbe Time Tracker - Plan '+p.n)+'&body='+msg;
+    const consulta='https://orbepy.com/?consulta='+msg+'#contacto';
     return '<div style="border:1px solid '+(p.star?'#8b7cf6':'rgba(255,255,255,.14)')+';border-radius:16px;padding:22px 20px;background:'+(p.star?'rgba(139,124,246,.12)':'rgba(255,255,255,.03)')+';position:relative">'
       +(p.star?'<div style="position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:#8b7cf6;color:#fff;font:600 11px sans-serif;padding:3px 12px;border-radius:20px">Recomendado</div>':'')
       +'<div style="font-weight:700;font-size:17px;color:#eaecf5;margin-bottom:3px">'+p.n+'</div>'
       +'<div style="color:#9aa2c0;font:13px sans-serif;margin-bottom:12px">'+p.t+'</div>'
       +'<div style="font-weight:700;font-size:26px;color:#eaecf5">Gs. '+p.p+'<span style="font-size:13px;font-weight:400;color:#9aa2c0">/mes</span></div>'
       +'<div style="display:flex;gap:8px;margin-top:16px">'
-      +'<a href="'+wa+'" target="_blank" style="flex:1;text-align:center;background:#25D366;color:#fff;text-decoration:none;padding:10px;border-radius:9px;font:600 13px sans-serif">WhatsApp</a>'
-      +'<a href="'+mail+'" style="flex:1;text-align:center;background:#8b7cf6;color:#fff;text-decoration:none;padding:10px;border-radius:9px;font:600 13px sans-serif">Correo</a>'
+      +'<a href="'+consulta+'" target="_blank" rel="noopener" style="flex:1;text-align:center;background:#8b7cf6;color:#fff;text-decoration:none;padding:10px;border-radius:9px;font:600 13px sans-serif">Escribinos</a>'
       +'</div></div>';
   };
   document.body.innerHTML='<div style="min-height:100dvh;background:#0a0e1a;color:#eaecf5;font-family:system-ui,sans-serif;padding:40px 20px 60px">'
