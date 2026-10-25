@@ -1,0 +1,268 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>¿Cuándo vence mi IVA? Vencimientos por RUC · Orbe Tributa</title>
+<meta name="description" content="Escribí tu RUC y mirá qué día vence tu IVA cada mes, según el calendario perpetuo de la DNIT por terminación de RUC. Gratis y sin registrarte.">
+<meta name="author" content="Orbe">
+<link rel="canonical" href="https://orbepy.com/vencimientos/">
+<meta name="theme-color" content="#0b0e1a">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://orbepy.com/vencimientos/">
+<meta property="og:site_name" content="Orbe">
+<meta property="og:locale" content="es_PY">
+<meta property="og:title" content="¿Cuándo vence mi IVA? Consultalo con tu RUC">
+<meta property="og:description" content="Calendario de vencimientos del IVA por terminación de RUC. Gratis, sin registrarte.">
+<meta property="og:image" content="https://orbepy.com/orbe-preview.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='11' fill='none' stroke='%23C8FF4D' stroke-width='2.5'/%3E%3Ccircle cx='26' cy='7' r='3.5' fill='%23C8FF4D'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "¿Cuándo vence mi IVA? — Vencimientos por RUC",
+  "url": "https://orbepy.com/vencimientos/",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "Web",
+  "isAccessibleForFree": true,
+  "description": "Calculadora gratuita de vencimientos del IVA según el calendario perpetuo de la DNIT por terminación de RUC.",
+  "publisher": { "@type": "Organization", "name": "Orbe", "url": "https://orbepy.com/" }
+}
+</script>
+<style>
+:root{
+  --bg:#0b0e1a; --panel:#121829; --panel2:#0e1322;
+  --ink:#eef1f8; --mut:#9098ab; --dim:#7a83a0;
+  --lime:#c8ff4d; --cyan:#3dd7d0;
+  --line:rgba(255,255,255,.09); --line2:rgba(255,255,255,.055);
+  --display:'Space Grotesk',system-ui,-apple-system,Segoe UI,sans-serif;
+  --text:ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  --ease:cubic-bezier(.2,.7,.2,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--text);color:var(--ink);background:var(--bg);line-height:1.6;-webkit-font-smoothing:antialiased;min-height:100vh}
+a{color:inherit;text-decoration:none}
+h1,h2,h3,.brand,.btn,.num{font-family:var(--display)}
+::selection{background:var(--lime);color:#0a1000}
+body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;background:
+  radial-gradient(52% 40% at 50% 0%,rgba(200,255,77,.10),transparent 60%),
+  radial-gradient(46% 42% at 90% 70%,rgba(61,215,208,.08),transparent 62%)}
+
+nav{display:flex;align-items:center;gap:12px;padding:16px 6vw;border-bottom:1px solid var(--line2)}
+.logo{display:flex;align-items:center;gap:10px}
+.mark{position:relative;flex:none;width:26px;height:26px}
+.mark .r{position:absolute;inset:0;border-radius:50%;border:1.7px solid var(--lime)}
+.mark .s{position:absolute;inset:0;animation:spin 6s linear infinite}
+.mark .s::after{content:'';position:absolute;top:-3px;left:50%;transform:translateX(-50%);width:6px;height:6px;border-radius:50%;background:var(--lime)}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.mark .s{animation:none}}
+.brand{font-weight:700;font-size:18px;letter-spacing:-.02em}
+.brand i{color:var(--lime);font-style:normal}
+.sp{flex:1}
+.nlink{color:var(--mut);font-size:14px;font-weight:500}
+.nlink:hover{color:var(--ink)}
+
+main{max-width:760px;margin:0 auto;padding:clamp(36px,8vh,72px) 6vw 56px}
+.tag{display:inline-block;font-size:11.5px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--cyan);margin-bottom:14px}
+h1{font-size:clamp(30px,5.4vw,46px);line-height:1.08;letter-spacing:-.03em;font-weight:700}
+h1 .hl{color:var(--lime)}
+.lead{color:var(--mut);font-size:17px;margin-top:14px;max-width:560px}
+
+.box{margin-top:30px;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:22px}
+label{display:block;font-size:13px;font-weight:600;color:var(--mut);margin-bottom:8px}
+.row{display:flex;gap:10px}
+input{flex:1;min-width:0;font:inherit;font-size:20px;font-family:var(--display);letter-spacing:.02em;color:var(--ink);background:var(--panel2);
+  border:1px solid var(--line);border-radius:12px;padding:14px 16px;outline:none;transition:border-color .2s}
+input:focus{border-color:var(--lime)}
+input::placeholder{color:#8a92ab}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:600;cursor:pointer;border:none;border-radius:12px;font-size:15px;
+  transition:.25s var(--ease);white-space:nowrap}
+.btn-lime{background:var(--lime);color:#0a1000;padding:14px 22px}
+.btn-lime:hover{transform:translateY(-2px)}
+.btn-ghost{background:transparent;color:var(--ink);padding:13px 20px;border:1px solid var(--line)}
+.btn-ghost:hover{border-color:rgba(200,255,77,.5)}
+.hint{font-size:13px;color:var(--dim);margin-top:8px}
+.err{color:#ff8a7a;font-size:14px;margin-top:10px}
+
+#res[hidden],#tabla[hidden]{display:none}
+.prox{margin-top:22px;padding:20px;border-radius:14px;background:linear-gradient(135deg,rgba(200,255,77,.12),rgba(61,215,208,.06));border:1px solid rgba(200,255,77,.28)}
+.prox .k{font-size:13px;color:var(--mut)}
+.prox .num{font-size:clamp(26px,5vw,34px);font-weight:700;letter-spacing:-.02em;margin:4px 0 2px}
+.prox .falta{font-weight:600;color:var(--lime)}
+.term{margin-top:14px;font-size:14px;color:var(--mut)}
+.term b{color:var(--ink)}
+
+table{width:100%;border-collapse:collapse;margin-top:16px;font-size:15px}
+th{text-align:left;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);padding:8px 10px;border-bottom:1px solid var(--line)}
+td{padding:11px 10px;border-bottom:1px solid var(--line2)}
+td:last-child,th:last-child{text-align:right}
+tr.hoy td{color:var(--lime);font-weight:600}
+tr.pasado td{color:var(--dim)}
+
+h2{font-size:22px;letter-spacing:-.02em;margin-top:44px}
+.sub{color:var(--mut);font-size:15px;margin-top:6px}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:16px}
+.cel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;text-align:center}
+.cel .t{font-size:12px;color:var(--dim)}
+.cel .d{font-family:var(--display);font-size:22px;font-weight:700;margin-top:2px}
+.cel .w{font-size:12px;color:var(--mut)}
+.cel.mio{border-color:var(--lime);background:rgba(200,255,77,.08)}
+
+.cta{margin-top:48px;padding:26px;border-radius:18px;background:var(--panel);border:1px solid var(--line)}
+.cta h2{margin-top:0}
+.cta p{color:var(--mut);margin-top:8px}
+.cta .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.nota{margin-top:28px;font-size:13px;color:var(--dim)}
+
+footer{border-top:1px solid var(--line);padding:26px 6vw;display:flex;gap:16px;flex-wrap:wrap;align-items:center;color:var(--dim);font-size:13px}
+footer a{color:var(--mut)}footer a:hover{color:var(--ink)}
+
+@media (max-width:620px){
+  .row{flex-direction:column}
+  .grid{grid-template-columns:repeat(2,1fr)}
+  .cta .btns .btn{flex:1 1 100%}
+  .nlink{display:none}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="logo" href="/" aria-label="Orbe — inicio"><span class="mark" aria-hidden="true"><span class="r"></span><span class="s"></span></span><span class="brand">Orbe<i>Py</i></span></a>
+  <span class="sp"></span>
+  <a class="nlink" href="/app.html">Orbe Tributa</a>
+</nav>
+
+<main>
+  <span class="tag">Gratis · sin registrarte</span>
+  <h1>¿Cuándo vence <span class="hl">mi IVA</span>?</h1>
+  <p class="lead">Escribí tu RUC y te mostramos qué día vence tu declaración del IVA cada mes, según el calendario de la DNIT por terminación de RUC.</p>
+
+  <form class="box" id="form" autocomplete="off">
+    <label for="ruc">Tu RUC</label>
+    <div class="row">
+      <input id="ruc" name="ruc" inputmode="numeric" placeholder="Ej: 4567891-1" aria-describedby="ayuda">
+      <button class="btn btn-lime" type="submit">Ver vencimientos</button>
+    </div>
+    <p class="hint" id="ayuda">Con el dígito verificador después del guion. Solo se usa el último número antes del guion.</p>
+    <p class="err" id="err" role="alert"></p>
+
+    <div id="res" hidden aria-live="polite">
+      <div class="prox">
+        <div class="k" id="proxK">Tu próximo vencimiento</div>
+        <div class="num" id="proxFecha"></div>
+        <div class="falta" id="proxFalta"></div>
+      </div>
+      <p class="term" id="term"></p>
+      <table id="tabla" hidden>
+        <thead><tr><th>Período (IVA de…)</th><th>Vence</th></tr></thead>
+        <tbody id="filas"></tbody>
+      </table>
+    </div>
+  </form>
+
+  <h2 id="mesTit">Vencimientos de este mes</h2>
+  <p class="sub">Según el último número del RUC, antes del guion.</p>
+  <div class="grid" id="grid"></div>
+
+  <section class="cta">
+    <h2>¿Llevás varios clientes?</h2>
+    <p><b>Orbe Tributa</b> te avisa por correo los días que vencen tus clientes, a las 10:00 y a las 20:00, y te deja el archivo REG listo para presentar en Marangatú.</p>
+    <div class="btns">
+      <a class="btn btn-lime" href="/app.html">Probalo gratis</a>
+      <a class="btn btn-ghost" href="/?consulta=Hola%2C%20vengo%20de%20la%20p%C3%A1gina%20de%20vencimientos%20y%20quiero%20saber%20m%C3%A1s%20de%20Orbe%20Tributa.#contacto">Escribinos</a>
+    </div>
+  </section>
+
+  <p class="nota">Las fechas siguen el calendario perpetuo de la DNIT por terminación de RUC: si el día cae sábado o domingo, pasa al lunes siguiente. No contempla feriados: ante la duda, confirmá en Marangatú.</p>
+</main>
+
+<footer>
+  <a class="logo" href="/"><span class="mark" aria-hidden="true" style="width:20px;height:20px"><span class="r"></span><span class="s"></span></span><span class="brand" style="font-size:15px">Orbe<i>Py</i></span></a>
+  <span class="sp"></span>
+  <a href="/">Inicio</a>
+  <a href="/app.html">Orbe Tributa</a>
+  <a href="/legal.html">Legal</a>
+</footer>
+
+<script>
+/* Misma regla que orbe-tributa.html (calendario perpetuo por terminación de RUC). */
+var PERPETUO = {0:7,1:9,2:11,3:13,4:15,5:17,6:19,7:21,8:23,9:25};
+var MES = ['','enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+var DIA = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+
+function digits(s){ return String(s == null ? '' : s).replace(/[^\d]/g, ''); }
+function rucBase(ruc){
+  ruc = String(ruc == null ? '' : ruc).trim();
+  var m = ruc.match(/^([0-9A-Za-z]+)[\s\-]+(\d)$/); if (m) return m[1];
+  var b = ruc.replace(/[^0-9A-Za-z]/g, ''); if (b.length > 8) b = b.slice(0, -1); return b;
+}
+function vencimiento(rucB, ym){
+  var t = parseInt(String(digits(rucB)).slice(-1) || '0', 10);
+  var dia = PERPETUO[t];
+  var p = ym.split('-'), y = parseInt(p[0], 10), m = parseInt(p[1], 10) + 1;
+  if (m > 12) { m = 1; y++; }
+  var d = new Date(Date.UTC(y, m - 1, dia));
+  var dow = d.getUTCDay();
+  if (dow === 6) d.setUTCDate(d.getUTCDate() + 2); else if (dow === 0) d.setUTCDate(d.getUTCDate() + 1);
+  return d.toISOString().slice(0, 10);
+}
+/* "hoy" en hora de Asunción, para que a la noche no salte al día siguiente */
+function hoyISO(){
+  try { return new Intl.DateTimeFormat('en-CA', {timeZone:'America/Asuncion', year:'numeric', month:'2-digit', day:'2-digit'}).format(new Date()); }
+  catch (e) { var d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+}
+function ymSumar(ym, n){ var p = ym.split('-'), d = new Date(Date.UTC(+p[0], +p[1] - 1 + n, 1)); return d.getUTCFullYear() + '-' + String(d.getUTCMonth() + 1).padStart(2, '0'); }
+function partes(iso){ var p = iso.split('-').map(Number); return {y:p[0], m:p[1], d:p[2], dow:new Date(Date.UTC(p[0], p[1] - 1, p[2])).getUTCDay()}; }
+function largo(iso){ var x = partes(iso); return DIA[x.dow] + ' ' + x.d + ' de ' + MES[x.m] + ' de ' + x.y; }
+function corto(iso){ var x = partes(iso); return DIA[x.dow].slice(0, 3) + ' ' + x.d + '/' + String(x.m).padStart(2, '0'); }
+function dias(desde, hasta){ var a = partes(desde), b = partes(hasta); return Math.round((Date.UTC(b.y, b.m - 1, b.d) - Date.UTC(a.y, a.m - 1, a.d)) / 86400000); }
+function ymLargo(ym){ var p = ym.split('-'); return MES[+p[1]] + ' ' + p[0]; }
+
+var hoy = hoyISO();
+var ymHoy = hoy.slice(0, 7);
+
+/* calendario del mes en curso: vence el IVA del mes anterior */
+function pintarMes(termMio){
+  var per = ymSumar(ymHoy, -1), html = '';
+  document.getElementById('mesTit').textContent = 'Vencimientos de ' + MES[+ymHoy.slice(5)] + ' (IVA de ' + ymLargo(per) + ')';
+  for (var t = 0; t <= 9; t++) {
+    var v = vencimiento(String(t), per), x = partes(v);
+    html += '<div class="cel' + (t === termMio ? ' mio' : '') + '"><div class="t">Termina en ' + t + '</div><div class="d">' + x.d + '</div><div class="w">' + DIA[x.dow] + '</div></div>';
+  }
+  document.getElementById('grid').innerHTML = html;
+}
+
+function mostrar(valor){
+  var err = document.getElementById('err'), res = document.getElementById('res');
+  err.textContent = '';
+  var base = rucBase(valor);
+  if (!digits(base)) { res.hidden = true; pintarMes(-1); if (valor.trim()) err.textContent = 'Escribí tu RUC con números, por ejemplo 4567891-1.'; return; }
+  var t = parseInt(digits(base).slice(-1), 10);
+
+  /* próximo vencimiento desde hoy: revisa el período anterior y los siguientes */
+  var filas = '', prox = null;
+  for (var k = -1; k <= 11; k++) {
+    var per = ymSumar(ymHoy, k), v = vencimiento(base, per);
+    if (!prox && v >= hoy) prox = {per:per, v:v};
+    if (k >= 0 || v >= hoy) {
+      var clase = v === hoy ? 'hoy' : (v < hoy ? 'pasado' : '');
+      filas += '<tr class="' + clase + '"><td>' + ymLargo(per) + '</td><td>' + corto(v) + '</td></tr>';
+    }
+  }
+  var n = dias(hoy, prox.v);
+  document.getElementById('proxK').textContent = 'Tu próximo vencimiento (IVA de ' + ymLargo(prox.per) + ')';
+  document.getElementById('proxFecha').textContent = largo(prox.v);
+  document.getElementById('proxFalta').textContent = n === 0 ? '¡Vence hoy!' : (n === 1 ? 'Vence mañana' : 'Faltan ' + n + ' días');
+  document.getElementById('term').innerHTML = 'Tu RUC termina en <b>' + t + '</b>: vence el día <b>' + PERPETUO[t] + '</b> de cada mes, o el lunes siguiente si cae fin de semana.';
+  document.getElementById('filas').innerHTML = filas;
+  document.getElementById('tabla').hidden = false;
+  res.hidden = false;
+  pintarMes(t);
+  try { history.replaceState(null, '', '?ruc=' + encodeURIComponent(valor.trim())); } catch (e) {}
+}
+
+document.getElementById('form').addEventListener('submit', function(e){ e.preventDefault(); mostrar(document.getElementById('ruc').value); });
+var inicial = new URLSearchParams(location.search).get('ruc');
+if (inicial) { document.getElementById('ruc').value = inicial; mostrar(inicial); } else { pintarMes(-1); }
+</script>
+</body>
+</html>
