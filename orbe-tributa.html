@@ -1855,6 +1855,30 @@ Object.assign(window,{irTab,volver,abrirCliente,nuevoCliente,guardarCliente,togg
 
 /* ============================ ARRANQUE EN LA NUBE ============================ */
 
+/* Prueba gratis: 30 días desde el alta. Si el admin cargó "Vencimiento del acceso",
+   esa fecha manda. Sin fechas no se corta nunca (mejor dejar entrar que bloquear por error). */
+const PRUEBA_DIAS=30, AVISO_PRUEBA_DIAS=3;
+function estadoPrueba(sub,ahora){
+  let fin=null;
+  if(sub.expires_at) fin=new Date(sub.expires_at).getTime();
+  else if(sub.created_at) fin=new Date(sub.created_at).getTime()+PRUEBA_DIAS*86400000;
+  if(fin===null||isNaN(fin)) return null;
+  const dias=Math.ceil((fin-ahora)/86400000);
+  return {vencida:dias<=0, dias};
+}
+function avisoPrueba(dias){
+  if(document.getElementById('avisoPrueba')) return;
+  const msg=encodeURIComponent('Hola! Quiero contratar orbe tributa. Mi correo de la cuenta es: '+USER_EMAIL);
+  const txt=dias===1?'Te queda 1 día de prueba.':'Te quedan '+dias+' días de prueba.';
+  document.body.insertAdjacentHTML('afterbegin',
+    '<div id="avisoPrueba" style="position:sticky;top:0;z-index:50;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;'
+    +'padding:10px 16px;background:var(--warn-bg);color:var(--warn);border-bottom:1px solid #EBD3AE;font:600 14px/1.4 sans-serif;text-align:center">'
+    +'<span>'+txt+' Elegí tu plan para seguir usando orbe tributa sin cortes; tus datos quedan guardados.</span>'
+    +'<a href="https://orbepy.com/?consulta='+msg+'#contacto" target="_blank" rel="noopener" style="background:var(--brand);color:#fff;text-decoration:none;padding:6px 14px;border-radius:8px;font-weight:600">Ver planes</a>'
+    +'<button onclick="this.parentNode.remove()" aria-label="Cerrar aviso" style="background:none;border:none;color:var(--warn);font-size:18px;cursor:pointer;line-height:1">&times;</button>'
+    +'</div>');
+}
+
 function mostrarPrecios(){
   const planes=[
     {id:'inicial',   n:'Inicial',      t:'Hasta 15 contribuyentes',  p:'150.000'},
@@ -1909,11 +1933,20 @@ async function boot(){
   }
 
   // 2.5) Verificar que el acceso del estudio est\u00e9 habilitado
+  let diasAviso=null;
   try{
-    const {data:sub}=await sb.from('subscriptions').select('status').eq('account_id',ACCOUNT_ID).maybeSingle();
+    const {data:sub}=await sb.from('subscriptions').select('status,expires_at,created_at').eq('account_id',ACCOUNT_ID).maybeSingle();
     if(sub && sub.status==='inactive'){
       mostrarPrecios();
       return;
+    }
+    /* prueba de 30 d\u00edas: solo cuentas en prueba; las de administrador nunca se cortan */
+    if(sub && sub.status==='trial'){
+      let esAdmin=false;
+      try{ const {data}=await sb.rpc('es_admin'); esAdmin=!!data; }catch(e){}
+      const ep=esAdmin?null:estadoPrueba(sub,Date.now());
+      if(ep && ep.vencida){ mostrarPrecios(); return; }
+      if(ep && ep.dias<=AVISO_PRUEBA_DIAS) diasAviso=ep.dias;
     }
   }catch(e){ /* si no se puede leer el estado, no bloqueamos el ingreso */ }
 
@@ -1925,6 +1958,7 @@ async function boot(){
 
   // 4) Mostrar la app
   render();
+  if(diasAviso!==null) avisoPrueba(diasAviso);
 }
 boot();
 </script>
