@@ -84,7 +84,7 @@ input::placeholder{color:#8a92ab}
 
 #res[hidden],#tabla[hidden]{display:none}
 .prox{margin-top:22px;padding:20px;border-radius:14px;background:linear-gradient(135deg,rgba(200,255,77,.12),rgba(61,215,208,.06));border:1px solid rgba(200,255,77,.28)}
-.prox .k{font-size:13px;color:var(--mut)}
+.prox .k{font-size:13px;color:#a7afc2}
 .prox .num{font-size:clamp(26px,5vw,34px);font-weight:700;letter-spacing:-.02em;margin:4px 0 2px}
 .prox .falta{font-weight:600;color:var(--lime)}
 .term{margin-top:14px;font-size:14px;color:var(--mut)}
@@ -139,7 +139,7 @@ footer a{color:var(--mut)}footer a:hover{color:var(--ink)}
   <form class="box" id="form" autocomplete="off">
     <label for="ruc">Tu RUC</label>
     <div class="row">
-      <input id="ruc" name="ruc" inputmode="numeric" placeholder="Ej: 4567891-1" aria-describedby="ayuda">
+      <input id="ruc" name="ruc" inputmode="numeric" placeholder="Ej: 1234567-8" aria-describedby="ayuda">
       <button class="btn btn-lime" type="submit">Ver vencimientos</button>
     </div>
     <p class="hint" id="ayuda">Con el dígito verificador después del guion. Solo se usa el último número antes del guion.</p>
@@ -235,7 +235,7 @@ function mostrar(valor){
   var err = document.getElementById('err'), res = document.getElementById('res');
   err.textContent = '';
   var base = rucBase(valor);
-  if (!digits(base)) { res.hidden = true; pintarMes(-1); if (valor.trim()) err.textContent = 'Escribí tu RUC con números, por ejemplo 4567891-1.'; return; }
+  if (!digits(base)) { res.hidden = true; pintarMes(-1); if (valor.trim()) err.textContent = 'Escribí tu RUC con números, por ejemplo 1234567-8.'; return; }
   var t = parseInt(digits(base).slice(-1), 10);
 
   /* próximo vencimiento desde hoy: revisa el período anterior y los siguientes */
@@ -257,12 +257,11 @@ function mostrar(valor){
   document.getElementById('tabla').hidden = false;
   res.hidden = false;
   pintarMes(t);
-  try { history.replaceState(null, '', '?ruc=' + encodeURIComponent(valor.trim())); } catch (e) {}
 }
 
 document.getElementById('form').addEventListener('submit', function(e){ e.preventDefault(); mostrar(document.getElementById('ruc').value); });
-var inicial = new URLSearchParams(location.search).get('ruc');
-if (inicial) { document.getElementById('ruc').value = inicial; mostrar(inicial); } else { pintarMes(-1); }
+/* El RUC nunca va en la dirección de la página: solo vive en el campo mientras la persona la usa. */
+pintarMes(-1);
 </script>
 </body>
 </html>
