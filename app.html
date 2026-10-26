@@ -342,7 +342,7 @@
     function traducir(errMsg){
       const m = (errMsg || '').toLowerCase();
       if(m.includes('invalid login credentials')) return 'Correo o contraseña incorrectos.';
-      if(m.includes('email not confirmed'))       return 'Todavía no confirmaste tu correo. Revisá tu bandeja de entrada.';
+      if(m.includes('email not confirmed'))       return 'Todavía no confirmaste tu correo. Buscá el mail de cuentas@orbepy.com (revisá también Spam) o entrá con Google.';
       if(m.includes('user already registered') || m.includes('already been registered')) return 'Ese correo ya está registrado. Probá iniciar sesión.';
       if(m.includes('password should be at least')) return 'La contraseña tiene que tener al menos 6 caracteres.';
       if(m.includes('unable to validate email') || m.includes('invalid email')) return 'Ese correo no parece válido.';
@@ -369,17 +369,16 @@
       }
 
       submitBtn.disabled = true;
-      const original = submitBtn.textContent;
       submitBtn.textContent = mode === 'signup' ? 'Creando…' : 'Ingresando…';
 
       try{
         if(mode === 'signup'){
-          const { data, error } = await sb.auth.signUp({ email, password });
+          const { data, error } = await sb.auth.signUp({ email, password, options: { emailRedirectTo: location.origin + '/app.html' } });
           if(error){ showMsg(traducir(error.message), 'error'); }
           else if(data.session){ mostrarHome(data.session); }
           else{
-            showMsg('¡Listo! Te enviamos un correo a ' + email + ' para confirmar tu cuenta. Confirmalo y después iniciá sesión.', 'ok');
-            setMode('login');
+            setMode('login');   /* primero el modo (borra mensajes) y después el aviso, para que se vea */
+            showMsg('¡Listo! Te enviamos un correo a ' + email + ' (de cuentas@orbepy.com) para confirmar tu cuenta. Si no lo ves en unos minutos, revisá Spam o Promociones. También podés entrar con Google, sin confirmar nada.', 'ok');
           }
         }else{
           const { data, error } = await sb.auth.signInWithPassword({ email, password });
@@ -390,7 +389,7 @@
         showMsg('No se pudo conectar. Revisá tu internet y probá de nuevo.', 'error');
       }finally{
         submitBtn.disabled = false;
-        submitBtn.textContent = original;
+        submitBtn.textContent = mode === 'signup' ? 'Crear cuenta' : 'Iniciar sesión';
       }
     });
 
