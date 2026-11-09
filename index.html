@@ -628,8 +628,9 @@ h2{font-size:clamp(27px,3.9vw,44px);line-height:1.12;font-weight:700;letter-spac
     <div class="btns">
       <a class="btn btn-lime btn-big" href="#contacto" data-abrir-form>Hablar con Orbe
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></a>
+      <a class="btn btn-ghost btn-big" href="https://wa.me/595982702613?text=Hola%20Orbe%2C%20tengo%20un%20proceso%20que%20me%20hace%20perder%20tiempo%20todos%20los%20d%C3%ADas." target="_blank" rel="noopener">Escribinos por WhatsApp</a>
     </div>
-    <p class="contacto-line">Dejanos tu mensaje y te respondemos por correo.</p>
+    <p class="contacto-line">WhatsApp <a href="https://wa.me/595982702613" target="_blank" rel="noopener">+595 982 702 613</a> · o dejanos tu mensaje y te respondemos por correo.</p>
   </div>
 </div></section>
 
@@ -679,6 +680,7 @@ h2{font-size:clamp(27px,3.9vw,44px);line-height:1.12;font-weight:700;letter-spac
       <button class="btn btn-lime" type="submit" id="btnEnviar">Enviar mensaje</button>
       <div class="aviso" id="avisoForm" role="status" aria-live="polite"></div>
     </form>
+    <p class="modal-pie">¿Preferís algo más rápido? Escribinos por <a href="https://wa.me/595982702613" target="_blank" rel="noopener">WhatsApp</a>.</p>
   </div>
 </div>
 
@@ -789,7 +791,7 @@ var ENVIO_URL = 'https://script.google.com/macros/s/AKfycbzsZYIpO37TkoUMsmcdaJlf
       mostrarAviso('Listo, nos llegó. Te respondemos a ' + datos.correo + '.', 'bien');
       btnEnviar.textContent = 'Enviar mensaje';
     })['catch'](function(){
-      mostrarAviso('No pudimos enviarlo. Probá de nuevo en unos minutos.', 'mal');
+      mostrarAviso('No pudimos enviarlo. Probá de nuevo o escribinos por <a href="https://wa.me/595982702613" target="_blank" rel="noopener">WhatsApp</a>.', 'mal');
       btnEnviar.disabled = false; btnEnviar.textContent = 'Enviar mensaje';
     }).then(function(){ btnEnviar.disabled = false; });
   });
